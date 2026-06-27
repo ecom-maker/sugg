@@ -9,14 +9,14 @@ export default async function AgencyStudentsPage() {
   const user = await requireRole(["AGENCY_ADMIN", "AGENCY_COUNSELOR"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
   });
 
   const referrals = agency
-    ? await prisma.agencyReferral.findMany({
+    ? await prisma.studentReferral.findMany({
         where: { agencyId: agency.id },
         orderBy: { createdAt: "desc" },
-        include: { student: { select: { fullName: true, email: true, phone: true } } },
+        include: { student: { select: { name: true, email: true, mobile: true } } },
       })
     : [];
 
@@ -33,22 +33,20 @@ export default async function AgencyStudentsPage() {
             <tr>
               <th className="text-left px-4 py-3 font-medium">Student</th>
               <th className="text-left px-4 py-3 font-medium">Contact</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium">Date</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {referrals.length === 0 ? (
-              <tr><td colSpan={4} className="text-center py-12 text-muted-foreground">
+              <tr><td colSpan={3} className="text-center py-12 text-muted-foreground">
                 <Users className="w-6 h-6 mx-auto mb-1 opacity-30" />
                 No students referred yet
               </td></tr>
             ) : (
               referrals.map((r) => (
                 <tr key={r.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{r.student.fullName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.student.email ?? r.student.phone}</td>
-                  <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-muted">{r.status}</span></td>
+                  <td className="px-4 py-3 font-medium">{r.student.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{r.student.email ?? r.student.mobile}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("en-IN")}</td>
                 </tr>
               ))

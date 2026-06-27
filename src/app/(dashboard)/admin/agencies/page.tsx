@@ -11,7 +11,7 @@ export default async function AdminAgenciesPage() {
   const agencies = await prisma.agency.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { users: true, commissions: true } },
+      _count: { select: { agencyUsers: true, commissions: true } },
     },
   });
 
@@ -47,7 +47,7 @@ export default async function AdminAgenciesPage() {
                 {agency.website && <div className="flex items-center gap-2"><Globe className="w-3 h-3" />{agency.website}</div>}
               </div>
               <div className="pt-2 border-t flex justify-between text-xs text-muted-foreground">
-                <span>{agency._count.users} staff</span>
+                <span>{agency._count.agencyUsers} staff</span>
                 <span>{agency._count.commissions} commissions</span>
               </div>
             </div>

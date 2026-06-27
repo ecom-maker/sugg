@@ -9,7 +9,7 @@ export default async function CollegeProfilePage() {
   const user = await requireRole(["COLLEGE_ADMIN"]);
 
   const college = await prisma.college.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
   });
 
   if (!college) {
@@ -42,16 +42,16 @@ export default async function CollegeProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 pt-4 border-t">
-          {college.email && (
+          {college.officialEmail && (
             <div className="flex items-center gap-3 text-sm">
               <Mail className="w-4 h-4 text-muted-foreground" />
-              <span>{college.email}</span>
+              <span>{college.officialEmail}</span>
             </div>
           )}
-          {college.phone && (
+          {college.contactPhone && (
             <div className="flex items-center gap-3 text-sm">
               <Phone className="w-4 h-4 text-muted-foreground" />
-              <span>{college.phone}</span>
+              <span>{college.contactPhone}</span>
             </div>
           )}
           {college.website && (

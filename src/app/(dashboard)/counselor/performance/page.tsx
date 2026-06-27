@@ -9,13 +9,13 @@ export default async function PerformancePage() {
   const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
 
   const [totalLeads, convertedLeads, pendingFollowups, callsThisMonth] = await Promise.all([
-    prisma.lead.count({ where: { assignedCounselor: { supabaseId: user.supabaseId } } }),
-    prisma.lead.count({ where: { assignedCounselor: { supabaseId: user.supabaseId }, status: "ADMISSION_CONFIRMED" } }),
-    prisma.leadFollowup.count({ where: { lead: { assignedCounselor: { supabaseId: user.supabaseId } }, isCompleted: false } }),
-    prisma.callLog.count({
+    prisma.lead.count({ where: { assignedTo: { supabaseId: user.supabaseId } } }),
+    prisma.lead.count({ where: { assignedTo: { supabaseId: user.supabaseId }, status: "ADMISSION_CONFIRMED" } }),
+    prisma.leadFollowup.count({ where: { user: { supabaseId: user.supabaseId }, status: { not: "COMPLETED" } } }),
+    prisma.call.count({
       where: {
-        counselor: { supabaseId: user.supabaseId },
-        calledAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
+        user: { supabaseId: user.supabaseId },
+        createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
       },
     }),
   ]);

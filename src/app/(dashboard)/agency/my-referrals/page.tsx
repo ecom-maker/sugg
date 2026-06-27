@@ -8,13 +8,11 @@ export const metadata: Metadata = { title: "My Referrals" };
 export default async function MyReferralsPage() {
   const user = await requireRole(["AGENCY_COUNSELOR", "AGENCY_ADMIN"]);
 
-  const referrals = await prisma.agencyReferral.findMany({
-    where: { referredBy: { supabaseId: user.supabaseId } },
+  const referrals = await prisma.studentReferral.findMany({
+    where: { referredById: user.id },
     orderBy: { createdAt: "desc" },
     include: {
-      student: { select: { fullName: true, email: true } },
-      college: { select: { name: true } },
-      course: { select: { name: true } },
+      student: { select: { name: true, email: true, interestedCourse: true, preferredCollege: true } },
     },
   });
 
@@ -35,13 +33,12 @@ export default async function MyReferralsPage() {
           referrals.map((r) => (
             <div key={r.id} className="rounded-lg border bg-card p-4 flex items-center gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-medium">{r.student.fullName}</p>
-                <p className="text-sm text-muted-foreground">{r.college?.name ?? "No college"} · {r.course?.name ?? "No course"}</p>
+                <p className="font-medium">{r.student.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {r.student.preferredCollege ?? "No college"} · {r.student.interestedCourse ?? "No course"}
+                </p>
               </div>
-              <div className="text-right">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-muted">{r.status}</span>
-                <p className="text-xs text-muted-foreground mt-1">{new Date(r.createdAt).toLocaleDateString("en-IN")}</p>
-              </div>
+              <p className="text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("en-IN")}</p>
             </div>
           ))
         )}

@@ -9,7 +9,7 @@ export default async function CollegeCoursesPage() {
   const user = await requireRole(["COLLEGE_ADMIN"]);
 
   const college = await prisma.college.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
     include: {
       courses: {
         orderBy: { createdAt: "desc" },
@@ -39,7 +39,7 @@ export default async function CollegeCoursesPage() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-medium">{course.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{course.degree ?? ""} · {course.durationMonths ?? "?"} months</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{course.degreeType} · {course.durationMonths ?? "?"} months</p>
                 </div>
                 <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full ${course.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                   {course.isActive ? "Active" : "Inactive"}
@@ -47,8 +47,8 @@ export default async function CollegeCoursesPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="bg-muted/50 rounded p-2">
-                  <p className="text-xs text-muted-foreground">Tuition Fee</p>
-                  <p className="font-semibold">₹{Number(course.tuitionFee ?? 0).toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-muted-foreground">Total Fee</p>
+                  <p className="font-semibold">₹{Number(course.totalFee ?? 0).toLocaleString("en-IN")}</p>
                 </div>
                 <div className="bg-muted/50 rounded p-2">
                   <p className="text-xs text-muted-foreground">Applications</p>

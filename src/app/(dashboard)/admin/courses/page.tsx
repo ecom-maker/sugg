@@ -12,7 +12,7 @@ export default async function AdminCoursesPage() {
     orderBy: { createdAt: "desc" },
     include: {
       college: { select: { name: true } },
-      _count: { select: { leads: true, applications: true } },
+      _count: { select: { applications: true } },
     },
   });
 
@@ -44,12 +44,12 @@ export default async function AdminCoursesPage() {
                 </span>
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
+                <div className="flex justify-between"><span>Degree</span><span className="text-foreground">{course.degreeType}</span></div>
                 <div className="flex justify-between"><span>Duration</span><span className="text-foreground">{course.durationMonths ?? "—"} months</span></div>
-                <div className="flex justify-between"><span>Fee</span><span className="text-foreground">₹{Number(course.tuitionFee ?? 0).toLocaleString("en-IN")}</span></div>
+                <div className="flex justify-between"><span>Total Fee</span><span className="text-foreground">₹{Number(course.totalFee ?? 0).toLocaleString("en-IN")}</span></div>
               </div>
-              <div className="pt-2 border-t flex justify-between text-xs text-muted-foreground">
-                <span>{course._count.leads} leads</span>
-                <span>{course._count.applications} applications</span>
+              <div className="pt-2 border-t text-xs text-muted-foreground">
+                {course._count.applications} applications
               </div>
             </div>
           ))

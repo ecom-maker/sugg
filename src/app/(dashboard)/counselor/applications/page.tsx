@@ -6,7 +6,6 @@ import { FileText } from "lucide-react";
 export const metadata: Metadata = { title: "Applications" };
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
   SUBMITTED: "bg-blue-100 text-blue-700",
   UNDER_REVIEW: "bg-yellow-100 text-yellow-700",
   ACCEPTED: "bg-green-100 text-green-700",
@@ -18,11 +17,11 @@ export default async function CounselorApplicationsPage() {
   const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
 
   const applications = await prisma.application.findMany({
-    where: { counselor: { supabaseId: user.supabaseId } },
+    where: user.role === "SUGG_COUNSELOR" ? { submittedById: user.id } : {},
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      student: { select: { fullName: true } },
+      student: { select: { name: true } },
       college: { select: { name: true } },
       course: { select: { name: true } },
     },
@@ -46,7 +45,7 @@ export default async function CounselorApplicationsPage() {
             <div key={app.id} className="rounded-lg border bg-card p-4 flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium">{app.student.fullName}</p>
+                  <p className="font-medium">{app.student.name}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[app.status] ?? ""}`}>{app.status.replace(/_/g, " ")}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-0.5">{app.college.name} · {app.course.name}</p>

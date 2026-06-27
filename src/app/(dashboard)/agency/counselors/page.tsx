@@ -9,11 +9,15 @@ export default async function AgencyCounselorsPage() {
   const user = await requireRole(["AGENCY_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
-    include: { users: { where: { role: "AGENCY_COUNSELOR" } } },
+    where: { admin: { supabaseId: user.supabaseId } },
+    include: {
+      agencyUsers: {
+        include: { user: { select: { id: true, fullName: true, email: true, phone: true, isActive: true } } },
+      },
+    },
   });
 
-  const counselors = agency?.users ?? [];
+  const counselors = agency?.agencyUsers.map((au) => au.user) ?? [];
 
   return (
     <div className="p-6 space-y-6">

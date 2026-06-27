@@ -8,18 +8,11 @@ export const metadata: Metadata = { title: "Calls" };
 export default async function CallsPage() {
   const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
 
-  const calls = await prisma.callLog.findMany({
-    where: { counselor: { supabaseId: user.supabaseId } },
-    orderBy: { calledAt: "desc" },
+  const calls = await prisma.call.findMany({
+    where: { user: { supabaseId: user.supabaseId } },
+    orderBy: { createdAt: "desc" },
     take: 50,
-    include: { student: { select: { fullName: true, phone: true } } },
   });
-
-  const CallIcon = (type: string) => {
-    if (type === "INBOUND") return <PhoneIncoming className="w-4 h-4 text-green-600" />;
-    if (type === "MISSED") return <PhoneMissed className="w-4 h-4 text-red-600" />;
-    return <PhoneOutgoing className="w-4 h-4 text-blue-600" />;
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -35,20 +28,25 @@ export default async function CallsPage() {
             No calls logged yet
           </div>
         ) : (
-          calls.map((call) => (
-            <div key={call.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
-              <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
-                {CallIcon(call.callType)}
+          calls.map((call) => {
+            const Icon = call.type === "INBOUND" ? PhoneIncoming
+              : call.status === "MISSED" ? PhoneMissed
+              : PhoneOutgoing;
+            return (
+              <div key={call.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <Icon className={`w-4 h-4 ${call.type === "INBOUND" ? "text-green-600" : call.status === "MISSED" ? "text-red-600" : "text-blue-600"}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">{call.phoneNumber}</p>
+                  <p className="text-xs text-muted-foreground">{call.type} · {call.status} {call.duration ? `· ${Math.round(call.duration / 60)}m` : ""}</p>
+                </div>
+                <div className="text-right text-sm text-muted-foreground">
+                  {new Date(call.createdAt).toLocaleDateString("en-IN")}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium">{call.student?.fullName ?? call.phoneNumber}</p>
-                <p className="text-xs text-muted-foreground">{call.callType} · {call.durationSeconds ? `${Math.round(call.durationSeconds / 60)}m` : "No answer"}</p>
-              </div>
-              <div className="text-right text-sm text-muted-foreground">
-                {new Date(call.calledAt).toLocaleDateString("en-IN")}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

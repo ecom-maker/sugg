@@ -9,7 +9,7 @@ export default async function AgencyProfilePage() {
   const user = await requireRole(["AGENCY_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
   });
 
   if (!agency) {
@@ -44,7 +44,7 @@ export default async function AgencyProfilePage() {
           {agency.email && <div className="flex items-center gap-3"><Mail className="w-4 h-4 text-muted-foreground" />{agency.email}</div>}
           {agency.phone && <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-muted-foreground" />{agency.phone}</div>}
           {agency.website && <div className="flex items-center gap-3"><Globe className="w-4 h-4 text-muted-foreground" /><a href={agency.website} className="text-primary hover:underline" target="_blank">{agency.website}</a></div>}
-          {(agency.city ?? agency.country) && <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-muted-foreground" />{[agency.city, agency.state, agency.country].filter(Boolean).join(", ")}</div>}
+          {(agency.city ?? agency.country) && <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-muted-foreground" />{[agency.city, agency.country].filter(Boolean).join(", ")}</div>}
         </div>
       </div>
     </div>

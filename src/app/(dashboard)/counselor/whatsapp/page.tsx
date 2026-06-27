@@ -11,7 +11,7 @@ export default async function WhatsAppPage() {
   const messages = await prisma.whatsappMessage.findMany({
     take: 50,
     orderBy: { createdAt: "desc" },
-    include: { student: { select: { fullName: true, phone: true } } },
+    include: { student: { select: { name: true, mobile: true } } },
   });
 
   return (
@@ -37,7 +37,7 @@ export default async function WhatsAppPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-sm">{msg.student?.fullName ?? msg.fromPhone}</p>
+                    <p className="font-medium text-sm">{msg.student.name}</p>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${msg.direction === "INBOUND" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
                         {msg.direction}
@@ -45,7 +45,7 @@ export default async function WhatsAppPage() {
                       <span className="text-xs text-muted-foreground">{new Date(msg.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5 truncate">{msg.content ?? `[${msg.messageType}]`}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5 truncate">{msg.content ?? `[${msg.type}]`}</p>
                 </div>
               </div>
             ))}

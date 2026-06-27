@@ -6,7 +6,6 @@ import { FileText } from "lucide-react";
 export const metadata: Metadata = { title: "Applications" };
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
   SUBMITTED: "bg-blue-100 text-blue-700",
   UNDER_REVIEW: "bg-yellow-100 text-yellow-700",
   ACCEPTED: "bg-green-100 text-green-700",
@@ -18,7 +17,7 @@ export default async function CollegeApplicationsPage() {
   const user = await requireRole(["COLLEGE_ADMIN"]);
 
   const college = await prisma.college.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
   });
 
   const applications = college
@@ -27,7 +26,7 @@ export default async function CollegeApplicationsPage() {
         orderBy: { createdAt: "desc" },
         take: 50,
         include: {
-          student: { select: { fullName: true, email: true } },
+          student: { select: { name: true, email: true } },
           course: { select: { name: true } },
         },
       })
@@ -60,8 +59,8 @@ export default async function CollegeApplicationsPage() {
               applications.map((app) => (
                 <tr key={app.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
-                    <div className="font-medium">{app.student.fullName}</div>
-                    <div className="text-xs text-muted-foreground">{app.student.email}</div>
+                    <div className="font-medium">{app.student.name}</div>
+                    <div className="text-xs text-muted-foreground">{app.student.email ?? ""}</div>
                   </td>
                   <td className="px-4 py-3">{app.course.name}</td>
                   <td className="px-4 py-3">

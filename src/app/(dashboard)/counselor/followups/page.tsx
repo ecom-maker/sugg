@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
-import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Calendar } from "lucide-react";
 
@@ -8,13 +7,12 @@ export const metadata: Metadata = { title: "Follow-ups" };
 
 export default async function FollowupsPage() {
   const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
-  const authUser = await getAuthUser();
 
   const followups = await prisma.leadFollowup.findMany({
-    where: authUser?.role === "SUGG_COUNSELOR" ? { createdBy: { supabaseId: authUser.supabaseId } } : {},
-    orderBy: { scheduledAt: "asc" },
+    where: user.role === "SUGG_COUNSELOR" ? { user: { supabaseId: user.supabaseId } } : {},
+    orderBy: { dueAt: "asc" },
     include: {
-      lead: { include: { student: { select: { fullName: true } } } },
+      lead: { include: { student: { select: { name: true } } } },
     },
     take: 50,
   });
@@ -36,7 +34,8 @@ export default async function FollowupsPage() {
           </div>
         ) : (
           followups.map((f) => {
-            const isOverdue = new Date(f.scheduledAt) < now && !f.isCompleted;
+            const isOverdue = new Date(f.dueAt) < now && f.status !== "COMPLETED";
+            const isDone = f.status === "COMPLETED";
             return (
               <div key={f.id} className={`rounded-lg border p-4 flex items-start gap-4 ${isOverdue ? "border-red-200 bg-red-50/50" : "bg-card"}`}>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isOverdue ? "bg-red-100" : "bg-blue-50"}`}>
@@ -44,13 +43,14 @@ export default async function FollowupsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium">{f.lead.student.fullName}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${f.isCompleted ? "bg-green-100 text-green-700" : isOverdue ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
-                      {f.isCompleted ? "Done" : isOverdue ? "Overdue" : "Pending"}
+                    <p className="font-medium">{f.lead.student.name}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDone ? "bg-green-100 text-green-700" : isOverdue ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
+                      {isDone ? "Done" : isOverdue ? "Overdue" : "Pending"}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">{f.notes ?? "No notes"}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{new Date(f.scheduledAt).toLocaleString("en-IN")}</p>
+                  <p className="font-medium text-sm">{f.title}</p>
+                  {f.description && <p className="text-sm text-muted-foreground mt-0.5">{f.description}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(f.dueAt).toLocaleString("en-IN")}</p>
                 </div>
               </div>
             );

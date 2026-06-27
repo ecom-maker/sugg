@@ -26,7 +26,7 @@ export default async function AdminAuditLogsPage() {
           <thead className="bg-muted/50">
             <tr>
               <th className="text-left px-4 py-3 font-medium">Action</th>
-              <th className="text-left px-4 py-3 font-medium">Entity</th>
+              <th className="text-left px-4 py-3 font-medium">Resource</th>
               <th className="text-left px-4 py-3 font-medium">User</th>
               <th className="text-left px-4 py-3 font-medium">IP</th>
               <th className="text-left px-4 py-3 font-medium">Time</th>
@@ -46,7 +46,9 @@ export default async function AdminAuditLogsPage() {
                   <td className="px-4 py-3">
                     <span className="inline-flex px-2 py-0.5 rounded text-xs font-mono bg-muted">{log.action}</span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{log.entityType} <span className="font-mono text-xs">{log.entityId.slice(0, 8)}…</span></td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {log.resource} {log.resourceId ? <span className="font-mono text-xs">{log.resourceId.slice(0, 8)}…</span> : ""}
+                  </td>
                   <td className="px-4 py-3">
                     <div>{log.user?.fullName ?? "System"}</div>
                     <div className="text-xs text-muted-foreground">{log.user?.role?.replace(/_/g, " ")}</div>

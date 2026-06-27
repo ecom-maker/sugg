@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { BarChart3, FileText, BookOpen, DollarSign } from "lucide-react";
+import { FileText, BookOpen, DollarSign } from "lucide-react";
 
 export const metadata: Metadata = { title: "Analytics" };
 
@@ -9,7 +9,7 @@ export default async function CollegeAnalyticsPage() {
   const user = await requireRole(["COLLEGE_ADMIN"]);
 
   const college = await prisma.college.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
     include: { _count: { select: { courses: true, applications: true, commissions: true } } },
   });
 

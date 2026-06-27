@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Filter } from "lucide-react";
@@ -12,11 +11,10 @@ export const metadata: Metadata = { title: "Students & Leads" };
 const STATUS_COLORS: Record<string, string> = {
   NEW: "bg-blue-100 text-blue-700",
   CONTACTED: "bg-yellow-100 text-yellow-700",
-  INTERESTED: "bg-purple-100 text-purple-700",
-  APPLIED: "bg-orange-100 text-orange-700",
+  QUALIFIED: "bg-purple-100 text-purple-700",
+  APPLICATION_SUBMITTED: "bg-orange-100 text-orange-700",
   ADMISSION_CONFIRMED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  DROPPED: "bg-gray-100 text-gray-700",
+  LOST: "bg-red-100 text-red-700",
 };
 
 export default async function AdminLeadsPage() {
@@ -26,10 +24,8 @@ export default async function AdminLeadsPage() {
     take: 50,
     orderBy: { createdAt: "desc" },
     include: {
-      student: { select: { fullName: true, email: true, phone: true } },
-      assignedCounselor: { select: { fullName: true } },
-      interestedCourse: { select: { name: true } },
-      interestedCollege: { select: { name: true } },
+      student: { select: { name: true, email: true, mobile: true } },
+      assignedTo: { select: { fullName: true } },
     },
   });
 
@@ -59,7 +55,7 @@ export default async function AdminLeadsPage() {
             <tr>
               <th className="text-left px-4 py-3 font-medium">Student</th>
               <th className="text-left px-4 py-3 font-medium">Contact</th>
-              <th className="text-left px-4 py-3 font-medium">College / Course</th>
+              <th className="text-left px-4 py-3 font-medium">Source</th>
               <th className="text-left px-4 py-3 font-medium">Counselor</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium">Date</th>
@@ -71,16 +67,13 @@ export default async function AdminLeadsPage() {
             ) : (
               leads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{lead.student.fullName}</td>
+                  <td className="px-4 py-3 font-medium">{lead.student.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    <div>{lead.student.email}</div>
-                    <div>{lead.student.phone}</div>
+                    <div>{lead.student.email ?? "—"}</div>
+                    <div>{lead.student.mobile}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div>{lead.interestedCollege?.name ?? "—"}</div>
-                    <div className="text-muted-foreground text-xs">{lead.interestedCourse?.name ?? ""}</div>
-                  </td>
-                  <td className="px-4 py-3">{lead.assignedCounselor?.fullName ?? <span className="text-muted-foreground">Unassigned</span>}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{lead.source}</td>
+                  <td className="px-4 py-3">{lead.assignedTo?.fullName ?? <span className="text-muted-foreground">Unassigned</span>}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status] ?? "bg-gray-100 text-gray-700"}`}>
                       {lead.status.replace(/_/g, " ")}

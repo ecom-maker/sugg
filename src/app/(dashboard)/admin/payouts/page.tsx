@@ -7,8 +7,7 @@ export const metadata: Metadata = { title: "Payouts" };
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-700",
   APPROVED: "bg-blue-100 text-blue-700",
-  PROCESSED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
+  PAID: "bg-green-100 text-green-700",
 };
 
 export default async function AdminPayoutsPage() {
@@ -20,7 +19,7 @@ export default async function AdminPayoutsPage() {
     include: {
       college: { select: { name: true } },
       agency: { select: { name: true } },
-      student: { select: { fullName: true } },
+      application: { include: { student: { select: { name: true } } } },
     },
   });
 
@@ -45,22 +44,20 @@ export default async function AdminPayoutsPage() {
               <th className="text-left px-4 py-3 font-medium">College</th>
               <th className="text-left px-4 py-3 font-medium">Agency</th>
               <th className="text-left px-4 py-3 font-medium">Amount</th>
-              <th className="text-left px-4 py-3 font-medium">Type</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium">Date</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {payouts.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">No payouts yet</td></tr>
+              <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">No payouts yet</td></tr>
             ) : (
               payouts.map((p) => (
                 <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{p.student.fullName}</td>
+                  <td className="px-4 py-3 font-medium">{p.application.student.name}</td>
                   <td className="px-4 py-3">{p.college?.name ?? "—"}</td>
                   <td className="px-4 py-3">{p.agency?.name ?? "—"}</td>
                   <td className="px-4 py-3 font-semibold">₹{Number(p.commissionAmount).toLocaleString("en-IN")}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.commissionType}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[p.status] ?? ""}`}>
                       {p.status}

@@ -9,25 +9,19 @@ export default async function AgencyAnalyticsPage() {
   const user = await requireRole(["AGENCY_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
-    include: { _count: { select: { users: true, commissions: true } } },
+    where: { admin: { supabaseId: user.supabaseId } },
+    include: { _count: { select: { agencyUsers: true, commissions: true } } },
   });
 
   const referralCount = agency
-    ? await prisma.agencyReferral.count({ where: { agencyId: agency.id } })
-    : 0;
-
-  const enrolledCount = agency
-    ? await prisma.agencyReferral.count({ where: { agencyId: agency.id, status: "ENROLLED" } })
+    ? await prisma.studentReferral.count({ where: { agencyId: agency.id } })
     : 0;
 
   const cards = [
     { label: "Total Referrals", value: referralCount, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Enrolled", value: enrolledCount, icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" },
+    { label: "Staff", value: agency?._count.agencyUsers ?? 0, icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" },
     { label: "Commissions", value: agency?._count.commissions ?? 0, icon: DollarSign, color: "text-orange-600", bg: "bg-orange-50" },
   ];
-
-  const conversionRate = referralCount > 0 ? Math.round((enrolledCount / referralCount) * 100) : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -49,16 +43,6 @@ export default async function AgencyAnalyticsPage() {
             </div>
           );
         })}
-      </div>
-
-      <div className="rounded-lg border bg-card p-6">
-        <h2 className="font-semibold mb-3">Conversion Rate</h2>
-        <div className="flex items-center gap-4">
-          <div className="flex-1 h-4 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-green-500 rounded-full" style={{ width: `${conversionRate}%` }} />
-          </div>
-          <span className="text-lg font-bold w-12 text-right">{conversionRate}%</span>
-        </div>
       </div>
     </div>
   );

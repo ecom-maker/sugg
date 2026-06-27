@@ -9,7 +9,7 @@ export default async function AgencyCommissionsPage() {
   const user = await requireRole(["AGENCY_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { users: { some: { supabaseId: user.supabaseId } } },
+    where: { admin: { supabaseId: user.supabaseId } },
   });
 
   const commissions = agency
@@ -17,11 +17,14 @@ export default async function AgencyCommissionsPage() {
         where: { agencyId: agency.id },
         orderBy: { createdAt: "desc" },
         take: 50,
-        include: { student: { select: { fullName: true } }, college: { select: { name: true } } },
+        include: {
+          college: { select: { name: true } },
+          application: { include: { student: { select: { name: true } } } },
+        },
       })
     : [];
 
-  const totalEarned = commissions.filter((c) => c.status === "PROCESSED").reduce((s, c) => s + Number(c.commissionAmount), 0);
+  const totalEarned = commissions.filter((c) => c.status === "PAID").reduce((s, c) => s + Number(c.commissionAmount), 0);
   const totalPending = commissions.filter((c) => c.status === "PENDING").reduce((s, c) => s + Number(c.commissionAmount), 0);
 
   return (
@@ -32,7 +35,7 @@ export default async function AgencyCommissionsPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2 text-green-600 mb-1"><DollarSign className="w-4 h-4" /><span className="text-sm">Earned</span></div>
+          <div className="flex items-center gap-2 text-green-600 mb-1"><DollarSign className="w-4 h-4" /><span className="text-sm">Paid</span></div>
           <p className="text-2xl font-bold">₹{totalEarned.toLocaleString("en-IN")}</p>
         </div>
         <div className="rounded-lg border bg-card p-4">
@@ -58,7 +61,7 @@ export default async function AgencyCommissionsPage() {
             ) : (
               commissions.map((c) => (
                 <tr key={c.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{c.student.fullName}</td>
+                  <td className="px-4 py-3 font-medium">{c.application.student.name}</td>
                   <td className="px-4 py-3">{c.college?.name ?? "—"}</td>
                   <td className="px-4 py-3 font-semibold">₹{Number(c.commissionAmount).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-muted">{c.status}</span></td>
