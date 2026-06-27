@@ -1,0 +1,17 @@
+{
+  "node": {
+    "40aedf95db5c0f8ca20913c05228f4bc3b67398ece": {
+      "workers": {
+        "app/(dashboard)/admin/commissions/page": {
+          "moduleId": 99072,
+          "async": false,
+          "exportedName": "approveCommission",
+          "filename": "src/actions/commissions.ts"
+        }
+      },
+      "exportedName": "approveCommission",
+      "filename": "src/actions/commissions.ts"
+    }
+  },
+  "edge": {}
+}

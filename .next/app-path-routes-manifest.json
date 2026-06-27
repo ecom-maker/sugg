@@ -1,0 +1,19 @@
+{
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/admin/colleges/page": "/admin/colleges",
+  "/(dashboard)/admin/commissions/page": "/admin/commissions",
+  "/(dashboard)/admin/page": "/admin",
+  "/(dashboard)/agency/page": "/agency",
+  "/(dashboard)/college/page": "/college",
+  "/(dashboard)/counselor/leads/page": "/counselor/leads",
+  "/(dashboard)/counselor/page": "/counselor",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/analytics/overview/route": "/api/analytics/overview",
+  "/api/cron/inactivity-followups/route": "/api/cron/inactivity-followups",
+  "/api/notifications/route": "/api/notifications",
+  "/api/whatsapp/send/route": "/api/whatsapp/send",
+  "/api/whatsapp/webhook/route": "/api/whatsapp/webhook",
+  "/page": "/"
+}

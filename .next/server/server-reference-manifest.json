@@ -1,0 +1,30 @@
+{
+  "node": {
+    "706ee476dd0c721ba95fb6558ba9f28a469e3800da": {
+      "workers": {
+        "app/(dashboard)/admin/colleges/page": {
+          "moduleId": 14032,
+          "async": false,
+          "exportedName": "updateCollegeStatus",
+          "filename": "src/actions/colleges.ts"
+        }
+      },
+      "filename": "src/actions/colleges.ts",
+      "exportedName": "updateCollegeStatus"
+    },
+    "40aedf95db5c0f8ca20913c05228f4bc3b67398ece": {
+      "workers": {
+        "app/(dashboard)/admin/commissions/page": {
+          "moduleId": 99072,
+          "async": false,
+          "exportedName": "approveCommission",
+          "filename": "src/actions/commissions.ts"
+        }
+      },
+      "filename": "src/actions/commissions.ts",
+      "exportedName": "approveCommission"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "c2El+DlLG6Wxa2Tb4cSBRi+cBmIB9ZRmadygNuBhAIE="
+}

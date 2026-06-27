@@ -1,0 +1,3 @@
+{
+  "/api/cron/inactivity-followups/route": "app/api/cron/inactivity-followups/route.js"
+}

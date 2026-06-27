@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/inactivity-followups",
+      "schedule": "0 9 * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/whatsapp/webhook/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
