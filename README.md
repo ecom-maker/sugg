@@ -243,3 +243,4 @@ vercel --prod
 
 > **Note**: These are for development only. In production, create users through Supabase Auth and set their roles in the database.
 # sugg
+# sugg
