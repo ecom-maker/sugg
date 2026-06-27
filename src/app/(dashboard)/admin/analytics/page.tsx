@@ -14,7 +14,7 @@ export default async function AdminAnalyticsPage() {
     prisma.application.count(),
     prisma.commissionTransaction.aggregate({
       _sum: { commissionAmount: true },
-      where: { status: "PROCESSED" },
+      where: { status: "PAID" },
     }),
   ]);
 
