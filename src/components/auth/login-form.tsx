@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,11 +33,22 @@ type Step = "input" | "otp";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [step, setStep] = useState<Step>("input");
   const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
   const [pendingEmail, setPendingEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "auth_callback_failed") {
+      toast({
+        title: "Login link expired",
+        description: "The sign-in link has expired. Please request a new one.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams]);
 
   const emailForm = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -58,6 +69,7 @@ export function LoginForm() {
         email: data.email,
         options: {
           shouldCreateUser: false,
+          emailRedirectTo: undefined, // force OTP code, not magic link
         },
       });
 

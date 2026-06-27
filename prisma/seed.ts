@@ -44,12 +44,17 @@ async function main() {
   console.log("✅ Roles created");
 
   // ─── Demo Users ───────────────────────────────────────────────────────────
+  // ⚠️  REPLACE these emails with your real emails before running seed
+  const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@sugg.in";
+  const COUNSELOR1_EMAIL = process.env.SEED_COUNSELOR1_EMAIL ?? "counselor1@sugg.in";
+  const COUNSELOR2_EMAIL = process.env.SEED_COUNSELOR2_EMAIL ?? "counselor2@sugg.in";
+
   const adminUser = await prisma.user.upsert({
-    where: { email: "admin@sugg.in" },
+    where: { email: ADMIN_EMAIL },
     update: {},
     create: {
-      supabaseId: "demo-admin-supabase-id",
-      email: "admin@sugg.in",
+      supabaseId: `admin-${Date.now()}`,
+      email: ADMIN_EMAIL,
       fullName: "Sugg Admin",
       role: "SUPER_ADMIN",
       isActive: true,
@@ -57,11 +62,11 @@ async function main() {
   });
 
   const counselor1 = await prisma.user.upsert({
-    where: { email: "counselor1@sugg.in" },
+    where: { email: COUNSELOR1_EMAIL },
     update: {},
     create: {
-      supabaseId: "demo-counselor1-supabase-id",
-      email: "counselor1@sugg.in",
+      supabaseId: `counselor1-${Date.now()}`,
+      email: COUNSELOR1_EMAIL,
       fullName: "Rahul Kumar",
       role: "SUGG_COUNSELOR",
       isActive: true,
@@ -69,11 +74,11 @@ async function main() {
   });
 
   const counselor2 = await prisma.user.upsert({
-    where: { email: "counselor2@sugg.in" },
+    where: { email: COUNSELOR2_EMAIL },
     update: {},
     create: {
-      supabaseId: "demo-counselor2-supabase-id",
-      email: "counselor2@sugg.in",
+      supabaseId: `counselor2-${Date.now()}`,
+      email: COUNSELOR2_EMAIL,
       fullName: "Priya Sharma",
       role: "SUGG_COUNSELOR",
       isActive: true,
