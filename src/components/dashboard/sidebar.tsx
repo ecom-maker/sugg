@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { AuthUser } from "@/types";
 import {
   GraduationCap,
+  GitBranch,
   LayoutDashboard,
   Users,
   Building2,
@@ -56,6 +57,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Operations",
         items: [
           { title: "Students & Leads", href: "/admin/leads", icon: Users },
+          { title: "Duplicate Students", href: "/admin/students/duplicates", icon: Users },
           { title: "Counselors", href: "/admin/counselors", icon: UserCheck },
           { title: "Applications", href: "/admin/applications", icon: FileText },
         ],
@@ -80,6 +82,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Platform",
         items: [
           { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+          { title: "Hierarchy", href: "/admin/hierarchy", icon: GitBranch },
           { title: "Commission Report", href: "/admin/commission-report", icon: DollarSign },
           { title: "Notifications", href: "/admin/notifications", icon: Bell },
           { title: "Audit Logs", href: "/admin/audit-logs", icon: ClipboardList },
@@ -169,6 +172,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Management",
         items: [
           { title: "Branches", href: "/agency/branches", icon: Building2 },
+          { title: "Teams", href: "/agency/teams", icon: Users },
           { title: "All Staff", href: "/agency/staff", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
         ],
@@ -189,6 +193,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "Reports",
         items: [
+          { title: "Hierarchy", href: "/admin/hierarchy", icon: GitBranch },
           { title: "Analytics", href: "/agency/analytics", icon: BarChart3 },
           { title: "Branch Reports", href: "/agency/reports", icon: ClipboardList },
         ],
@@ -211,6 +216,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Management",
         items: [
           { title: "Branches", href: "/agency/branches", icon: Building2 },
+          { title: "Teams", href: "/agency/teams", icon: Users },
           { title: "Counselors", href: "/agency/counselors", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
         ],
@@ -230,6 +236,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "Reports",
         items: [
+          { title: "Hierarchy", href: "/admin/hierarchy", icon: GitBranch },
           { title: "Analytics", href: "/agency/analytics", icon: BarChart3 },
         ],
       },
@@ -245,6 +252,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "My Branch",
         items: [
           { title: "Counselors", href: "/branch/counselors", icon: UserCheck },
+          { title: "Teams", href: "/branch/teams", icon: Users },
           { title: "Students", href: "/branch/students", icon: Users },
           { title: "Leads", href: "/branch/leads", icon: Users },
         ],

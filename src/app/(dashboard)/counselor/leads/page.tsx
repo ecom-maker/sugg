@@ -42,6 +42,7 @@ export default async function CounselorLeadsPage({
       include: {
         student: {
           select: {
+            id: true,
             name: true,
             mobile: true,
             email: true,

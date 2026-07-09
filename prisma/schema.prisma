@@ -58,6 +58,22 @@ enum UniversityType {
   INTERNATIONAL
 }
 
+enum GeoStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TeamStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum TeamMemberStatus {
+  ACTIVE
+  REMOVED
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -108,6 +124,9 @@ enum NotificationType {
   COLLEGE_REJECTED
   NEW_COLLEGE_REGISTRATION
   NEW_REFERRAL
+  DOCUMENT_EXPIRING
+  POSSIBLE_DUPLICATE
+  STUDENT_ANONYMIZED
   INFO
   SUCCESS
   WARNING
@@ -160,6 +179,205 @@ enum AssignmentRule {
   MANUAL
 }
 
+// ─── STUDENT PROFILE ENUMS ────────────────────────────────────────────────────
+
+enum StudentDocumentType {
+  TENTH_MARKSHEET
+  TWELFTH_MARKSHEET
+  BACHELOR_DEGREE
+  BACHELOR_TRANSCRIPT
+  MASTER_DEGREE
+  PASSPORT
+  NATIONAL_ID
+  PHOTO
+  IELTS_SCORE
+  TOEFL_SCORE
+  PTE_SCORE
+  GRE_SCORE
+  GMAT_SCORE
+  SOP
+  LOR
+  RESUME
+  WORK_EXPERIENCE_LETTER
+  FINANCIAL_STATEMENT
+  OTHER
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum StudentDocumentStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum StudentEducationLevel {
+  TENTH
+  TWELFTH
+  DIPLOMA
+  BACHELOR
+  MASTER
+  DOCTORATE
+  CERTIFICATION
+}
+
+enum GradingSystem {
+  PERCENTAGE
+  CGPA_10
+  CGPA_4
+  GPA
+  GRADE
+}
+
+enum EducationRecordStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum StudentTestType {
+  IELTS
+  TOEFL
+  PTE
+  GRE
+  GMAT
+  SAT
+  DUOLINGO
+  OTHER
+}
+
+enum ShortlistStatus {
+  SHORTLISTED
+  APPLIED
+  OFFER_RECEIVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ConsentType {
+  DATA_PROCESSING
+  CONTACT_WHATSAPP
+  CONTACT_CALL
+  CONTACT_EMAIL
+  SHARE_WITH_COLLEGES
+  SHARE_WITH_AGENCIES
+}
+
+enum ConsentSource {
+  WHATSAPP
+  FORM
+  VERBAL_RECORDED
+  MANUAL
+}
+
+enum DuplicateFlagReason {
+  EMAIL_MATCH
+  MOBILE_COLLISION
+  MANUAL
+}
+
+enum DuplicateFlagStatus {
+  PENDING
+  MERGED
+  DISMISSED
+}
+
+// ─── GEOGRAPHIC HIERARCHY ─────────────────────────────────────────────────────
+
+model Country {
+  id          String    @id @default(cuid())
+  countryName String    @unique @map("country_name")
+  countryCode String    @unique @map("country_code")
+  status      GeoStatus @default(ACTIVE)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  states    State[]
+  branches  AgencyBranch[]
+  colleges  College[]
+  students  Student[]
+  educationHistory StudentEducationHistory[]
+
+  @@map("countries")
+}
+
+model State {
+  id        String    @id @default(cuid())
+  countryId String    @map("country_id")
+  stateName String    @map("state_name")
+  stateCode String?   @map("state_code")
+  status    GeoStatus @default(ACTIVE)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  country   Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  districts District[]
+  branches  AgencyBranch[]
+  colleges  College[]
+  students  Student[]
+
+  @@unique([countryId, stateName])
+  @@map("states")
+}
+
+model District {
+  id           String    @id @default(cuid())
+  stateId      String    @map("state_id")
+  districtName String    @map("district_name")
+  status       GeoStatus @default(ACTIVE)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  state     State          @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  branches  AgencyBranch[]
+  colleges  College[]
+  students  Student[]
+  teams     Team[]
+
+  @@unique([stateId, districtName])
+  @@map("districts")
+}
+
+// ─── TEAMS (GEOGRAPHY-BOUND) ─────────────────────────────────────────────────
+
+model Team {
+  id           String     @id @default(cuid())
+  teamName     String     @map("team_name")
+  districtId   String     @map("district_id")
+  branchId     String     @map("branch_id")
+  teamLeadId   String?    @map("team_lead_id")
+  status       TeamStatus @default(ACTIVE)
+  needsReview  Boolean    @default(false) @map("needs_review")
+  createdById  String?    @map("created_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  district   District    @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  branch     AgencyBranch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  teamLead   AgencyUser?  @relation("TeamLead", fields: [teamLeadId], references: [id], onDelete: SetNull)
+  createdBy  User?        @relation("TeamCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  members    TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id          String           @id @default(cuid())
+  teamId      String           @map("team_id")
+  counselorId String           @map("counselor_id")
+  joinedAt    DateTime         @default(now()) @map("joined_at")
+  status      TeamMemberStatus @default(ACTIVE)
+
+  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  counselor AgencyUser @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, counselorId])
+  @@map("team_members")
+}
+
 // ─── IDENTITY & AUTH ─────────────────────────────────────────────────────────
 
 model User {
@@ -195,6 +413,12 @@ model User {
   counselorCommissions CommissionTransaction[] @relation("CounselorCommissions")
   createdUniversities University[] @relation("UniversityCreator")
   updatedUniversities University[] @relation("UniversityUpdater")
+  createdTeams        Team[]       @relation("TeamCreator")
+  uploadedDocuments   StudentDocument[] @relation("DocumentUploader")
+  verifiedDocuments   StudentDocument[] @relation("DocumentVerifier")
+  shortlistsCreated   StudentShortlist[] @relation("ShortlistCreator")
+  consentsCaptured    StudentConsent[] @relation("ConsentCapturedBy")
+  duplicateReviews    StudentDuplicateFlag[] @relation("DuplicateReviewer")
 
   @@map("users")
 }
@@ -242,43 +466,63 @@ model AuditLog {
 // ─── STUDENTS & LEADS ────────────────────────────────────────────────────────
 
 model Student {
-  id                String     @id @default(cuid())
-  name              String
-  mobile            String     @unique
-  email             String?
-  city              String?
-  country           String?
-  educationLevel    String?    @map("education_level")
-  qualification     String?
-  interestedCourse  String?    @map("interested_course")
-  preferredCollege  String?    @map("preferred_college")
-  preferredCountry  String?    @map("preferred_country")
-  budget            Decimal?   @db.Decimal(12, 2)
-  source            LeadSource @default(WHATSAPP)
-  whatsappId        String?    @unique @map("whatsapp_id")
-  agencyId          String?    @map("agency_id")
-  branchId          String?    @map("branch_id")
-  isActive          Boolean    @default(true) @map("is_active")
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
+  id                     String     @id @default(cuid())
+  name                   String
+  mobile                 String     @unique
+  mobileNumberNormalized String?    @unique @map("mobile_number_normalized")
+  email                  String?
+  city                   String?
+  country                String?
+  educationLevel         String?    @map("education_level")
+  qualification          String?
+  interestedCourse       String?    @map("interested_course")
+  preferredCollege       String?    @map("preferred_college")
+  preferredCountry       String?    @map("preferred_country")
+  budget                 Decimal?   @db.Decimal(12, 2)
+  source                 LeadSource @default(WHATSAPP)
+  whatsappId             String?    @unique @map("whatsapp_id")
+  agencyId               String?    @map("agency_id")
+  branchId               String?    @map("branch_id")
+  countryId              String?    @map("country_id")
+  stateId                String?    @map("state_id")
+  districtId             String?    @map("district_id")
+  isActive               Boolean    @default(true) @map("is_active")
+  isAnonymized           Boolean    @default(false) @map("is_anonymized")
+  mergedIntoId           String?    @map("merged_into_id")
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  lead              Lead?
-  applications      Application[]
-  whatsappMessages  WhatsappMessage[]
-  referral          StudentReferral?
-  agency            Agency?    @relation(fields: [agencyId], references: [id], onDelete: SetNull)
-  branch            AgencyBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  leads                  Lead[]
+  applications           Application[]
+  whatsappMessages       WhatsappMessage[]
+  referral               StudentReferral?
+  agency                 Agency?    @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  branch                 AgencyBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  geoCountry             Country?   @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  geoState               State?     @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  geoDistrict            District?  @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  mergedInto             Student?   @relation("StudentMerge", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedFrom             Student[]  @relation("StudentMerge")
+  documents              StudentDocument[]
+  educationHistory       StudentEducationHistory[]
+  testScores             StudentTestScore[]
+  shortlists             StudentShortlist[]
+  consents               StudentConsent[]
+  duplicateFlagsA        StudentDuplicateFlag[] @relation("DuplicateStudentA")
+  duplicateFlagsB        StudentDuplicateFlag[] @relation("DuplicateStudentB")
+  calls                  Call[]
 
   @@map("students")
 }
 
 model Lead {
   id                String     @id @default(cuid())
-  studentId         String     @unique @map("student_id")
+  studentId         String     @map("student_id")
   source            LeadSource @default(WHATSAPP)
   status            LeadStatus @default(NEW)
   score             Int        @default(0)
+  isCurrent         Boolean    @default(true) @map("is_current")
   assignedToId      String?    @map("assigned_to_id")
   branchId          String?    @map("branch_id")
   assignmentRule    AssignmentRule? @map("assignment_rule")
@@ -295,7 +539,135 @@ model Lead {
   notes             LeadNote[]
   followups         LeadFollowup[]
 
+  @@index([studentId, isCurrent])
   @@map("leads")
+}
+
+// ─── STUDENT PROFILE ──────────────────────────────────────────────────────────
+
+model StudentDocument {
+  id                 String                     @id @default(cuid())
+  studentId          String                     @map("student_id")
+  documentType       StudentDocumentType        @map("document_type")
+  documentName       String                     @map("document_name")
+  fileUrl            String                     @map("file_url")
+  fileSize           Int                        @map("file_size")
+  mimeType           String                     @map("mime_type")
+  verificationStatus DocumentVerificationStatus @default(PENDING) @map("verification_status")
+  verifiedById       String?                    @map("verified_by_id")
+  verifiedAt         DateTime?                  @map("verified_at")
+  expiryDate         DateTime?                  @map("expiry_date")
+  uploadedById       String                     @map("uploaded_by_id")
+  status             StudentDocumentStatus      @default(ACTIVE)
+  createdAt          DateTime                   @default(now()) @map("created_at")
+  updatedAt          DateTime                   @updatedAt @map("updated_at")
+
+  student            Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  verifiedBy         User?                      @relation("DocumentVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  uploadedBy         User                       @relation("DocumentUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+  testScores         StudentTestScore[]
+
+  @@map("student_documents")
+}
+
+model StudentEducationHistory {
+  id               String                @id @default(cuid())
+  studentId        String                @map("student_id")
+  educationLevel   StudentEducationLevel @map("education_level")
+  institutionName  String                @map("institution_name")
+  boardOrUniversity String?              @map("board_or_university")
+  streamOrMajor    String?               @map("stream_or_major")
+  yearOfCompletion Int?                  @map("year_of_completion")
+  gradingSystem    GradingSystem         @map("grading_system")
+  scoreValue       Decimal               @map("score_value") @db.Decimal(8, 2)
+  scoreMax         Decimal?              @map("score_max") @db.Decimal(8, 2)
+  countryId        String?               @map("country_id")
+  migratedFromLegacy Boolean             @default(false) @map("migrated_from_legacy")
+  status           EducationRecordStatus @default(ACTIVE)
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  student          Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  country          Country?              @relation(fields: [countryId], references: [id], onDelete: SetNull)
+
+  @@map("student_education_history")
+}
+
+model StudentTestScore {
+  id             String          @id @default(cuid())
+  studentId      String          @map("student_id")
+  testType       StudentTestType @map("test_type")
+  overallScore   Decimal         @map("overall_score") @db.Decimal(8, 2)
+  sectionScores  Json?           @map("section_scores")
+  testDate       DateTime?       @map("test_date")
+  validUntil     DateTime?       @map("valid_until")
+  documentId     String?         @map("document_id")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  student        Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  document       StudentDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@map("student_test_scores")
+}
+
+model StudentShortlist {
+  id             String          @id @default(cuid())
+  studentId      String          @map("student_id")
+  courseId       String          @map("course_id")
+  collegeId      String          @map("college_id")
+  priority       Int             @default(1)
+  status         ShortlistStatus @default(SHORTLISTED)
+  shortlistedById String         @map("shortlisted_by_id")
+  applicationId  String?         @unique @map("application_id")
+  notes          String?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  student        Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course         Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  college        College         @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  shortlistedBy  User            @relation("ShortlistCreator", fields: [shortlistedById], references: [id], onDelete: Cascade)
+  application    Application?    @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, courseId])
+  @@map("student_shortlists")
+}
+
+model StudentConsent {
+  id                 String        @id @default(cuid())
+  studentId          String        @map("student_id")
+  consentType        ConsentType   @map("consent_type")
+  consentGiven       Boolean       @map("consent_given")
+  consentSource      ConsentSource @map("consent_source")
+  consentTextVersion String        @map("consent_text_version")
+  capturedById       String?       @map("captured_by_id")
+  capturedAt         DateTime      @default(now()) @map("captured_at")
+  withdrawnAt        DateTime?     @map("withdrawn_at")
+
+  student            Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  capturedBy         User?         @relation("ConsentCapturedBy", fields: [capturedById], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, consentType])
+  @@map("student_consents")
+}
+
+model StudentDuplicateFlag {
+  id           String              @id @default(cuid())
+  studentAId   String              @map("student_a_id")
+  studentBId   String              @map("student_b_id")
+  reason       DuplicateFlagReason
+  status       DuplicateFlagStatus @default(PENDING)
+  reviewedById String?             @map("reviewed_by_id")
+  reviewedAt   DateTime?           @map("reviewed_at")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  studentA     Student             @relation("DuplicateStudentA", fields: [studentAId], references: [id], onDelete: Cascade)
+  studentB     Student             @relation("DuplicateStudentB", fields: [studentBId], references: [id], onDelete: Cascade)
+  reviewedBy   User?               @relation("DuplicateReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([studentAId, studentBId])
+  @@map("student_duplicate_flags")
 }
 
 model LeadNote {
@@ -384,6 +756,7 @@ model Call {
   createdAt   DateTime   @default(now()) @map("created_at")
 
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student     Student?   @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@map("calls")
 }
@@ -481,12 +854,18 @@ model College {
   approvedById          String?       @map("approved_by_id")
   rejectionReason       String?       @map("rejection_reason")
   socialLinks           Json?         @map("social_links_json")
+  countryId             String?       @map("country_id")
+  stateId               String?       @map("state_id")
+  districtId            String?       @map("district_id")
   createdAt             DateTime      @default(now()) @map("created_at")
   updatedAt             DateTime      @updatedAt @map("updated_at")
 
   // Relations
   admin            User?              @relation("CollegeAdmin", fields: [adminId], references: [id], onDelete: SetNull)
   university       University?        @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  geoCountry       Country?           @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  geoState         State?             @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  geoDistrict      District?          @relation(fields: [districtId], references: [id], onDelete: SetNull)
   collegeUsers     CollegeUser[]
   courses          Course[]
   applications     Application[]
@@ -497,6 +876,7 @@ model College {
   scholarships     Scholarship[]
   hostels          Hostel[]
   commissions      CommissionTransaction[]
+  shortlists       StudentShortlist[]
 
   @@map("colleges")
 }
@@ -543,6 +923,7 @@ model Course {
   college         College    @relation(fields: [collegeId], references: [id], onDelete: Cascade)
   applications    Application[]
   scholarships    Scholarship[]
+  shortlists      StudentShortlist[]
 
   @@map("courses")
 }
@@ -662,6 +1043,7 @@ model Application {
   branch            AgencyBranch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
   statusHistory     ApplicationStatusHistory[]
   commission        CommissionTransaction?
+  shortlist         StudentShortlist?
 
   @@map("applications")
 }
@@ -725,6 +1107,9 @@ model AgencyBranch {
   state       String?
   country     String?
   postalCode  String?      @map("postal_code")
+  countryId   String?      @map("country_id")
+  stateId     String?      @map("state_id")
+  districtId  String?      @map("district_id")
   phone       String?
   email       String?
   managerId   String?      @unique @map("manager_id")
@@ -743,6 +1128,10 @@ model AgencyBranch {
   payouts     CommissionPayout[]
   targets     BranchTarget[]
   reports     BranchReport[]
+  teams       Team[]
+  geoCountry  Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  geoState    State?       @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  geoDistrict District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
 
   @@map("agency_branches")
 }
@@ -789,6 +1178,8 @@ model AgencyUser {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   agency    Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   branch    AgencyBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  ledTeams  Team[]       @relation("TeamLead")
+  teamMemberships TeamMember[]
 
   @@map("agency_users")
 }

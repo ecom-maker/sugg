@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import {
   verifyWebhook,
   parseInboundMessage,
-  normalizePhone,
+  sendTextMessage,
   type WebhookPayload,
 } from "@/lib/whatsapp";
+import { normalizeMobileE164 } from "@/lib/mobile-normalize";
 import { assignLeadToNextCounselor } from "@/lib/lead-assignment";
 import { createNotification } from "@/lib/notifications";
+import { CONSENT_TEXT_VERSION, WHATSAPP_CONSENT_MESSAGE } from "@/lib/consent";
+import { flagEmailDuplicate } from "@/lib/student-dedup";
 
 // GET: Webhook verification challenge
 export async function GET(request: NextRequest) {
@@ -80,34 +83,65 @@ async function handleInboundMessage(parsed: {
   content: string | null;
   contactName: string | null;
 }) {
-  const normalizedPhone = normalizePhone(parsed.from);
+  const normalizedPhone = normalizeMobileE164(parsed.from);
 
-  // Find or create student
+  // Dedup: lookup by normalized mobile first
   let existingStudent = await prisma.student.findFirst({
     where: {
       OR: [
-        { mobile: parsed.from },
+        { mobileNumberNormalized: normalizedPhone },
         { mobile: normalizedPhone },
         { whatsappId: parsed.from },
       ],
+      isActive: true,
     },
-    include: { lead: true },
+    include: { leads: { where: { isCurrent: true }, take: 1 } },
   });
 
   if (!existingStudent) {
-    // Create new student from WhatsApp
     existingStudent = await prisma.student.create({
       data: {
         name: parsed.contactName ?? `WA ${parsed.from.slice(-4)}`,
         mobile: normalizedPhone,
+        mobileNumberNormalized: normalizedPhone,
         whatsappId: parsed.from,
         source: "WHATSAPP",
       },
-      include: { lead: true },
+      include: { leads: { where: { isCurrent: true }, take: 1 } },
+    });
+
+    // Capture WhatsApp consent on new student
+    await prisma.studentConsent.createMany({
+      data: [
+        {
+          studentId: existingStudent.id,
+          consentType: "DATA_PROCESSING",
+          consentGiven: true,
+          consentSource: "WHATSAPP",
+          consentTextVersion: CONSENT_TEXT_VERSION,
+        },
+        {
+          studentId: existingStudent.id,
+          consentType: "CONTACT_WHATSAPP",
+          consentGiven: true,
+          consentSource: "WHATSAPP",
+          consentTextVersion: CONSENT_TEXT_VERSION,
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    // Send consent language in first reply
+    await sendTextMessage(parsed.from, WHATSAPP_CONSENT_MESSAGE);
+  } else if (!existingStudent.mobileNumberNormalized) {
+    await prisma.student.update({
+      where: { id: existingStudent.id },
+      data: { mobileNumberNormalized: normalizedPhone },
     });
   }
 
   const student = existingStudent;
+  const currentLead = student.leads[0] ?? null;
 
   // Store WhatsApp message
   await prisma.whatsappMessage.create({
@@ -122,18 +156,18 @@ async function handleInboundMessage(parsed: {
     },
   });
 
-  // Create lead if not exists
-  if (!student.lead) {
+  // Lead handling
+  if (!currentLead) {
     const lead = await prisma.lead.create({
       data: {
         studentId: student.id,
         source: "WHATSAPP",
         status: "NEW",
         score: 10,
+        isCurrent: true,
       },
     });
 
-    // Auto-assign counselor
     const assignedCounselorId = await assignLeadToNextCounselor(
       lead.id,
       student.interestedCourse ?? undefined
@@ -148,12 +182,56 @@ async function handleInboundMessage(parsed: {
         resourceId: lead.id,
       });
     }
-  } else {
-    // Update existing lead's last contacted date
+  } else if (currentLead.status === "LOST") {
     await prisma.lead.update({
-      where: { id: student.lead.id },
+      where: { id: currentLead.id },
+      data: { isCurrent: false },
+    });
+
+    const lead = await prisma.lead.create({
+      data: {
+        studentId: student.id,
+        source: "WHATSAPP",
+        status: "NEW",
+        score: 10,
+        isCurrent: true,
+      },
+    });
+
+    const assignedCounselorId = await assignLeadToNextCounselor(
+      lead.id,
+      student.interestedCourse ?? undefined
+    );
+
+    if (assignedCounselorId) {
+      await createNotification({
+        userId: assignedCounselorId,
+        type: "NEW_LEAD_ASSIGNED",
+        title: "Re-engaged Lead",
+        message: `${student.name} messaged again after being marked lost`,
+        resourceId: lead.id,
+      });
+    }
+  } else {
+    await prisma.lead.update({
+      where: { id: currentLead.id },
       data: { lastContactedAt: new Date() },
     });
+
+    if (currentLead.assignedToId) {
+      await prisma.leadNote.create({
+        data: {
+          leadId: currentLead.id,
+          userId: currentLead.assignedToId,
+          content: `WhatsApp message received: ${parsed.content ?? `[${parsed.type}]`}`,
+        },
+      });
+    }
+  }
+
+  // Soft email duplicate check (if email present on future updates)
+  if (student.email) {
+    await flagEmailDuplicate(student.id, student.email);
   }
 }
 

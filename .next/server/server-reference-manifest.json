@@ -36,6 +36,18 @@
       "filename": "src/actions/commissions.ts",
       "exportedName": "approveCommission"
     },
+    "60b572b9a797f63011a49fb08bef82ca74c6366842": {
+      "workers": {
+        "app/(dashboard)/admin/students/duplicates/page": {
+          "moduleId": 76017,
+          "async": false,
+          "exportedName": "mergeStudents",
+          "filename": "src/actions/student-profile.ts"
+        }
+      },
+      "filename": "src/actions/student-profile.ts",
+      "exportedName": "mergeStudents"
+    },
     "40ffccf11600637138bcc11f6d1dced0e6c76705f5": {
       "workers": {
         "app/(dashboard)/admin/universities/[id]/page": {
@@ -132,6 +144,54 @@
       "filename": "src/actions/branches.ts",
       "exportedName": "createBranch"
     },
+    "40b87d936488d50e5f1918c583c4f06ae4519937b8": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "archiveTeam",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "filename": "src/actions/teams.ts",
+      "exportedName": "archiveTeam"
+    },
+    "6065da1d13968d1eac1fbaf218b337280115858fcd": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "removeTeamMember",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "filename": "src/actions/teams.ts",
+      "exportedName": "removeTeamMember"
+    },
+    "6027cf96c895b216181728e0a568efbaa9041dfe4c": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "changeTeamLead",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "filename": "src/actions/teams.ts",
+      "exportedName": "changeTeamLead"
+    },
+    "40b109fe38ca153182a775859e55b345bc3d781fb7": {
+      "workers": {
+        "app/(dashboard)/agency/teams/create/page": {
+          "moduleId": 64772,
+          "async": false,
+          "exportedName": "createTeam",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "filename": "src/actions/teams.ts",
+      "exportedName": "createTeam"
+    },
     "601aacd203c4e129b518ef25ba84660a0ce2841d48": {
       "workers": {
         "app/(dashboard)/college/applications/page": {
@@ -191,6 +251,18 @@
       },
       "filename": "src/actions/college-profile.ts",
       "exportedName": "updateCollegeProfile"
+    },
+    "60bdbb4e67e9e4e4059f06e5e61a2d447167c0eddd": {
+      "workers": {
+        "app/(dashboard)/students/[id]/page": {
+          "moduleId": 98699,
+          "async": false,
+          "exportedName": "createEducationHistory",
+          "filename": "src/actions/student-profile.ts"
+        }
+      },
+      "filename": "src/actions/student-profile.ts",
+      "exportedName": "createEducationHistory"
     }
   },
   "edge": {},

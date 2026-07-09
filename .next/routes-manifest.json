@@ -82,6 +82,14 @@
       "namedRegex": "^/agency/branches/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/agency/teams/[id]",
+      "regex": "^/agency/teams/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/agency/teams/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/colleges/[id]/approve",
       "regex": "^/api/admin/colleges/([^/]+?)/approve(?:/)?$",
       "routeKeys": {
@@ -96,6 +104,22 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/api/admin/colleges/(?<nxtPid>[^/]+?)/reject(?:/)?$"
+    },
+    {
+      "page": "/api/admin/students/[id]/anonymize",
+      "regex": "^/api/admin/students/([^/]+?)/anonymize(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/students/(?<nxtPid>[^/]+?)/anonymize(?:/)?$"
+    },
+    {
+      "page": "/api/admin/students/[id]/export",
+      "regex": "^/api/admin/students/([^/]+?)/export(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/students/(?<nxtPid>[^/]+?)/export(?:/)?$"
     },
     {
       "page": "/api/branches/[id]",
@@ -138,6 +162,132 @@
       "namedRegex": "^/api/courses/(?<nxtPid>[^/]+?)/commission\\-preview(?:/)?$"
     },
     {
+      "page": "/api/hierarchy/node/[type]/[id]/metrics",
+      "regex": "^/api/hierarchy/node/([^/]+?)/([^/]+?)/metrics(?:/)?$",
+      "routeKeys": {
+        "nxtPtype": "nxtPtype",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/hierarchy/node/(?<nxtPtype>[^/]+?)/(?<nxtPid>[^/]+?)/metrics(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/consents",
+      "regex": "^/api/students/([^/]+?)/consents(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/consents(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/consents/[consentId]/withdraw",
+      "regex": "^/api/students/([^/]+?)/consents/([^/]+?)/withdraw(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPconsentId": "nxtPconsentId"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/consents/(?<nxtPconsentId>[^/]+?)/withdraw(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/documents",
+      "regex": "^/api/students/([^/]+?)/documents(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/documents(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/documents/[docId]",
+      "regex": "^/api/students/([^/]+?)/documents/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPdocId": "nxtPdocId"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/documents/(?<nxtPdocId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/documents/[docId]/verify",
+      "regex": "^/api/students/([^/]+?)/documents/([^/]+?)/verify(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPdocId": "nxtPdocId"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/documents/(?<nxtPdocId>[^/]+?)/verify(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/education",
+      "regex": "^/api/students/([^/]+?)/education(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/education(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/profile",
+      "regex": "^/api/students/([^/]+?)/profile(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/profile(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/shortlist",
+      "regex": "^/api/students/([^/]+?)/shortlist(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/shortlist(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/shortlist/[entryId]/apply",
+      "regex": "^/api/students/([^/]+?)/shortlist/([^/]+?)/apply(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPentryId": "nxtPentryId"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/shortlist/(?<nxtPentryId>[^/]+?)/apply(?:/)?$"
+    },
+    {
+      "page": "/api/students/[id]/timeline",
+      "regex": "^/api/students/([^/]+?)/timeline(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/students/(?<nxtPid>[^/]+?)/timeline(?:/)?$"
+    },
+    {
+      "page": "/api/teams/[id]",
+      "regex": "^/api/teams/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/teams/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/teams/[id]/lead",
+      "regex": "^/api/teams/([^/]+?)/lead(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/teams/(?<nxtPid>[^/]+?)/lead(?:/)?$"
+    },
+    {
+      "page": "/api/teams/[id]/members",
+      "regex": "^/api/teams/([^/]+?)/members(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/teams/(?<nxtPid>[^/]+?)/members(?:/)?$"
+    },
+    {
+      "page": "/api/teams/[id]/members/[counselorId]",
+      "regex": "^/api/teams/([^/]+?)/members/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPcounselorId": "nxtPcounselorId"
+      },
+      "namedRegex": "^/api/teams/(?<nxtPid>[^/]+?)/members/(?<nxtPcounselorId>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/universities/[id]",
       "regex": "^/api/universities/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -168,6 +318,14 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/college/courses/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/students/[id]",
+      "regex": "^/students/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/students/(?<nxtPid>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -256,6 +414,24 @@
       "namedRegex": "^/admin/courses(?:/)?$"
     },
     {
+      "page": "/admin/hierarchy",
+      "regex": "^/admin/hierarchy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/hierarchy(?:/)?$"
+    },
+    {
+      "page": "/admin/hierarchy/compare",
+      "regex": "^/admin/hierarchy/compare(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/hierarchy/compare(?:/)?$"
+    },
+    {
+      "page": "/admin/hierarchy/teams/compare",
+      "regex": "^/admin/hierarchy/teams/compare(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/hierarchy/teams/compare(?:/)?$"
+    },
+    {
       "page": "/admin/leads",
       "regex": "^/admin/leads(?:/)?$",
       "routeKeys": {},
@@ -278,6 +454,12 @@
       "regex": "^/admin/settings(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/settings(?:/)?$"
+    },
+    {
+      "page": "/admin/students/duplicates",
+      "regex": "^/admin/students/duplicates(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/students/duplicates(?:/)?$"
     },
     {
       "page": "/admin/universities",
@@ -394,6 +576,36 @@
       "namedRegex": "^/agency/students(?:/)?$"
     },
     {
+      "page": "/agency/teams",
+      "regex": "^/agency/teams(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/teams(?:/)?$"
+    },
+    {
+      "page": "/agency/teams/create",
+      "regex": "^/agency/teams/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/teams/create(?:/)?$"
+    },
+    {
+      "page": "/api/admin/students/duplicates",
+      "regex": "^/api/admin/students/duplicates(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/students/duplicates(?:/)?$"
+    },
+    {
+      "page": "/api/admin/students/merge",
+      "regex": "^/api/admin/students/merge(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/students/merge(?:/)?$"
+    },
+    {
+      "page": "/api/agency/counselors",
+      "regex": "^/api/agency/counselors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/agency/counselors(?:/)?$"
+    },
+    {
       "page": "/api/analytics/overview",
       "regex": "^/api/analytics/overview(?:/)?$",
       "routeKeys": {},
@@ -442,10 +654,46 @@
       "namedRegex": "^/api/colleges/verify(?:/)?$"
     },
     {
+      "page": "/api/cron/document-expiry",
+      "regex": "^/api/cron/document\\-expiry(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cron/document\\-expiry(?:/)?$"
+    },
+    {
       "page": "/api/cron/inactivity-followups",
       "regex": "^/api/cron/inactivity\\-followups(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/cron/inactivity\\-followups(?:/)?$"
+    },
+    {
+      "page": "/api/geo/countries",
+      "regex": "^/api/geo/countries(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/geo/countries(?:/)?$"
+    },
+    {
+      "page": "/api/geo/districts",
+      "regex": "^/api/geo/districts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/geo/districts(?:/)?$"
+    },
+    {
+      "page": "/api/geo/states",
+      "regex": "^/api/geo/states(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/geo/states(?:/)?$"
+    },
+    {
+      "page": "/api/hierarchy/compare",
+      "regex": "^/api/hierarchy/compare(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/hierarchy/compare(?:/)?$"
+    },
+    {
+      "page": "/api/hierarchy/tree",
+      "regex": "^/api/hierarchy/tree(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/hierarchy/tree(?:/)?$"
     },
     {
       "page": "/api/leads/assign",
@@ -458,6 +706,12 @@
       "regex": "^/api/notifications(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/teams",
+      "regex": "^/api/teams(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/teams(?:/)?$"
     },
     {
       "page": "/api/universities",
@@ -536,6 +790,12 @@
       "regex": "^/branch/tasks(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/branch/tasks(?:/)?$"
+    },
+    {
+      "page": "/branch/teams",
+      "regex": "^/branch/teams(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/teams(?:/)?$"
     },
     {
       "page": "/college",

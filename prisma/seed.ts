@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { seedGeo } from "./seed-geo";
 
 const prisma = new PrismaClient();
 
@@ -557,10 +558,20 @@ async function main() {
     },
   });
 
+  // ─── Geographic Reference Data ────────────────────────────────────────────
+  const { geo } = await seedGeo(prisma);
+
   // ─── Branches ─────────────────────────────────────────────────────────────
+  const delhiGeo = geo["IN:Delhi:New Delhi"];
+  const mumbaiGeo = geo["IN:Maharashtra:Mumbai"];
+
   const branch1 = await prisma.agencyBranch.upsert({
     where: { branchCode: "EDU-DEL-01" },
-    update: {},
+    update: {
+      countryId: delhiGeo?.countryId,
+      stateId: delhiGeo?.stateId,
+      districtId: delhiGeo?.districtId,
+    },
     create: {
       agencyId: agency1.id,
       branchName: "Delhi Central Branch",
@@ -568,6 +579,9 @@ async function main() {
       city: "New Delhi",
       state: "Delhi",
       country: "India",
+      countryId: delhiGeo?.countryId,
+      stateId: delhiGeo?.stateId,
+      districtId: delhiGeo?.districtId,
       phone: "+91 11 4000 1234",
       email: "delhi@eduvision.in",
       managerId: branchManager1.id,
@@ -577,7 +591,11 @@ async function main() {
 
   const branch2 = await prisma.agencyBranch.upsert({
     where: { branchCode: "EDU-MUM-01" },
-    update: {},
+    update: {
+      countryId: mumbaiGeo?.countryId,
+      stateId: mumbaiGeo?.stateId,
+      districtId: mumbaiGeo?.districtId,
+    },
     create: {
       agencyId: agency1.id,
       branchName: "Mumbai Branch",
@@ -585,6 +603,9 @@ async function main() {
       city: "Mumbai",
       state: "Maharashtra",
       country: "India",
+      countryId: mumbaiGeo?.countryId,
+      stateId: mumbaiGeo?.stateId,
+      districtId: mumbaiGeo?.districtId,
       phone: "+91 22 4000 5678",
       email: "mumbai@eduvision.in",
       managerId: branchManager2.id,
@@ -638,6 +659,54 @@ async function main() {
   }
 
   console.log("✅ Agency, branches, and staff created");
+
+  // ─── Sample Teams ─────────────────────────────────────────────────────────
+  const au1 = await prisma.agencyUser.findUnique({ where: { userId: agencyCounselor1.id } });
+  const au2 = await prisma.agencyUser.findUnique({ where: { userId: agencyCounselor2.id } });
+  const au3 = await prisma.agencyUser.findUnique({ where: { userId: agencyCounselor3.id } });
+
+  if (delhiGeo && au1 && au2) {
+    await prisma.team.upsert({
+      where: { id: "seed-team-delhi-alpha" },
+      update: {},
+      create: {
+        id: "seed-team-delhi-alpha",
+        teamName: "Delhi Alpha Team",
+        districtId: delhiGeo.districtId,
+        branchId: branch1.id,
+        teamLeadId: au1.id,
+        status: "ACTIVE",
+        createdById: agencyAdmin.id,
+        members: {
+          create: [
+            { counselorId: au1.id, status: "ACTIVE" },
+            { counselorId: au2.id, status: "ACTIVE" },
+          ],
+        },
+      },
+    });
+  }
+
+  if (mumbaiGeo && au3) {
+    await prisma.team.upsert({
+      where: { id: "seed-team-mumbai-beta" },
+      update: {},
+      create: {
+        id: "seed-team-mumbai-beta",
+        teamName: "Mumbai Beta Team",
+        districtId: mumbaiGeo.districtId,
+        branchId: branch2.id,
+        teamLeadId: au3.id,
+        status: "ACTIVE",
+        createdById: agencyAdmin.id,
+        members: {
+          create: [{ counselorId: au3.id, status: "ACTIVE" }],
+        },
+      },
+    });
+  }
+
+  console.log("✅ Sample teams created");
 
   // ─── Students & Leads ─────────────────────────────────────────────────────
   const studentsData = [
@@ -721,14 +790,16 @@ async function main() {
       update: {},
       create: {
         ...studentData,
+        mobileNumberNormalized: studentData.mobile,
         ...(isAgencyReferral && { agencyId: agency1.id, branchId: assignedBranch?.id }),
       },
     });
 
     await prisma.lead.upsert({
-      where: { studentId: student.id },
+      where: { id: `seed-lead-${student.id}` },
       update: {},
       create: {
+        id: `seed-lead-${student.id}`,
         studentId: student.id,
         source: studentData.source,
         status: leadStatuses[i % leadStatuses.length],
@@ -736,8 +807,26 @@ async function main() {
         assignedToId: assignedCounselor.id,
         branchId: assignedBranch?.id,
         assignmentRule: "ROUND_ROBIN",
+        isCurrent: true,
         lastContactedAt: i > 0 ? new Date() : undefined,
       },
+    }).catch(async () => {
+      const existing = await prisma.lead.findFirst({ where: { studentId: student.id, isCurrent: true } });
+      if (!existing) {
+        await prisma.lead.create({
+          data: {
+            studentId: student.id,
+            source: studentData.source,
+            status: leadStatuses[i % leadStatuses.length],
+            score: 30 + i * 15,
+            assignedToId: assignedCounselor.id,
+            branchId: assignedBranch?.id,
+            assignmentRule: "ROUND_ROBIN",
+            isCurrent: true,
+            lastContactedAt: i > 0 ? new Date() : undefined,
+          },
+        });
+      }
     });
 
     // Add referral for agency student
@@ -755,6 +844,14 @@ async function main() {
   }
 
   console.log("✅ Students & Leads created");
+
+  // ─── Student Profile Enhancement ───────────────────────────────────────────
+  const { seedStudentProfile } = await import("./seed-student-profile");
+  const allCourses = await prisma.course.findMany({
+    select: { id: true, collegeId: true, name: true },
+    take: 5,
+  });
+  await seedStudentProfile(prisma, counselor1.id, allCourses);
 
   // ─── Plans ────────────────────────────────────────────────────────────────
   await prisma.plan.createMany({

@@ -23,6 +23,7 @@ interface Lead {
   score: number;
   updatedAt: Date;
   student: {
+    id: string;
     name: string;
     mobile: string;
     email: string | null;
@@ -141,7 +142,7 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link
-                      href={`/counselor/leads/${lead.id}`}
+                      href={`/students/${lead.student.id}`}
                       className="font-medium hover:text-primary transition-colors"
                     >
                       {lead.student.name}

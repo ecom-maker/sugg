@@ -1,0 +1,41 @@
+{
+  "node": {
+    "40b87d936488d50e5f1918c583c4f06ae4519937b8": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "archiveTeam",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "exportedName": "archiveTeam",
+      "filename": "src/actions/teams.ts"
+    },
+    "6065da1d13968d1eac1fbaf218b337280115858fcd": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "removeTeamMember",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "exportedName": "removeTeamMember",
+      "filename": "src/actions/teams.ts"
+    },
+    "6027cf96c895b216181728e0a568efbaa9041dfe4c": {
+      "workers": {
+        "app/(dashboard)/agency/teams/[id]/page": {
+          "moduleId": 46907,
+          "async": false,
+          "exportedName": "changeTeamLead",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "exportedName": "changeTeamLead",
+      "filename": "src/actions/teams.ts"
+    }
+  },
+  "edge": {}
+}

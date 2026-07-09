@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole } from "@/lib/auth";
+import { getCurrentLeadRecord } from "@/lib/student-lead";
 import { createBulkNotifications, NotificationMessages } from "@/lib/notifications";
 import type { ApplicationStatus } from "@/types";
 
@@ -70,9 +71,7 @@ export async function createApplication(formData: FormData) {
   });
 
   // Update lead status
-  const lead = await prisma.lead.findUnique({
-    where: { studentId: data.studentId },
-  });
+  const lead = await getCurrentLeadRecord(data.studentId);
 
   if (lead) {
     await prisma.lead.update({
@@ -147,9 +146,7 @@ export async function updateApplicationStatus(
   });
 
   // Update lead status
-  const lead = await prisma.lead.findUnique({
-    where: { studentId: application.studentId },
-  });
+  const lead = await getCurrentLeadRecord(application.studentId);
 
   if (lead) {
     const leadStatus = (() => {

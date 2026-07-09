@@ -1,0 +1,17 @@
+{
+  "node": {
+    "40b109fe38ca153182a775859e55b345bc3d781fb7": {
+      "workers": {
+        "app/(dashboard)/agency/teams/create/page": {
+          "moduleId": 64772,
+          "async": false,
+          "exportedName": "createTeam",
+          "filename": "src/actions/teams.ts"
+        }
+      },
+      "exportedName": "createTeam",
+      "filename": "src/actions/teams.ts"
+    }
+  },
+  "edge": {}
+}

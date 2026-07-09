@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole } from "@/lib/auth";
 import { assignLeadToNextCounselor, manualAssignLead } from "@/lib/lead-assignment";
+import { normalizeMobileE164 } from "@/lib/mobile-normalize";
 import { calculateLeadScore } from "@/lib/utils";
 import { createNotification, NotificationMessages } from "@/lib/notifications";
 import type { LeadStatus } from "@/types";
@@ -37,8 +38,15 @@ export async function createStudentAndLead(formData: FormData) {
   const data = parsed.data;
 
   // Check duplicate
+  const normalizedMobile = normalizeMobileE164(data.mobile);
+
   const existing = await prisma.student.findFirst({
-    where: { mobile: data.mobile },
+    where: {
+      OR: [
+        { mobile: data.mobile },
+        { mobileNumberNormalized: normalizedMobile },
+      ],
+    },
   });
   if (existing) {
     return { error: { mobile: ["A student with this phone number already exists"] } };
@@ -57,6 +65,7 @@ export async function createStudentAndLead(formData: FormData) {
     data: {
       name: data.name,
       mobile: data.mobile,
+      mobileNumberNormalized: normalizedMobile,
       email: data.email || null,
       city: data.city || null,
       country: data.country || null,
@@ -76,6 +85,7 @@ export async function createStudentAndLead(formData: FormData) {
       source: data.source,
       status: "NEW",
       score,
+      isCurrent: true,
     },
   });
 

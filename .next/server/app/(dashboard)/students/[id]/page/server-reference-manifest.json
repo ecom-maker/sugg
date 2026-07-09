@@ -1,0 +1,17 @@
+{
+  "node": {
+    "60bdbb4e67e9e4e4059f06e5e61a2d447167c0eddd": {
+      "workers": {
+        "app/(dashboard)/students/[id]/page": {
+          "moduleId": 98699,
+          "async": false,
+          "exportedName": "createEducationHistory",
+          "filename": "src/actions/student-profile.ts"
+        }
+      },
+      "exportedName": "createEducationHistory",
+      "filename": "src/actions/student-profile.ts"
+    }
+  },
+  "edge": {}
+}

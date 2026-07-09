@@ -34,9 +34,7 @@ export default async function AgencyPage() {
       where: {
         ...(agencyId ? { agencyId } : {}),
         student: {
-          lead: {
-            status: { notIn: ["ADMISSION_CONFIRMED", "LOST"] },
-          },
+          leads: { some: { isCurrent: true, status: { notIn: ["ADMISSION_CONFIRMED", "LOST"] } } },
         },
       },
     }),
@@ -44,7 +42,7 @@ export default async function AgencyPage() {
       where: {
         ...(agencyId ? { agencyId } : {}),
         student: {
-          lead: { status: "ADMISSION_CONFIRMED" },
+          leads: { some: { isCurrent: true, status: "ADMISSION_CONFIRMED" } },
         },
       },
     }),

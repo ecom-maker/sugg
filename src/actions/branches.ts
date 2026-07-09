@@ -4,6 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
+async function flagTeamsForDistrictChange(branchId: string, newDistrictId: string | null) {
+  if (!newDistrictId) return;
+
+  await prisma.team.updateMany({
+    where: {
+      branchId,
+      status: { not: "ARCHIVED" },
+      districtId: { not: newDistrictId },
+    },
+    data: { needsReview: true },
+  });
+}
+
 interface CreateBranchData {
   branchName: string;
   branchCode: string;
@@ -60,6 +73,9 @@ export async function createBranch(data: CreateBranchData) {
 interface UpdateBranchData extends Partial<CreateBranchData> {
   status?: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   managerId?: string | null;
+  countryId?: string | null;
+  stateId?: string | null;
+  districtId?: string | null;
 }
 
 export async function updateBranch(branchId: string, data: UpdateBranchData) {
@@ -67,6 +83,11 @@ export async function updateBranch(branchId: string, data: UpdateBranchData) {
   if (!user || !["AGENCY_OWNER", "AGENCY_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return { error: "Unauthorized" };
   }
+
+  const existing = await prisma.agencyBranch.findUnique({
+    where: { id: branchId },
+    select: { districtId: true },
+  });
 
   const branch = await prisma.agencyBranch.update({
     where: { id: branchId },
@@ -81,11 +102,23 @@ export async function updateBranch(branchId: string, data: UpdateBranchData) {
       ...(data.address !== undefined && { address: data.address || null }),
       ...(data.status && { status: data.status }),
       ...(data.managerId !== undefined && { managerId: data.managerId }),
+      ...(data.countryId !== undefined && { countryId: data.countryId }),
+      ...(data.stateId !== undefined && { stateId: data.stateId }),
+      ...(data.districtId !== undefined && { districtId: data.districtId }),
     },
   });
 
+  if (
+    data.districtId !== undefined &&
+    existing?.districtId &&
+    data.districtId !== existing.districtId
+  ) {
+    await flagTeamsForDistrictChange(branchId, data.districtId);
+  }
+
   revalidatePath("/agency/branches");
   revalidatePath(`/agency/branches/${branchId}`);
+  revalidatePath("/admin/hierarchy");
   return { branch };
 }
 

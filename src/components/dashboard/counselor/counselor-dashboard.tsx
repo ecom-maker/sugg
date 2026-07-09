@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, CheckCircle, Clock, AlertCircle, TrendingUp, MessageSquare, Calendar, Plus } from "lucide-react";
+import { Users, CheckCircle, Clock, AlertCircle, TrendingUp, MessageSquare, Calendar, Plus, UsersRound, Crown } from "lucide-react";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +31,16 @@ interface CounselorDashboardProps {
     conversionRate: number;
   };
   recentLeads: RecentLead[];
+  teamContext?: {
+    teamName: string;
+    teamLeadName: string | null;
+    branchName: string | null;
+    geoBreadcrumb: string[];
+    teamRank: number | null;
+  } | null;
 }
 
-export function CounselorDashboard({ stats, recentLeads }: CounselorDashboardProps) {
+export function CounselorDashboard({ stats, recentLeads, teamContext }: CounselorDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -57,6 +64,36 @@ export function CounselorDashboard({ stats, recentLeads }: CounselorDashboardPro
           </Button>
         </div>
       </div>
+
+      {teamContext && (
+        <Card className="border-indigo-200 bg-indigo-50/40">
+          <CardContent className="pt-4">
+            <div className="flex flex-wrap items-start gap-4">
+              <div className="flex items-center gap-2">
+                <UsersRound className="w-5 h-5 text-indigo-600" />
+                <div>
+                  <p className="font-semibold text-indigo-900">{teamContext.teamName}</p>
+                  <p className="text-xs text-indigo-700">
+                    {teamContext.branchName && `${teamContext.branchName} · `}
+                    {teamContext.geoBreadcrumb.join(" → ")}
+                  </p>
+                </div>
+              </div>
+              {teamContext.teamLeadName && (
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Crown className="w-4 h-4 text-amber-600" />
+                  <span>
+                    Lead: <strong>{teamContext.teamLeadName}</strong>
+                  </span>
+                </div>
+              )}
+              {teamContext.teamRank && (
+                <Badge variant="secondary">Team Rank #{teamContext.teamRank}</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

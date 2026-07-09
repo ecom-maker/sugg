@@ -38,6 +38,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const body = await request.json();
 
   try {
+    const existing = await prisma.agencyBranch.findUnique({
+      where: { id },
+      select: { districtId: true },
+    });
+
     const branch = await prisma.agencyBranch.update({
       where: { id },
       data: {
@@ -49,8 +54,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(body.email !== undefined && { email: body.email }),
         ...(body.status && { status: body.status }),
         ...(body.managerId !== undefined && { managerId: body.managerId }),
+        ...(body.countryId !== undefined && { countryId: body.countryId }),
+        ...(body.stateId !== undefined && { stateId: body.stateId }),
+        ...(body.districtId !== undefined && { districtId: body.districtId }),
       },
     });
+
+    if (
+      body.districtId !== undefined &&
+      existing?.districtId &&
+      body.districtId !== existing.districtId
+    ) {
+      await prisma.team.updateMany({
+        where: {
+          branchId: id,
+          status: { not: "ARCHIVED" },
+          districtId: { not: body.districtId },
+        },
+        data: { needsReview: true },
+      });
+    }
+
     return NextResponse.json({ branch });
   } catch (err) {
     console.error(err);

@@ -1,0 +1,3 @@
+{
+  "/api/students/[id]/consents/[consentId]/withdraw/route": "app/api/students/[id]/consents/[consentId]/withdraw/route.js"
+}
