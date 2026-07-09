@@ -50,12 +50,52 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/admin/colleges/[id]",
+      "regex": "^/admin/colleges/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/colleges/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/universities/[id]",
+      "regex": "^/admin/universities/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/universities/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/universities/[id]/edit",
+      "regex": "^/admin/universities/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/universities/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
       "page": "/agency/branches/[id]",
       "regex": "^/agency/branches/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/agency/branches/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/colleges/[id]/approve",
+      "regex": "^/api/admin/colleges/([^/]+?)/approve(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/colleges/(?<nxtPid>[^/]+?)/approve(?:/)?$"
+    },
+    {
+      "page": "/api/admin/colleges/[id]/reject",
+      "regex": "^/api/admin/colleges/([^/]+?)/reject(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/colleges/(?<nxtPid>[^/]+?)/reject(?:/)?$"
     },
     {
       "page": "/api/branches/[id]",
@@ -80,6 +120,54 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/api/branches/(?<nxtPid>[^/]+?)/reports(?:/)?$"
+    },
+    {
+      "page": "/api/college/courses/[id]",
+      "regex": "^/api/college/courses/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/college/courses/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/courses/[id]/commission-preview",
+      "regex": "^/api/courses/([^/]+?)/commission\\-preview(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/courses/(?<nxtPid>[^/]+?)/commission\\-preview(?:/)?$"
+    },
+    {
+      "page": "/api/universities/[id]",
+      "regex": "^/api/universities/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/universities/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/universities/[id]/archive",
+      "regex": "^/api/universities/([^/]+?)/archive(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/universities/(?<nxtPid>[^/]+?)/archive(?:/)?$"
+    },
+    {
+      "page": "/api/universities/[id]/colleges",
+      "regex": "^/api/universities/([^/]+?)/colleges(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/universities/(?<nxtPid>[^/]+?)/colleges(?:/)?$"
+    },
+    {
+      "page": "/college/courses/[id]/edit",
+      "regex": "^/college/courses/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/college/courses/(?<nxtPid>[^/]+?)/edit(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -138,6 +226,18 @@
       "namedRegex": "^/admin/colleges(?:/)?$"
     },
     {
+      "page": "/admin/colleges/new",
+      "regex": "^/admin/colleges/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/colleges/new(?:/)?$"
+    },
+    {
+      "page": "/admin/commission-report",
+      "regex": "^/admin/commission\\-report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/commission\\-report(?:/)?$"
+    },
+    {
       "page": "/admin/commissions",
       "regex": "^/admin/commissions(?:/)?$",
       "routeKeys": {},
@@ -178,6 +278,18 @@
       "regex": "^/admin/settings(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/settings(?:/)?$"
+    },
+    {
+      "page": "/admin/universities",
+      "regex": "^/admin/universities(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/universities(?:/)?$"
+    },
+    {
+      "page": "/admin/universities/new",
+      "regex": "^/admin/universities/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/universities/new(?:/)?$"
     },
     {
       "page": "/agency",
@@ -226,6 +338,12 @@
       "regex": "^/agency/counselors(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/agency/counselors(?:/)?$"
+    },
+    {
+      "page": "/agency/courses",
+      "regex": "^/agency/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/courses(?:/)?$"
     },
     {
       "page": "/agency/my-referrals",
@@ -288,6 +406,42 @@
       "namedRegex": "^/api/branches(?:/)?$"
     },
     {
+      "page": "/api/college/applications",
+      "regex": "^/api/college/applications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/college/applications(?:/)?$"
+    },
+    {
+      "page": "/api/college/courses",
+      "regex": "^/api/college/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/college/courses(?:/)?$"
+    },
+    {
+      "page": "/api/college/profile",
+      "regex": "^/api/college/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/college/profile(?:/)?$"
+    },
+    {
+      "page": "/api/colleges/register",
+      "regex": "^/api/colleges/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/colleges/register(?:/)?$"
+    },
+    {
+      "page": "/api/colleges/resend-otp",
+      "regex": "^/api/colleges/resend\\-otp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/colleges/resend\\-otp(?:/)?$"
+    },
+    {
+      "page": "/api/colleges/verify",
+      "regex": "^/api/colleges/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/colleges/verify(?:/)?$"
+    },
+    {
       "page": "/api/cron/inactivity-followups",
       "regex": "^/api/cron/inactivity\\-followups(?:/)?$",
       "routeKeys": {},
@@ -304,6 +458,12 @@
       "regex": "^/api/notifications(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/universities",
+      "regex": "^/api/universities(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/universities(?:/)?$"
     },
     {
       "page": "/api/whatsapp/send",
@@ -396,6 +556,12 @@
       "namedRegex": "^/college/applications(?:/)?$"
     },
     {
+      "page": "/college/commission-report",
+      "regex": "^/college/commission\\-report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/commission\\-report(?:/)?$"
+    },
+    {
       "page": "/college/commissions",
       "regex": "^/college/commissions(?:/)?$",
       "routeKeys": {},
@@ -408,16 +574,40 @@
       "namedRegex": "^/college/courses(?:/)?$"
     },
     {
+      "page": "/college/courses/new",
+      "regex": "^/college/courses/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/courses/new(?:/)?$"
+    },
+    {
       "page": "/college/gallery",
       "regex": "^/college/gallery(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/college/gallery(?:/)?$"
     },
     {
+      "page": "/college/pending",
+      "regex": "^/college/pending(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/pending(?:/)?$"
+    },
+    {
       "page": "/college/profile",
       "regex": "^/college/profile(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/college/profile(?:/)?$"
+    },
+    {
+      "page": "/college/register",
+      "regex": "^/college/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/register(?:/)?$"
+    },
+    {
+      "page": "/college/verify",
+      "regex": "^/college/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/verify(?:/)?$"
     },
     {
       "page": "/counselor",

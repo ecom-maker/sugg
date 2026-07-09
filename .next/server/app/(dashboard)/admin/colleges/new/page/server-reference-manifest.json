@@ -1,0 +1,17 @@
+{
+  "node": {
+    "402d7085572e0a29da41fd911db5fbb9afe2725aef": {
+      "workers": {
+        "app/(dashboard)/admin/colleges/new/page": {
+          "moduleId": 27513,
+          "async": false,
+          "exportedName": "createCollege",
+          "filename": "src/actions/colleges.ts"
+        }
+      },
+      "exportedName": "createCollege",
+      "filename": "src/actions/colleges.ts"
+    }
+  },
+  "edge": {}
+}

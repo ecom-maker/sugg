@@ -1,0 +1,29 @@
+{
+  "node": {
+    "405bd00f1944ef03dd3db18133fb2d4ee55e7e7b0f": {
+      "workers": {
+        "app/(dashboard)/admin/universities/[id]/edit/page": {
+          "moduleId": 36696,
+          "async": false,
+          "exportedName": "createUniversity",
+          "filename": "src/actions/universities.ts"
+        }
+      },
+      "exportedName": "createUniversity",
+      "filename": "src/actions/universities.ts"
+    },
+    "6014928e0cd1abfc7e7b25947fd25fdf13122eb628": {
+      "workers": {
+        "app/(dashboard)/admin/universities/[id]/edit/page": {
+          "moduleId": 36696,
+          "async": false,
+          "exportedName": "updateUniversity",
+          "filename": "src/actions/universities.ts"
+        }
+      },
+      "exportedName": "updateUniversity",
+      "filename": "src/actions/universities.ts"
+    }
+  },
+  "edge": {}
+}

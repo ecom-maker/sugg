@@ -47,6 +47,34 @@ export type CollegeStatus =
   | "SUSPENDED"
   | "ARCHIVED";
 
+export type UniversityStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
+
+export type UniversityType =
+  | "PUBLIC"
+  | "PRIVATE"
+  | "DEEMED"
+  | "AUTONOMOUS"
+  | "INTERNATIONAL";
+
+export interface UniversitySummary {
+  id: string;
+  name: string;
+  establishmentYear: number;
+  location: string;
+  city?: string | null;
+  state?: string | null;
+  country: string;
+  website?: string | null;
+  universityType?: UniversityType | null;
+  accreditation?: string | null;
+  logoUrl?: string | null;
+  description?: string | null;
+  status: UniversityStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: { colleges: number };
+}
+
 export type ApplicationStatus =
   | "SUBMITTED"
   | "UNDER_REVIEW"

@@ -5,14 +5,20 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
 import { createBulkNotifications } from "@/lib/notifications";
-import { calculateCommission } from "@/lib/commission-utils";
+import {
+  calculateCourseCommission,
+  parseSlabRules,
+} from "@/lib/commission-calculator";
 
 /**
  * Create a commission transaction when an admission is confirmed.
+ * Commission config is sourced from the course record (course-level rules take priority).
+ * Fallback params can be supplied when course has no commission configured.
  */
 export async function createCommissionTransaction(params: {
   applicationId: string;
   tuitionAmount: number;
+  // Optional fallback when course has no commission config
   commissionType?: "FIXED" | "PERCENTAGE" | "SLAB";
   commissionRate?: number;
 }) {
@@ -25,6 +31,7 @@ export async function createCommissionTransaction(params: {
         include: { referral: { include: { agency: true } } },
       },
       college: true,
+      course: true, // fetch course to read commission config
     },
   });
 
@@ -40,9 +47,41 @@ export async function createCommissionTransaction(params: {
     return { error: "Commission already exists for this application" };
   }
 
-  const type = params.commissionType ?? "PERCENTAGE";
-  const rate = params.commissionRate ?? 5; // Default 5%
-  const commissionAmount = calculateCommission(params.tuitionAmount, type, rate);
+  // ── Commission calculation: course-level config is source of truth ──
+  let commissionAmount = 0;
+  let type: "FIXED" | "PERCENTAGE" | "SLAB" = "PERCENTAGE";
+  let rate = 0;
+
+  const course = application.course;
+  if (course?.commissionType) {
+    const result = calculateCourseCommission(
+      {
+        commissionType: course.commissionType as "FIXED" | "PERCENTAGE" | "SLAB",
+        commissionValue: Number(course.commissionValue ?? 0),
+        commissionRules: parseSlabRules(course.commissionRules),
+      },
+      params.tuitionAmount,
+      course.commissionCurrency
+    );
+    if (result) {
+      commissionAmount = result.commissionAmount;
+      type = course.commissionType as "FIXED" | "PERCENTAGE" | "SLAB";
+      rate = result.appliedRate ?? Number(course.commissionValue ?? 0);
+    }
+  } else if (params.commissionType) {
+    // Fallback to caller-supplied config
+    type = params.commissionType;
+    rate = params.commissionRate ?? 5;
+    const result = calculateCourseCommission(
+      { commissionType: type, commissionValue: rate, commissionRules: null },
+      params.tuitionAmount
+    );
+    commissionAmount = result?.commissionAmount ?? 0;
+  } else {
+    // Last-resort default: 5% of tuition
+    rate = 5;
+    commissionAmount = parseFloat(((params.tuitionAmount * 5) / 100).toFixed(2));
+  }
 
   const transaction = await prisma.commissionTransaction.create({
     data: {

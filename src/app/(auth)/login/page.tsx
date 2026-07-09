@@ -81,7 +81,14 @@ export default function LoginPage() {
 
           <LoginForm />
 
-          <p className="text-center text-xs text-muted-foreground mt-8">
+          <div className="mt-6 p-4 rounded-lg bg-muted/50 border text-center">
+            <p className="text-sm text-muted-foreground">Are you a college/university?</p>
+            <a href="/college/register" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
+              Register your institution →
+            </a>
+          </div>
+
+          <p className="text-center text-xs text-muted-foreground mt-6">
             By continuing, you agree to our{" "}
             <a href="#" className="text-primary hover:underline">Terms of Service</a>{" "}
             and{" "}

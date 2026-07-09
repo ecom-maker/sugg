@@ -1,0 +1,29 @@
+{
+  "node": {
+    "6079ce0437b1ddf786543ebd842faf3a332b448b70": {
+      "workers": {
+        "app/(dashboard)/college/courses/new/page": {
+          "moduleId": 76617,
+          "async": false,
+          "exportedName": "upsertCourse",
+          "filename": "src/actions/college-courses.ts"
+        }
+      },
+      "exportedName": "upsertCourse",
+      "filename": "src/actions/college-courses.ts"
+    },
+    "40d142bb4c310371ec308b34e90cb01ce77d741221": {
+      "workers": {
+        "app/(dashboard)/college/courses/new/page": {
+          "moduleId": 76617,
+          "async": false,
+          "exportedName": "deleteCourse",
+          "filename": "src/actions/college-courses.ts"
+        }
+      },
+      "exportedName": "deleteCourse",
+      "filename": "src/actions/college-courses.ts"
+    }
+  },
+  "edge": {}
+}

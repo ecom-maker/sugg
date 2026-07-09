@@ -44,6 +44,20 @@ enum CollegeStatus {
   ARCHIVED
 }
 
+enum UniversityStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum UniversityType {
+  PUBLIC
+  PRIVATE
+  DEEMED
+  AUTONOMOUS
+  INTERNATIONAL
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -91,7 +105,13 @@ enum NotificationType {
   COMMISSION_APPROVED
   COMMISSION_PAID
   COLLEGE_APPROVED
+  COLLEGE_REJECTED
+  NEW_COLLEGE_REGISTRATION
   NEW_REFERRAL
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
 }
 
 enum TaskStatus {
@@ -157,6 +177,7 @@ model User {
 
   // Relations
   college          College?      @relation("CollegeAdmin")
+  collegeUser      CollegeUser?
   ownedAgency      Agency?       @relation("AgencyOwner")
   managedBranch    AgencyBranch? @relation("BranchManager")
   agencyUser       AgencyUser?
@@ -172,6 +193,8 @@ model User {
   notifications    Notification[]
   auditLogs        AuditLog[]
   counselorCommissions CommissionTransaction[] @relation("CounselorCommissions")
+  createdUniversities University[] @relation("UniversityCreator")
+  updatedUniversities University[] @relation("UniversityUpdater")
 
   @@map("users")
 }
@@ -401,37 +424,75 @@ model Notification {
 
 // ─── COLLEGES ────────────────────────────────────────────────────────────────
 
+model University {
+  id                String          @id @default(cuid())
+  name              String          @unique
+  establishmentYear Int             @map("establishment_year")
+  location          String
+  city              String?
+  state             String?
+  country           String
+  website           String?
+  universityType    UniversityType? @map("university_type")
+  accreditation     String?
+  logoUrl           String?         @map("logo_url")
+  description       String?
+  status            UniversityStatus @default(ACTIVE)
+  createdById       String?         @map("created_by")
+  updatedById       String?         @map("updated_by")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  createdBy         User?           @relation("UniversityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?           @relation("UniversityUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  colleges          College[]
+
+  @@map("universities")
+}
+
 model College {
-  id               String        @id @default(cuid())
-  adminId          String?       @unique @map("admin_id")
-  name             String
-  slug             String        @unique
-  website          String?
-  officialEmail    String        @unique @map("official_email")
-  contactPhone     String?       @map("contact_phone")
-  address          String?
-  city             String?
-  state            String?
-  country          String?
-  pincode          String?
-  logoUrl          String?       @map("logo_url")
-  description      String?
-  status           CollegeStatus @default(PENDING)
-  isVerified       Boolean       @default(false) @map("is_verified")
-  establishedYear  Int?          @map("established_year")
-  accreditation    String[]
-  approvedAt       DateTime?     @map("approved_at")
-  rejectionReason  String?       @map("rejection_reason")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
+  id                    String        @id @default(cuid())
+  adminId               String?       @unique @map("admin_id")
+  universityId          String?       @map("university_id")
+  name                  String
+  slug                  String        @unique
+  website               String?
+  officialEmail         String        @unique @map("official_email")
+  contactPhone          String?       @map("contact_phone")
+  contactPersonName     String?       @map("contact_person_name")
+  contactPersonDesig    String?       @map("contact_person_desig")
+  address               String?
+  city                  String?
+  state                 String?
+  country               String?
+  pincode               String?
+  logoUrl               String?       @map("logo_url")
+  bannerUrl             String?       @map("banner_url")
+  description           String?
+  status                CollegeStatus @default(PENDING)
+  isVerified            Boolean       @default(false) @map("is_verified")
+  emailVerified         Boolean       @default(false) @map("email_verified")
+  mobileVerified        Boolean       @default(false) @map("mobile_verified")
+  verificationToken     String?       @map("verification_token")
+  verificationExpiry    DateTime?     @map("verification_expiry")
+  establishedYear       Int?          @map("established_year")
+  accreditation         String[]
+  approvedAt            DateTime?     @map("approved_at")
+  approvedById          String?       @map("approved_by_id")
+  rejectionReason       String?       @map("rejection_reason")
+  socialLinks           Json?         @map("social_links_json")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
 
   // Relations
-  admin            User?         @relation("CollegeAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  admin            User?              @relation("CollegeAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  university       University?        @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  collegeUsers     CollegeUser[]
   courses          Course[]
   applications     Application[]
   galleries        Gallery[]
   documents        Document[]
-  socialLinks      SocialLink[]
+  socialLinksRel   SocialLink[]
   googleReviews    GoogleReview[]
   scholarships     Scholarship[]
   hostels          Hostel[]
@@ -440,24 +501,43 @@ model College {
   @@map("colleges")
 }
 
+model CollegeUser {
+  id          String   @id @default(cuid())
+  collegeId   String   @map("college_id")
+  userId      String   @unique @map("user_id")
+  designation String?
+  permissions Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  college     College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("college_users")
+}
+
 model Course {
-  id              String     @id @default(cuid())
-  collegeId       String     @map("college_id")
-  name            String
-  degreeType      DegreeType
-  duration        String     // e.g. "3 years", "2 semesters"
-  durationMonths  Int?       @map("duration_months")
-  eligibility     String?
-  totalSeats      Int?       @map("total_seats")
-  availableSeats  Int?       @map("available_seats")
-  annualFee       Decimal?   @db.Decimal(12, 2) @map("annual_fee")
-  semesterFee     Decimal?   @db.Decimal(12, 2) @map("semester_fee")
-  totalFee        Decimal?   @db.Decimal(12, 2) @map("total_fee")
-  description     String?
-  syllabus        String?
-  isActive        Boolean    @default(true) @map("is_active")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
+  id                  String          @id @default(cuid())
+  collegeId           String          @map("college_id")
+  name                String
+  degreeType          DegreeType
+  duration            String
+  durationMonths      Int?            @map("duration_months")
+  eligibility         String?
+  totalSeats          Int?            @map("total_seats")
+  availableSeats      Int?            @map("available_seats")
+  annualFee           Decimal?        @db.Decimal(12, 2) @map("annual_fee")
+  semesterFee         Decimal?        @db.Decimal(12, 2) @map("semester_fee")
+  totalFee            Decimal?        @db.Decimal(12, 2) @map("total_fee")
+  description         String?
+  syllabus            String?
+  // ── Agency Commission Configuration ──
+  commissionType      CommissionType? @map("commission_type")
+  commissionValue     Decimal?        @db.Decimal(10, 4) @map("commission_value")
+  commissionCurrency  String          @default("INR") @map("commission_currency")
+  commissionRules     Json?           @map("commission_rules")
+  isActive            Boolean         @default(true) @map("is_active")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
 
   // Relations
   college         College    @relation(fields: [collegeId], references: [id], onDelete: Cascade)

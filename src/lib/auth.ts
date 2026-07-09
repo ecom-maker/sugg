@@ -95,6 +95,7 @@ export function canAccess(userRole: UserRole, resource: string, action: string):
       courses: ["create", "read", "update", "delete"],
       applications: ["read", "update"],
       commissions: ["read"],
+      universities: ["read"],
     },
     AGENCY_OWNER: {
       agency: ["read", "update"],

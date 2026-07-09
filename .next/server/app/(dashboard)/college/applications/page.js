@@ -1,7 +1,7 @@
 var R=require("../../../../chunks/ssr/[turbopack]_runtime.js")("server/app/(dashboard)/college/applications/page.js")
-R.c("server/chunks/ssr/[root-of-the-server]__06ujq2-._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1h27lzu._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0dfmmkn.js")
-R.c("server/chunks/ssr/[root-of-the-server]__160g8qw._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1dnwz7b._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__1bjhrky._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_compiled_@opentelemetry_api_index_1oy1nwh.js")
 R.c("server/chunks/ssr/[root-of-the-server]__1__33u4._.js")
@@ -12,6 +12,7 @@ R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_global-e
 R.c("server/chunks/ssr/[root-of-the-server]__0hkadxf._.js")
 R.c("server/chunks/ssr/_0xvcu_o._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_0q5c63s._.js")
-R.c("server/chunks/ssr/_next-internal_server_app_(dashboard)_college_applications_page_actions_1tshmnz.js")
+R.c("server/chunks/ssr/_next-internal_server_app_(dashboard)_college_applications_page_actions_0z1vr62.js")
+R.c("server/chunks/ssr/node_modules_next_1ouxniv._.js")
 R.m(65831)
 module.exports=R.m(65831).exports

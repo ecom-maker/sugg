@@ -1,4 +1,17 @@
 {
-  "node": {},
+  "node": {
+    "60fc9ba1ccc0e9abed3bb7d9eb6bb05ba3e8b54084": {
+      "workers": {
+        "app/(dashboard)/college/profile/page": {
+          "moduleId": 44925,
+          "async": false,
+          "exportedName": "updateCollegeProfile",
+          "filename": "src/actions/college-profile.ts"
+        }
+      },
+      "exportedName": "updateCollegeProfile",
+      "filename": "src/actions/college-profile.ts"
+    }
+  },
   "edge": {}
 }

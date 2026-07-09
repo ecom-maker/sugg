@@ -1,4 +1,17 @@
 {
-  "node": {},
+  "node": {
+    "601aacd203c4e129b518ef25ba84660a0ce2841d48": {
+      "workers": {
+        "app/(dashboard)/college/applications/page": {
+          "moduleId": 85090,
+          "async": false,
+          "exportedName": "updateApplicationStatus",
+          "filename": "src/actions/college-applications.ts"
+        }
+      },
+      "exportedName": "updateApplicationStatus",
+      "filename": "src/actions/college-applications.ts"
+    }
+  },
   "edge": {}
 }

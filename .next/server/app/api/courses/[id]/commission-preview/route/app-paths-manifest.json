@@ -1,0 +1,3 @@
+{
+  "/api/courses/[id]/commission-preview/route": "app/api/courses/[id]/commission-preview/route.js"
+}

@@ -18,10 +18,11 @@ const createCollegeSchema = z.object({
   country: z.string().min(1, "Country is required"),
   description: z.string().optional(),
   establishedYear: z.string().optional(),
+  universityId: z.string().optional(),
 });
 
 export async function createCollege(formData: FormData) {
-  await requireRole(["SUPER_ADMIN"]);
+  const user = await requireRole(["SUPER_ADMIN"]);
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = createCollegeSchema.safeParse(raw);
@@ -54,9 +55,22 @@ export async function createCollege(formData: FormData) {
       country: data.country,
       description: data.description || null,
       establishedYear: data.establishedYear ? parseInt(data.establishedYear) : null,
+      universityId: data.universityId || null,
       status: "PENDING",
     },
   });
+
+  if (data.universityId) {
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "UNIVERSITY_LINKED_TO_COLLEGE",
+        resource: "College",
+        resourceId: college.id,
+        newValue: { universityId: data.universityId, collegeName: data.name },
+      },
+    });
+  }
 
   revalidatePath("/admin/colleges");
   return { success: true, collegeId: college.id };

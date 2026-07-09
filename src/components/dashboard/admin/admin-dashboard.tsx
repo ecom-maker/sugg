@@ -9,7 +9,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  GraduationCap,
 } from "lucide-react";
+import Link from "next/link";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +28,10 @@ interface AdminDashboardProps {
     totalStudents: number;
     pendingCommissions: number;
     totalCommissionAmount: number;
+    totalUniversities: number;
+    activeUniversities: number;
+    universitiesThisMonth: number;
+    topUniversities: { id: string; name: string; collegeCount: number }[];
   };
 }
 
@@ -75,6 +81,38 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
           icon={DollarSign}
           description={`${stats.pendingCommissions} pending approval`}
           iconClassName="text-emerald-600 bg-emerald-50"
+        />
+      </div>
+
+      {/* University Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total Universities"
+          value={stats.totalUniversities.toLocaleString()}
+          icon={GraduationCap}
+          description={`${stats.activeUniversities} active`}
+          iconClassName="text-indigo-600 bg-indigo-50"
+        />
+        <StatsCard
+          title="Active Universities"
+          value={stats.activeUniversities.toLocaleString()}
+          icon={CheckCircle}
+          description={`${stats.totalUniversities - stats.activeUniversities} inactive/archived`}
+          iconClassName="text-green-600 bg-green-50"
+        />
+        <StatsCard
+          title="Added This Month"
+          value={stats.universitiesThisMonth.toLocaleString()}
+          icon={TrendingUp}
+          description="New university registrations"
+          iconClassName="text-violet-600 bg-violet-50"
+        />
+        <StatsCard
+          title="Top University"
+          value={stats.topUniversities[0]?.collegeCount ?? 0}
+          icon={Building2}
+          description={stats.topUniversities[0]?.name ?? "No universities yet"}
+          iconClassName="text-blue-600 bg-blue-50"
         />
       </div>
 
@@ -190,6 +228,41 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
                   </div>
                 )}
             </div>
+          </CardContent>
+        </Card>
+        {/* Top Universities */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Top Universities by Colleges</CardTitle>
+            <Link href="/admin/universities" className="text-xs text-primary hover:underline">
+              View all
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {stats.topUniversities.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                No universities yet.{" "}
+                <Link href="/admin/universities/new" className="text-primary hover:underline">
+                  Add one
+                </Link>
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {stats.topUniversities.map((uni, i) => (
+                  <Link
+                    key={uni.id}
+                    href={`/admin/universities/${uni.id}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm flex-1 truncate">{uni.name}</span>
+                    <Badge variant="secondary">{uni.collegeCount} colleges</Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

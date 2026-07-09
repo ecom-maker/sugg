@@ -24,9 +24,13 @@ interface College {
   city: string | null;
   country: string | null;
   officialEmail: string;
+  contactPersonName: string | null;
+  contactPersonDesig: string | null;
   status: CollegeStatus;
   isVerified: boolean;
+  emailVerified: boolean;
   createdAt: Date;
+  university: { id: string; name: string } | null;
   _count: { courses: number; applications: number };
 }
 
@@ -60,6 +64,46 @@ export function CollegesManagementPage({
     else params.delete(key);
     params.delete("page");
     router.push(`?${params.toString()}`);
+  };
+
+  const handleApprove = async (collegeId: string, collegeName: string) => {
+    setLoadingId(collegeId);
+    try {
+      const res = await fetch(`/api/admin/colleges/${collegeId}/approve`, { method: "POST" });
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({ title: "College Approved", description: `${collegeName} is now active.` });
+        router.refresh();
+      }
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
+    }
+    setLoadingId(null);
+  };
+
+  const handleReject = async (collegeId: string, collegeName: string) => {
+    const reason = window.prompt(`Rejection reason for ${collegeName}:`);
+    if (reason === null) return; // cancelled
+    setLoadingId(collegeId);
+    try {
+      const res = await fetch(`/api/admin/colleges/${collegeId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "Does not meet requirements" }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({ title: "College Rejected" });
+        router.refresh();
+      }
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
+    }
+    setLoadingId(null);
   };
 
   const handleStatusChange = async (
@@ -131,9 +175,11 @@ export function CollegesManagementPage({
           <thead className="bg-muted/50 border-b">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">College</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden xl:table-cell">University</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Contact Person</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Location</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Courses</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Applications</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Verified</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Reg. Date</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
               <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
             </tr>
@@ -159,11 +205,43 @@ export function CollegesManagementPage({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                  <td className="px-4 py-3 hidden xl:table-cell">
+                    {college.university ? (
+                      <Link
+                        href={`/admin/universities/${college.university.id}`}
+                        className="text-sm hover:text-primary"
+                      >
+                        {college.university.name}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell">
+                    {college.contactPersonName ? (
+                      <div>
+                        <p className="text-sm">{college.contactPersonName}</p>
+                        <p className="text-xs text-muted-foreground">{college.contactPersonDesig ?? ""}</p>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell text-sm">
                     {college.city && `${college.city}, `}{college.country ?? ""}
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell">{college._count.courses}</td>
-                  <td className="px-4 py-3 hidden md:table-cell">{college._count.applications}</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {college.emailVerified ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                        <CheckCircle className="w-3 h-3" />Email ✓
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Pending</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground text-sm">
+                    {new Date(college.createdAt).toLocaleDateString("en-IN")}
+                  </td>
                   <td className="px-4 py-3">
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </td>
@@ -175,7 +253,7 @@ export function CollegesManagementPage({
                             size="sm"
                             variant="outline"
                             disabled={loadingId === college.id}
-                            onClick={() => handleStatusChange(college.id, "APPROVED")}
+                            onClick={() => handleApprove(college.id, college.name)}
                             className="h-7 text-green-700 border-green-200 hover:bg-green-50"
                           >
                             <CheckCircle className="w-3 h-3 mr-1" />
@@ -185,7 +263,7 @@ export function CollegesManagementPage({
                             size="sm"
                             variant="outline"
                             disabled={loadingId === college.id}
-                            onClick={() => handleStatusChange(college.id, "REJECTED")}
+                            onClick={() => handleReject(college.id, college.name)}
                             className="h-7 text-red-700 border-red-200 hover:bg-red-50"
                           >
                             <XCircle className="w-3 h-3 mr-1" />
@@ -203,6 +281,18 @@ export function CollegesManagementPage({
                         >
                           <Clock className="w-3 h-3 mr-1" />
                           Suspend
+                        </Button>
+                      )}
+                      {college.status === "SUSPENDED" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={loadingId === college.id}
+                          onClick={() => handleApprove(college.id, college.name)}
+                          className="h-7 text-green-700 border-green-200 hover:bg-green-50"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Reactivate
                         </Button>
                       )}
                       <Button size="sm" variant="ghost" asChild className="h-7">

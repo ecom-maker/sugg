@@ -2,77 +2,66 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FileText } from "lucide-react";
+import { ApplicationsTable } from "@/components/college/applications-table";
 
 export const metadata: Metadata = { title: "Applications" };
 
-const STATUS_COLORS: Record<string, string> = {
-  SUBMITTED: "bg-blue-100 text-blue-700",
-  UNDER_REVIEW: "bg-yellow-100 text-yellow-700",
-  ACCEPTED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  ENROLLED: "bg-purple-100 text-purple-700",
-};
-
-export default async function CollegeApplicationsPage() {
-  const user = await requireRole(["COLLEGE_ADMIN"]);
+export default async function CollegeApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; courseId?: string; page?: string }>;
+}) {
+  const user = await requireRole(["COLLEGE_ADMIN", "SUPER_ADMIN"]);
+  const params = await searchParams;
 
   const college = await prisma.college.findFirst({
     where: { admin: { supabaseId: user.supabaseId } },
   });
 
-  const applications = college
-    ? await prisma.application.findMany({
-        where: { collegeId: college.id },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        include: {
-          student: { select: { name: true, email: true } },
-          course: { select: { name: true } },
-        },
-      })
-    : [];
+  const page = Number(params.page ?? 1);
+  const limit = 20;
+
+  const where = {
+    ...(college ? { collegeId: college.id } : {}),
+    ...(params.status ? { status: params.status as never } : {}),
+    ...(params.courseId ? { courseId: params.courseId } : {}),
+  };
+
+  const [applications, total, courses, statusCounts] = await Promise.all([
+    prisma.application.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        student: { select: { name: true, email: true, mobile: true } },
+        course: { select: { name: true, degreeType: true } },
+      },
+    }),
+    prisma.application.count({ where }),
+    prisma.course.findMany({
+      where: college ? { collegeId: college.id } : {},
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    college
+      ? prisma.application.groupBy({
+          by: ["status"],
+          where: { collegeId: college.id },
+          _count: { id: true },
+        })
+      : [],
+  ]);
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Applications</h1>
-        <p className="text-muted-foreground text-sm mt-1">{applications.length} received</p>
-      </div>
-
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Student</th>
-              <th className="text-left px-4 py-3 font-medium">Course</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-left px-4 py-3 font-medium">Date</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {applications.length === 0 ? (
-              <tr><td colSpan={4} className="text-center py-12 text-muted-foreground">
-                <FileText className="w-6 h-6 mx-auto mb-1 opacity-30" />
-                No applications yet
-              </td></tr>
-            ) : (
-              applications.map((app) => (
-                <tr key={app.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{app.student.name}</div>
-                    <div className="text-xs text-muted-foreground">{app.student.email ?? ""}</div>
-                  </td>
-                  <td className="px-4 py-3">{app.course.name}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[app.status] ?? ""}`}>{app.status.replace(/_/g, " ")}</span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(app.createdAt).toLocaleDateString("en-IN")}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <ApplicationsTable
+      applications={applications}
+      total={total}
+      page={page}
+      limit={limit}
+      courses={courses}
+      statusCounts={statusCounts}
+      searchParams={params}
+    />
   );
 }

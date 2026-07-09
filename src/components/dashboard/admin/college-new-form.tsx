@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { createCollege } from "@/actions/colleges";
 import { toast } from "@/hooks/use-toast";
+import { UniversitySelect } from "@/components/university/university-select";
 
 const COUNTRIES = [
   "India",
@@ -55,6 +56,7 @@ export function CollegeNewForm() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [country, setCountry] = useState("");
+  const [universityId, setUniversityId] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,6 +65,7 @@ export function CollegeNewForm() {
 
     const formData = new FormData(e.currentTarget);
     if (country) formData.set("country", country);
+    if (universityId) formData.set("universityId", universityId);
 
     const result = await createCollege(formData);
 
@@ -140,6 +143,14 @@ export function CollegeNewForm() {
                 required
               />
               {fieldError("name")}
+            </div>
+
+            <div className="sm:col-span-2">
+              <UniversitySelect
+                value={universityId}
+                onChange={setUniversityId}
+                allowCreate
+              />
             </div>
 
             <div>

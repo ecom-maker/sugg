@@ -20,6 +20,10 @@ export default async function AdminPage() {
     totalStudents,
     pendingCommissions,
     totalCommissionAmount,
+    totalUniversities,
+    activeUniversities,
+    universitiesThisMonth,
+    topUniversities,
   ] = await Promise.all([
     prisma.lead.count(),
     prisma.lead.count({ where: { status: "NEW" } }),
@@ -33,6 +37,21 @@ export default async function AdminPage() {
       _sum: { commissionAmount: true },
       where: { status: "APPROVED" },
     }),
+    prisma.university.count(),
+    prisma.university.count({ where: { status: "ACTIVE" } }),
+    prisma.university.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      },
+    }),
+    prisma.university.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { colleges: { _count: "desc" } },
+      take: 5,
+      include: { _count: { select: { colleges: true } } },
+    }),
   ]);
 
   const stats = {
@@ -45,6 +64,14 @@ export default async function AdminPage() {
     totalStudents,
     pendingCommissions,
     totalCommissionAmount: Number(totalCommissionAmount._sum.commissionAmount ?? 0),
+    totalUniversities,
+    activeUniversities,
+    universitiesThisMonth,
+    topUniversities: topUniversities.map((u) => ({
+      id: u.id,
+      name: u.name,
+      collegeCount: u._count.colleges,
+    })),
   };
 
   return <AdminDashboard stats={stats} />;

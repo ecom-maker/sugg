@@ -63,6 +63,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "Partners",
         items: [
+          { title: "Universities", href: "/admin/universities", icon: GraduationCap },
           { title: "Colleges", href: "/admin/colleges", icon: Building2 },
           { title: "Courses", href: "/admin/courses", icon: BookOpen },
           { title: "Agencies", href: "/admin/agencies", icon: Briefcase },
@@ -79,6 +80,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Platform",
         items: [
           { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+          { title: "Commission Report", href: "/admin/commission-report", icon: DollarSign },
           { title: "Notifications", href: "/admin/notifications", icon: Bell },
           { title: "Audit Logs", href: "/admin/audit-logs", icon: ClipboardList },
           { title: "Settings", href: "/admin/settings", icon: Settings },
@@ -131,6 +133,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "My College",
         items: [
           { title: "Profile", href: "/college/profile", icon: Building2 },
+          { title: "Universities", href: "/admin/universities", icon: GraduationCap },
           { title: "Courses", href: "/college/courses", icon: BookOpen },
           { title: "Gallery", href: "/college/gallery", icon: Building2 },
         ],
@@ -151,6 +154,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Reports",
         items: [
           { title: "Analytics", href: "/college/analytics", icon: BarChart3 },
+          { title: "Commission Report", href: "/college/commission-report", icon: DollarSign },
         ],
       },
     ] as NavSection[],
@@ -167,6 +171,12 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Branches", href: "/agency/branches", icon: Building2 },
           { title: "All Staff", href: "/agency/staff", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
+        ],
+      },
+      {
+        title: "Opportunities",
+        items: [
+          { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
         ],
       },
       {
@@ -206,6 +216,12 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         ],
       },
       {
+        title: "Opportunities",
+        items: [
+          { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+        ],
+      },
+      {
         title: "Finance",
         items: [
           { title: "Commissions", href: "/agency/commissions", icon: DollarSign },
@@ -242,6 +258,12 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         ],
       },
       {
+        title: "Opportunities",
+        items: [
+          { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+        ],
+      },
+      {
         title: "Finance",
         items: [
           { title: "Commissions", href: "/branch/commissions", icon: DollarSign },
@@ -272,6 +294,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "Referrals",
         items: [
+          { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
           { title: "My Referrals", href: "/agency/my-referrals", icon: Users },
           { title: "Add Referral", href: "/agency/add-referral", icon: Users },
         ],

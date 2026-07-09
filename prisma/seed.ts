@@ -112,11 +112,114 @@ async function main() {
 
   console.log("✅ Counselor profiles created");
 
+  // ─── Universities ─────────────────────────────────────────────────────────
+  const iitUniversity = await prisma.university.upsert({
+    where: { name: "Indian Institute of Technology" },
+    update: {},
+    create: {
+      name: "Indian Institute of Technology",
+      establishmentYear: 1958,
+      location: "Powai, Mumbai",
+      city: "Mumbai",
+      state: "Maharashtra",
+      country: "India",
+      website: "https://www.iitb.ac.in",
+      universityType: "PUBLIC",
+      accreditation: "Institute of National Importance",
+      description: "Premier group of autonomous public technical universities in India.",
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  const iimUniversity = await prisma.university.upsert({
+    where: { name: "Indian Institute of Management" },
+    update: {},
+    create: {
+      name: "Indian Institute of Management",
+      establishmentYear: 1961,
+      location: "Vastrapur, Ahmedabad",
+      city: "Ahmedabad",
+      state: "Gujarat",
+      country: "India",
+      website: "https://www.iima.ac.in",
+      universityType: "PUBLIC",
+      accreditation: "AACSB, EQUIS, AMBA",
+      description: "Leading management education institutions in India.",
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  const christUniversity = await prisma.university.upsert({
+    where: { name: "Christ University" },
+    update: {},
+    create: {
+      name: "Christ University",
+      establishmentYear: 1969,
+      location: "Hosur Road, Bangalore",
+      city: "Bangalore",
+      state: "Karnataka",
+      country: "India",
+      website: "https://christuniversity.in",
+      universityType: "DEEMED",
+      accreditation: "NAAC A+",
+      description: "Deemed to be university offering diverse undergraduate and postgraduate programmes.",
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  const abcUniEntity = await prisma.university.upsert({
+    where: { name: "ABC University Group" },
+    update: {},
+    create: {
+      name: "ABC University Group",
+      establishmentYear: 1985,
+      location: "Sector 10, Bangalore",
+      city: "Bangalore",
+      state: "Karnataka",
+      country: "India",
+      website: "https://abcuniversity.edu",
+      universityType: "PRIVATE",
+      accreditation: "NAAC A++, UGC",
+      description: "Private university group with campuses across India.",
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  const dubaiUniversity = await prisma.university.upsert({
+    where: { name: "University of Dubai" },
+    update: {},
+    create: {
+      name: "University of Dubai",
+      establishmentYear: 2006,
+      location: "Academic City, Dubai",
+      city: "Dubai",
+      country: "UAE",
+      website: "https://www.ud.ac.ae",
+      universityType: "INTERNATIONAL",
+      accreditation: "CAA UAE",
+      description: "International university serving students across the Middle East and Asia.",
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  console.log("✅ Universities created");
+
   // ─── Colleges ─────────────────────────────────────────────────────────────
   const college1 = await prisma.college.upsert({
     where: { slug: "iim-ahmedabad" },
-    update: {},
+    update: { universityId: iimUniversity.id },
     create: {
+      universityId: iimUniversity.id,
       name: "IIM Ahmedabad",
       slug: "iim-ahmedabad",
       officialEmail: "admissions@iima.ac.in",
@@ -138,8 +241,9 @@ async function main() {
 
   const college2 = await prisma.college.upsert({
     where: { slug: "iit-bombay" },
-    update: {},
+    update: { universityId: iitUniversity.id },
     create: {
+      universityId: iitUniversity.id,
       name: "IIT Bombay",
       slug: "iit-bombay",
       officialEmail: "admissions@iitb.ac.in",
@@ -161,8 +265,9 @@ async function main() {
 
   const college3 = await prisma.college.upsert({
     where: { slug: "christ-university" },
-    update: {},
+    update: { universityId: christUniversity.id },
     create: {
+      universityId: christUniversity.id,
       name: "Christ University",
       slug: "christ-university",
       officialEmail: "admissions@christuniversity.in",
@@ -238,6 +343,106 @@ async function main() {
   });
 
   console.log("✅ Courses created");
+
+  // ─── College Admin User ───────────────────────────────────────────────────
+  const COLLEGE_ADMIN_EMAIL = process.env.SEED_COLLEGE_ADMIN_EMAIL ?? "admissions@abcuniversity.com";
+
+  const collegeAdminUser = await prisma.user.upsert({
+    where: { email: COLLEGE_ADMIN_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `college-admin-${Date.now()}`,
+      email: COLLEGE_ADMIN_EMAIL,
+      fullName: "Dr. Anita Sharma",
+      role: "COLLEGE_ADMIN",
+      isActive: true,
+    },
+  });
+
+  const abcUniversity = await prisma.college.upsert({
+    where: { slug: "abc-university" },
+    update: { universityId: abcUniEntity.id },
+    create: {
+      universityId: abcUniEntity.id,
+      adminId: collegeAdminUser.id,
+      name: "ABC University",
+      slug: "abc-university",
+      officialEmail: COLLEGE_ADMIN_EMAIL,
+      contactPhone: "+91 80 1234 5678",
+      contactPersonName: "Dr. Anita Sharma",
+      contactPersonDesig: "Head of Admissions",
+      website: "https://abcuniversity.edu",
+      address: "123 University Road, Sector 10",
+      city: "Bangalore",
+      state: "Karnataka",
+      country: "India",
+      pincode: "560001",
+      description: "A premier institution offering world-class education since 1985.",
+      establishedYear: 1985,
+      accreditation: ["NAAC A++", "UGC"],
+      status: "APPROVED",
+      isVerified: true,
+      emailVerified: true,
+      approvedAt: new Date(),
+    },
+  });
+
+  // Link college admin to college_users
+  await prisma.collegeUser.upsert({
+    where: { userId: collegeAdminUser.id },
+    update: {},
+    create: {
+      collegeId: abcUniversity.id,
+      userId: collegeAdminUser.id,
+      designation: "Head of Admissions",
+    },
+  });
+
+  // Add courses to ABC University
+  const mbaId = `abc-mba-${Date.now()}`;
+  const btechId = `abc-btech-${Date.now()}`;
+
+  await prisma.course.upsert({
+    where: { id: mbaId },
+    update: {},
+    create: {
+      id: mbaId,
+      collegeId: abcUniversity.id,
+      name: "Master of Business Administration (MBA)",
+      degreeType: "MASTER",
+      duration: "2 years",
+      durationMonths: 24,
+      eligibility: "Graduate in any discipline with minimum 50% marks",
+      totalSeats: 120,
+      availableSeats: 40,
+      annualFee: 350000,
+      totalFee: 700000,
+      description: "A flagship MBA programme with specialisations in Finance, Marketing, and HR.",
+      isActive: true,
+    },
+  });
+
+  await prisma.course.upsert({
+    where: { id: btechId },
+    update: {},
+    create: {
+      id: btechId,
+      collegeId: abcUniversity.id,
+      name: "Bachelor of Technology (Computer Science)",
+      degreeType: "BACHELOR",
+      duration: "4 years",
+      durationMonths: 48,
+      eligibility: "10+2 with Physics, Chemistry, Mathematics (min. 60%)",
+      totalSeats: 180,
+      availableSeats: 60,
+      annualFee: 180000,
+      totalFee: 720000,
+      description: "B.Tech CS with AI/ML, Cloud, and Cybersecurity tracks.",
+      isActive: true,
+    },
+  });
+
+  console.log("✅ ABC University with College Admin, MBA & B.Tech courses created");
 
   // ─── Agency Users ─────────────────────────────────────────────────────────
   const AGENCY_OWNER_EMAIL = process.env.SEED_AGENCY_OWNER_EMAIL ?? "owner@eduvision.in";
@@ -587,6 +792,7 @@ async function main() {
   console.log("\n🎉 Seed complete! Summary:");
   console.log("  - 1 Super Admin");
   console.log("  - 2 Sugg Counselors");
+  console.log("  - 1 College Admin (admissions@abcuniversity.com)");
   console.log("  - 3 Colleges (2 approved, 1 pending)");
   console.log("  - 4 Courses");
   console.log("  - 1 Agency (EduVision Consultants)");

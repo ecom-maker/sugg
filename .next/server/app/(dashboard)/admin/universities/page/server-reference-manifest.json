@@ -1,0 +1,41 @@
+{
+  "node": {
+    "40ffccf11600637138bcc11f6d1dced0e6c76705f5": {
+      "workers": {
+        "app/(dashboard)/admin/universities/page": {
+          "moduleId": 95660,
+          "async": false,
+          "exportedName": "archiveUniversity",
+          "filename": "src/actions/universities.ts"
+        }
+      },
+      "exportedName": "archiveUniversity",
+      "filename": "src/actions/universities.ts"
+    },
+    "4000ff4044ba03afa5827da7d22b9b7b8da1c58cf2": {
+      "workers": {
+        "app/(dashboard)/admin/universities/page": {
+          "moduleId": 95660,
+          "async": false,
+          "exportedName": "deleteUniversity",
+          "filename": "src/actions/universities.ts"
+        }
+      },
+      "exportedName": "deleteUniversity",
+      "filename": "src/actions/universities.ts"
+    },
+    "606c75a46c411aa4bb31d87d381def3d1896e11b9a": {
+      "workers": {
+        "app/(dashboard)/admin/universities/page": {
+          "moduleId": 95660,
+          "async": false,
+          "exportedName": "setUniversityStatus",
+          "filename": "src/actions/universities.ts"
+        }
+      },
+      "exportedName": "setUniversityStatus",
+      "filename": "src/actions/universities.ts"
+    }
+  },
+  "edge": {}
+}
