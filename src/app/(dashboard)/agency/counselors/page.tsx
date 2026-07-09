@@ -6,10 +6,10 @@ import { UserCheck, Mail, Phone } from "lucide-react";
 export const metadata: Metadata = { title: "Agency Counselors" };
 
 export default async function AgencyCounselorsPage() {
-  const user = await requireRole(["AGENCY_ADMIN"]);
+  const user = await requireRole(["AGENCY_OWNER", "AGENCY_ADMIN", "SUPER_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { admin: { supabaseId: user.supabaseId } },
+    where: { OR: [{ owner: { supabaseId: user.supabaseId } }, { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } }] },
     include: {
       agencyUsers: {
         include: { user: { select: { id: true, fullName: true, email: true, phone: true, isActive: true } } },
@@ -17,7 +17,7 @@ export default async function AgencyCounselorsPage() {
     },
   });
 
-  const counselors = agency?.agencyUsers.map((au) => au.user) ?? [];
+  const counselors = (agency?.agencyUsers ?? []).map((au) => au.user);
 
   return (
     <div className="p-6 space-y-6">

@@ -155,24 +155,18 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       },
     ] as NavSection[],
 
-    AGENCY_ADMIN: [
+    AGENCY_OWNER: [
       {
         items: [
-          { title: "Dashboard", href: "/agency", icon: LayoutDashboard },
+          { title: "Dashboard", href: "/agency/owner", icon: LayoutDashboard },
         ],
       },
       {
-        title: "Agency",
+        title: "Management",
         items: [
-          { title: "Profile", href: "/agency/profile", icon: Briefcase },
-          { title: "Counselors", href: "/agency/counselors", icon: UserCheck },
-        ],
-      },
-      {
-        title: "Referrals",
-        items: [
+          { title: "Branches", href: "/agency/branches", icon: Building2 },
+          { title: "All Staff", href: "/agency/staff", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
-          { title: "Referrals", href: "/agency/referrals", icon: Users },
         ],
       },
       {
@@ -186,6 +180,77 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Reports",
         items: [
           { title: "Analytics", href: "/agency/analytics", icon: BarChart3 },
+          { title: "Branch Reports", href: "/agency/reports", icon: ClipboardList },
+        ],
+      },
+      {
+        title: "Settings",
+        items: [
+          { title: "Agency Profile", href: "/agency/profile", icon: Briefcase },
+        ],
+      },
+    ] as NavSection[],
+
+    AGENCY_ADMIN: [
+      {
+        items: [
+          { title: "Dashboard", href: "/agency/admin", icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: "Management",
+        items: [
+          { title: "Branches", href: "/agency/branches", icon: Building2 },
+          { title: "Counselors", href: "/agency/counselors", icon: UserCheck },
+          { title: "Students", href: "/agency/students", icon: Users },
+        ],
+      },
+      {
+        title: "Finance",
+        items: [
+          { title: "Commissions", href: "/agency/commissions", icon: DollarSign },
+        ],
+      },
+      {
+        title: "Reports",
+        items: [
+          { title: "Analytics", href: "/agency/analytics", icon: BarChart3 },
+        ],
+      },
+    ] as NavSection[],
+
+    BRANCH_MANAGER: [
+      {
+        items: [
+          { title: "Dashboard", href: "/branch", icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: "My Branch",
+        items: [
+          { title: "Counselors", href: "/branch/counselors", icon: UserCheck },
+          { title: "Students", href: "/branch/students", icon: Users },
+          { title: "Leads", href: "/branch/leads", icon: Users },
+        ],
+      },
+      {
+        title: "Work",
+        items: [
+          { title: "Applications", href: "/branch/applications", icon: FileText },
+          { title: "Follow-ups", href: "/branch/followups", icon: Calendar },
+          { title: "Tasks", href: "/branch/tasks", icon: ClipboardList },
+        ],
+      },
+      {
+        title: "Finance",
+        items: [
+          { title: "Commissions", href: "/branch/commissions", icon: DollarSign },
+        ],
+      },
+      {
+        title: "Reports",
+        items: [
+          { title: "Performance", href: "/branch/reports", icon: BarChart3 },
         ],
       },
     ] as NavSection[],
@@ -193,7 +258,15 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
     AGENCY_COUNSELOR: [
       {
         items: [
-          { title: "Dashboard", href: "/agency", icon: LayoutDashboard },
+          { title: "Dashboard", href: "/counselor", icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: "My Work",
+        items: [
+          { title: "My Leads", href: "/counselor/leads", icon: Users },
+          { title: "Follow-ups", href: "/counselor/followups", icon: Calendar },
+          { title: "Tasks", href: "/counselor/tasks", icon: ClipboardList },
         ],
       },
       {
@@ -201,6 +274,12 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         items: [
           { title: "My Referrals", href: "/agency/my-referrals", icon: Users },
           { title: "Add Referral", href: "/agency/add-referral", icon: Users },
+        ],
+      },
+      {
+        title: "Finance",
+        items: [
+          { title: "My Commissions", href: "/counselor/commissions", icon: DollarSign },
         ],
       },
     ] as NavSection[],

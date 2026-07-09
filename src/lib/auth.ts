@@ -62,9 +62,14 @@ export function getRoleRedirectPath(role: UserRole): string {
       return "/counselor";
     case "COLLEGE_ADMIN":
       return "/college";
+    case "AGENCY_OWNER":
+      return "/agency/owner";
     case "AGENCY_ADMIN":
+      return "/agency/admin";
+    case "BRANCH_MANAGER":
+      return "/branch";
     case "AGENCY_COUNSELOR":
-      return "/agency";
+      return "/counselor";
     default:
       return "/login";
   }
@@ -91,15 +96,36 @@ export function canAccess(userRole: UserRole, resource: string, action: string):
       applications: ["read", "update"],
       commissions: ["read"],
     },
-    AGENCY_ADMIN: {
+    AGENCY_OWNER: {
       agency: ["read", "update"],
+      branches: ["create", "read", "update", "delete"],
+      agency_users: ["create", "read", "update", "delete"],
+      referrals: ["create", "read", "update"],
+      commissions: ["read"],
+      reports: ["read"],
+    },
+    AGENCY_ADMIN: {
+      agency: ["read"],
+      branches: ["create", "read", "update"],
       agency_users: ["create", "read", "update"],
       referrals: ["create", "read", "update"],
       commissions: ["read"],
+      reports: ["read"],
+    },
+    BRANCH_MANAGER: {
+      branch: ["read", "update"],
+      agency_users: ["create", "read", "update"],
+      students: ["read", "create", "update"],
+      leads: ["read", "update"],
+      commissions: ["read"],
+      reports: ["read"],
+      tasks: ["create", "read", "update"],
     },
     AGENCY_COUNSELOR: {
       referrals: ["create", "read"],
-      students: ["create", "read"],
+      students: ["create", "read", "update"],
+      leads: ["read"],
+      commissions: ["read"],
     },
   };
 

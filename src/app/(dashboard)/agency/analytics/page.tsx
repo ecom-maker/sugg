@@ -6,11 +6,14 @@ import { Users, DollarSign, TrendingUp } from "lucide-react";
 export const metadata: Metadata = { title: "Analytics" };
 
 export default async function AgencyAnalyticsPage() {
-  const user = await requireRole(["AGENCY_ADMIN"]);
+  const user = await requireRole(["AGENCY_OWNER", "AGENCY_ADMIN", "SUPER_ADMIN"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { admin: { supabaseId: user.supabaseId } },
-    include: { _count: { select: { agencyUsers: true, commissions: true } } },
+    where: { OR: [{ owner: { supabaseId: user.supabaseId } }, { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } }] },
+    include: {
+      _count: { select: { agencyUsers: true, commissions: true } },
+      branches: { select: { id: true } },
+    },
   });
 
   const referralCount = agency

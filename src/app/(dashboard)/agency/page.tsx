@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AgencyDashboard } from "@/components/dashboard/agency/agency-dashboard";
 
 export const metadata: Metadata = { title: "Agency Dashboard" };
 
 export default async function AgencyPage() {
-  const user = await requireRole(["AGENCY_ADMIN", "AGENCY_COUNSELOR", "SUPER_ADMIN"]);
+  const user = await requireRole(["AGENCY_OWNER", "AGENCY_ADMIN", "AGENCY_COUNSELOR", "SUPER_ADMIN"]);
+
+  // Redirect to role-specific dashboards
+  if (user.role === "AGENCY_OWNER") redirect("/agency/owner");
+  if (user.role === "AGENCY_ADMIN") redirect("/agency/admin");
 
   const agency = await prisma.agency.findFirst({
-    where: user.role === "AGENCY_ADMIN" ? { adminId: user.id } : undefined,
+    where: { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } },
   });
 
   const agencyId = agency?.id;

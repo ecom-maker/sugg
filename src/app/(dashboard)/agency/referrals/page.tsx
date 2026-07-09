@@ -9,7 +9,7 @@ export default async function AgencyReferralsPage() {
   const user = await requireRole(["AGENCY_ADMIN", "AGENCY_COUNSELOR"]);
 
   const agency = await prisma.agency.findFirst({
-    where: { admin: { supabaseId: user.supabaseId } },
+    where: { OR: [{ owner: { supabaseId: user.supabaseId } }, { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } }] },
   });
 
   const referrals = agency

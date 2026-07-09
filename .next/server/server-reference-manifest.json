@@ -23,6 +23,18 @@
       },
       "filename": "src/actions/commissions.ts",
       "exportedName": "approveCommission"
+    },
+    "40a9523a1580aebd735a49fc0b5eb8c3c0c22cf1de": {
+      "workers": {
+        "app/(dashboard)/agency/branches/new/page": {
+          "moduleId": 27812,
+          "async": false,
+          "exportedName": "createBranch",
+          "filename": "src/actions/branches.ts"
+        }
+      },
+      "filename": "src/actions/branches.ts",
+      "exportedName": "createBranch"
     }
   },
   "edge": {},

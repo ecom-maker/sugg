@@ -89,7 +89,7 @@ export async function approveCommission(transactionId: string) {
   const transaction = await prisma.commissionTransaction.findUnique({
     where: { id: transactionId },
     include: {
-      agency: { include: { admin: true } },
+      agency: { include: { owner: true } },
     },
   });
 
@@ -107,9 +107,9 @@ export async function approveCommission(transactionId: string) {
     },
   });
 
-  // Notify agency
-  if (transaction.agency?.adminId) {
-    await createBulkNotifications([transaction.agency.adminId], {
+  // Notify agency owner
+  if (transaction.agency?.ownerId) {
+    await createBulkNotifications([transaction.agency.ownerId], {
       type: "COMMISSION_APPROVED",
       title: "Commission Approved",
       message: `Your commission of ${formatCurrency(Number(transaction.commissionAmount))} has been approved`,
@@ -170,14 +170,14 @@ export async function processCommissionPayout(params: {
     data: { status: "PAID", payoutId: payout.id },
   });
 
-  // Notify agency
+  // Notify agency owner
   const agency = await prisma.agency.findUnique({
     where: { id: params.agencyId },
-    include: { admin: true },
+    include: { owner: true },
   });
 
-  if (agency?.adminId) {
-    await createBulkNotifications([agency.adminId], {
+  if (agency?.ownerId) {
+    await createBulkNotifications([agency.ownerId], {
       type: "COMMISSION_PAID",
       title: "Commission Paid",
       message: `Payout of ${formatCurrency(totalAmount)} has been processed`,

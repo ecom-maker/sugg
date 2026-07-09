@@ -4,8 +4,28 @@ export type UserRole =
   | "SUPER_ADMIN"
   | "SUGG_COUNSELOR"
   | "COLLEGE_ADMIN"
+  | "AGENCY_OWNER"
   | "AGENCY_ADMIN"
+  | "BRANCH_MANAGER"
   | "AGENCY_COUNSELOR";
+
+export type BranchStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
+export type AssignmentStrategy = "ROUND_ROBIN" | "MANUAL" | "COURSE_BASED" | "BRANCH_BASED";
+
+export interface AgencyBranch {
+  id: string;
+  agencyId: string;
+  branchName: string;
+  branchCode: string;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  managerId?: string | null;
+  status: BranchStatus;
+  createdAt: Date;
+}
 
 export type LeadStatus =
   | "NEW"

@@ -239,24 +239,200 @@ async function main() {
 
   console.log("✅ Courses created");
 
+  // ─── Agency Users ─────────────────────────────────────────────────────────
+  const AGENCY_OWNER_EMAIL = process.env.SEED_AGENCY_OWNER_EMAIL ?? "owner@eduvision.in";
+  const AGENCY_ADMIN_EMAIL = process.env.SEED_AGENCY_ADMIN_EMAIL ?? "admin@eduvision.in";
+  const BRANCH_MANAGER1_EMAIL = "bm.delhi@eduvision.in";
+  const BRANCH_MANAGER2_EMAIL = "bm.mumbai@eduvision.in";
+  const COUNSELOR_A1_EMAIL = "counselor.delhi1@eduvision.in";
+  const COUNSELOR_A2_EMAIL = "counselor.delhi2@eduvision.in";
+  const COUNSELOR_B1_EMAIL = "counselor.mumbai1@eduvision.in";
+
+  const agencyOwner = await prisma.user.upsert({
+    where: { email: AGENCY_OWNER_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `agency-owner-${Date.now()}`,
+      email: AGENCY_OWNER_EMAIL,
+      fullName: "Ramesh Gupta",
+      role: "AGENCY_OWNER",
+      isActive: true,
+    },
+  });
+
+  const agencyAdmin = await prisma.user.upsert({
+    where: { email: AGENCY_ADMIN_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `agency-admin-${Date.now()}`,
+      email: AGENCY_ADMIN_EMAIL,
+      fullName: "Sunita Rao",
+      role: "AGENCY_ADMIN",
+      isActive: true,
+    },
+  });
+
+  const branchManager1 = await prisma.user.upsert({
+    where: { email: BRANCH_MANAGER1_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `bm-delhi-${Date.now()}`,
+      email: BRANCH_MANAGER1_EMAIL,
+      fullName: "Anil Sharma",
+      role: "BRANCH_MANAGER",
+      isActive: true,
+    },
+  });
+
+  const branchManager2 = await prisma.user.upsert({
+    where: { email: BRANCH_MANAGER2_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `bm-mumbai-${Date.now()}`,
+      email: BRANCH_MANAGER2_EMAIL,
+      fullName: "Meera Nair",
+      role: "BRANCH_MANAGER",
+      isActive: true,
+    },
+  });
+
+  const agencyCounselor1 = await prisma.user.upsert({
+    where: { email: COUNSELOR_A1_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `ac-delhi1-${Date.now()}`,
+      email: COUNSELOR_A1_EMAIL,
+      fullName: "Deepak Verma",
+      role: "AGENCY_COUNSELOR",
+      isActive: true,
+    },
+  });
+
+  const agencyCounselor2 = await prisma.user.upsert({
+    where: { email: COUNSELOR_A2_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `ac-delhi2-${Date.now()}`,
+      email: COUNSELOR_A2_EMAIL,
+      fullName: "Kavya Singh",
+      role: "AGENCY_COUNSELOR",
+      isActive: true,
+    },
+  });
+
+  const agencyCounselor3 = await prisma.user.upsert({
+    where: { email: COUNSELOR_B1_EMAIL },
+    update: {},
+    create: {
+      supabaseId: `ac-mumbai1-${Date.now()}`,
+      email: COUNSELOR_B1_EMAIL,
+      fullName: "Rohit Kulkarni",
+      role: "AGENCY_COUNSELOR",
+      isActive: true,
+    },
+  });
+
   // ─── Agency ───────────────────────────────────────────────────────────────
   const agency1 = await prisma.agency.upsert({
     where: { slug: "eduvision-consultants" },
     update: {},
     create: {
+      ownerId: agencyOwner.id,
       name: "EduVision Consultants",
       slug: "eduvision-consultants",
       email: "info@eduvision.in",
       phone: "+91 98765 43210",
       website: "https://eduvision.in",
+      headquarters: "Delhi",
       city: "Delhi",
       country: "India",
+      assignmentStrategy: "ROUND_ROBIN",
       isActive: true,
       isVerified: true,
     },
   });
 
-  console.log("✅ Agency created");
+  // ─── Branches ─────────────────────────────────────────────────────────────
+  const branch1 = await prisma.agencyBranch.upsert({
+    where: { branchCode: "EDU-DEL-01" },
+    update: {},
+    create: {
+      agencyId: agency1.id,
+      branchName: "Delhi Central Branch",
+      branchCode: "EDU-DEL-01",
+      city: "New Delhi",
+      state: "Delhi",
+      country: "India",
+      phone: "+91 11 4000 1234",
+      email: "delhi@eduvision.in",
+      managerId: branchManager1.id,
+      status: "ACTIVE",
+    },
+  });
+
+  const branch2 = await prisma.agencyBranch.upsert({
+    where: { branchCode: "EDU-MUM-01" },
+    update: {},
+    create: {
+      agencyId: agency1.id,
+      branchName: "Mumbai Branch",
+      branchCode: "EDU-MUM-01",
+      city: "Mumbai",
+      state: "Maharashtra",
+      country: "India",
+      phone: "+91 22 4000 5678",
+      email: "mumbai@eduvision.in",
+      managerId: branchManager2.id,
+      status: "ACTIVE",
+    },
+  });
+
+  // ─── Branch Targets ───────────────────────────────────────────────────────
+  const now = new Date();
+  await prisma.branchTarget.upsert({
+    where: { branchId_month_year: { branchId: branch1.id, month: now.getMonth() + 1, year: now.getFullYear() } },
+    update: {},
+    create: {
+      branchId: branch1.id,
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+      leadTarget: 50,
+      admissionTarget: 10,
+      revenueTarget: 500000,
+    },
+  });
+
+  await prisma.branchTarget.upsert({
+    where: { branchId_month_year: { branchId: branch2.id, month: now.getMonth() + 1, year: now.getFullYear() } },
+    update: {},
+    create: {
+      branchId: branch2.id,
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+      leadTarget: 40,
+      admissionTarget: 8,
+      revenueTarget: 400000,
+    },
+  });
+
+  // ─── Agency User Memberships ───────────────────────────────────────────────
+  for (const { userId, branchId } of [
+    { userId: agencyOwner.id, branchId: null },
+    { userId: agencyAdmin.id, branchId: null },
+    { userId: branchManager1.id, branchId: branch1.id },
+    { userId: branchManager2.id, branchId: branch2.id },
+    { userId: agencyCounselor1.id, branchId: branch1.id },
+    { userId: agencyCounselor2.id, branchId: branch1.id },
+    { userId: agencyCounselor3.id, branchId: branch2.id },
+  ]) {
+    await prisma.agencyUser.upsert({
+      where: { userId },
+      update: { branchId },
+      create: { userId, agencyId: agency1.id, branchId },
+    });
+  }
+
+  console.log("✅ Agency, branches, and staff created");
 
   // ─── Students & Leads ─────────────────────────────────────────────────────
   const studentsData = [
@@ -329,10 +505,19 @@ async function main() {
 
   for (let i = 0; i < studentsData.length; i++) {
     const studentData = studentsData[i];
+    const isAgencyReferral = studentData.source === "AGENCY_REFERRAL";
+    const assignedBranch = isAgencyReferral ? (i % 2 === 0 ? branch1 : branch2) : null;
+    const assignedCounselor = isAgencyReferral
+      ? (i % 2 === 0 ? agencyCounselor1 : agencyCounselor3)
+      : (i % 2 === 0 ? counselor1 : counselor2);
+
     const student = await prisma.student.upsert({
       where: { mobile: studentData.mobile },
       update: {},
-      create: studentData,
+      create: {
+        ...studentData,
+        ...(isAgencyReferral && { agencyId: agency1.id, branchId: assignedBranch?.id }),
+      },
     });
 
     await prisma.lead.upsert({
@@ -343,20 +528,22 @@ async function main() {
         source: studentData.source,
         status: leadStatuses[i % leadStatuses.length],
         score: 30 + i * 15,
-        assignedToId: i % 2 === 0 ? counselor1.id : counselor2.id,
+        assignedToId: assignedCounselor.id,
+        branchId: assignedBranch?.id,
         assignmentRule: "ROUND_ROBIN",
         lastContactedAt: i > 0 ? new Date() : undefined,
       },
     });
 
     // Add referral for agency student
-    if (studentData.source === "AGENCY_REFERRAL") {
+    if (isAgencyReferral) {
       await prisma.studentReferral.upsert({
         where: { studentId: student.id },
         update: {},
         create: {
           agencyId: agency1.id,
           studentId: student.id,
+          referredById: assignedCounselor.id,
         },
       });
     }
@@ -399,10 +586,14 @@ async function main() {
 
   console.log("\n🎉 Seed complete! Summary:");
   console.log("  - 1 Super Admin");
-  console.log("  - 2 Counselors");
+  console.log("  - 2 Sugg Counselors");
   console.log("  - 3 Colleges (2 approved, 1 pending)");
   console.log("  - 4 Courses");
-  console.log("  - 1 Agency");
+  console.log("  - 1 Agency (EduVision Consultants)");
+  console.log("  - 2 Branches (Delhi Central, Mumbai)");
+  console.log("  - 1 Agency Owner + 1 Agency Admin");
+  console.log("  - 2 Branch Managers");
+  console.log("  - 3 Agency Counselors");
   console.log("  - 5 Students with Leads");
   console.log("  - 3 Subscription Plans");
 }

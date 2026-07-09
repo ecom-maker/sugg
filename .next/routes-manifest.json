@@ -48,7 +48,40 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/agency/branches/[id]",
+      "regex": "^/agency/branches/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/agency/branches/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/branches/[id]",
+      "regex": "^/api/branches/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/branches/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/branches/[id]/analytics",
+      "regex": "^/api/branches/([^/]+?)/analytics(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/branches/(?<nxtPid>[^/]+?)/analytics(?:/)?$"
+    },
+    {
+      "page": "/api/branches/[id]/reports",
+      "regex": "^/api/branches/([^/]+?)/reports(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/branches/(?<nxtPid>[^/]+?)/reports(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -75,6 +108,30 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/agencies",
+      "regex": "^/admin/agencies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/agencies(?:/)?$"
+    },
+    {
+      "page": "/admin/analytics",
+      "regex": "^/admin/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/analytics(?:/)?$"
+    },
+    {
+      "page": "/admin/applications",
+      "regex": "^/admin/applications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/applications(?:/)?$"
+    },
+    {
+      "page": "/admin/audit-logs",
+      "regex": "^/admin/audit\\-logs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/audit\\-logs(?:/)?$"
+    },
+    {
       "page": "/admin/colleges",
       "regex": "^/admin/colleges(?:/)?$",
       "routeKeys": {},
@@ -87,10 +144,136 @@
       "namedRegex": "^/admin/commissions(?:/)?$"
     },
     {
+      "page": "/admin/counselors",
+      "regex": "^/admin/counselors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/counselors(?:/)?$"
+    },
+    {
+      "page": "/admin/courses",
+      "regex": "^/admin/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/courses(?:/)?$"
+    },
+    {
+      "page": "/admin/leads",
+      "regex": "^/admin/leads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/leads(?:/)?$"
+    },
+    {
+      "page": "/admin/notifications",
+      "regex": "^/admin/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/notifications(?:/)?$"
+    },
+    {
+      "page": "/admin/payouts",
+      "regex": "^/admin/payouts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/payouts(?:/)?$"
+    },
+    {
+      "page": "/admin/settings",
+      "regex": "^/admin/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/settings(?:/)?$"
+    },
+    {
       "page": "/agency",
       "regex": "^/agency(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/agency(?:/)?$"
+    },
+    {
+      "page": "/agency/add-referral",
+      "regex": "^/agency/add\\-referral(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/add\\-referral(?:/)?$"
+    },
+    {
+      "page": "/agency/admin",
+      "regex": "^/agency/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/admin(?:/)?$"
+    },
+    {
+      "page": "/agency/analytics",
+      "regex": "^/agency/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/analytics(?:/)?$"
+    },
+    {
+      "page": "/agency/branches",
+      "regex": "^/agency/branches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/branches(?:/)?$"
+    },
+    {
+      "page": "/agency/branches/new",
+      "regex": "^/agency/branches/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/branches/new(?:/)?$"
+    },
+    {
+      "page": "/agency/commissions",
+      "regex": "^/agency/commissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/commissions(?:/)?$"
+    },
+    {
+      "page": "/agency/counselors",
+      "regex": "^/agency/counselors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/counselors(?:/)?$"
+    },
+    {
+      "page": "/agency/my-referrals",
+      "regex": "^/agency/my\\-referrals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/my\\-referrals(?:/)?$"
+    },
+    {
+      "page": "/agency/owner",
+      "regex": "^/agency/owner(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/owner(?:/)?$"
+    },
+    {
+      "page": "/agency/payouts",
+      "regex": "^/agency/payouts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/payouts(?:/)?$"
+    },
+    {
+      "page": "/agency/profile",
+      "regex": "^/agency/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/profile(?:/)?$"
+    },
+    {
+      "page": "/agency/referrals",
+      "regex": "^/agency/referrals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/referrals(?:/)?$"
+    },
+    {
+      "page": "/agency/reports",
+      "regex": "^/agency/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/reports(?:/)?$"
+    },
+    {
+      "page": "/agency/staff",
+      "regex": "^/agency/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/staff(?:/)?$"
+    },
+    {
+      "page": "/agency/students",
+      "regex": "^/agency/students(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/agency/students(?:/)?$"
     },
     {
       "page": "/api/analytics/overview",
@@ -99,10 +282,22 @@
       "namedRegex": "^/api/analytics/overview(?:/)?$"
     },
     {
+      "page": "/api/branches",
+      "regex": "^/api/branches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/branches(?:/)?$"
+    },
+    {
       "page": "/api/cron/inactivity-followups",
       "regex": "^/api/cron/inactivity\\-followups(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/cron/inactivity\\-followups(?:/)?$"
+    },
+    {
+      "page": "/api/leads/assign",
+      "regex": "^/api/leads/assign(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/leads/assign(?:/)?$"
     },
     {
       "page": "/api/notifications",
@@ -123,10 +318,106 @@
       "namedRegex": "^/api/whatsapp/webhook(?:/)?$"
     },
     {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
+    },
+    {
+      "page": "/branch",
+      "regex": "^/branch(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch(?:/)?$"
+    },
+    {
+      "page": "/branch/applications",
+      "regex": "^/branch/applications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/applications(?:/)?$"
+    },
+    {
+      "page": "/branch/commissions",
+      "regex": "^/branch/commissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/commissions(?:/)?$"
+    },
+    {
+      "page": "/branch/counselors",
+      "regex": "^/branch/counselors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/counselors(?:/)?$"
+    },
+    {
+      "page": "/branch/followups",
+      "regex": "^/branch/followups(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/followups(?:/)?$"
+    },
+    {
+      "page": "/branch/leads",
+      "regex": "^/branch/leads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/leads(?:/)?$"
+    },
+    {
+      "page": "/branch/reports",
+      "regex": "^/branch/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/reports(?:/)?$"
+    },
+    {
+      "page": "/branch/students",
+      "regex": "^/branch/students(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/students(?:/)?$"
+    },
+    {
+      "page": "/branch/tasks",
+      "regex": "^/branch/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/tasks(?:/)?$"
+    },
+    {
       "page": "/college",
       "regex": "^/college(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/college(?:/)?$"
+    },
+    {
+      "page": "/college/analytics",
+      "regex": "^/college/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/analytics(?:/)?$"
+    },
+    {
+      "page": "/college/applications",
+      "regex": "^/college/applications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/applications(?:/)?$"
+    },
+    {
+      "page": "/college/commissions",
+      "regex": "^/college/commissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/commissions(?:/)?$"
+    },
+    {
+      "page": "/college/courses",
+      "regex": "^/college/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/courses(?:/)?$"
+    },
+    {
+      "page": "/college/gallery",
+      "regex": "^/college/gallery(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/gallery(?:/)?$"
+    },
+    {
+      "page": "/college/profile",
+      "regex": "^/college/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/college/profile(?:/)?$"
     },
     {
       "page": "/counselor",
@@ -135,10 +426,52 @@
       "namedRegex": "^/counselor(?:/)?$"
     },
     {
+      "page": "/counselor/applications",
+      "regex": "^/counselor/applications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/applications(?:/)?$"
+    },
+    {
+      "page": "/counselor/calls",
+      "regex": "^/counselor/calls(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/calls(?:/)?$"
+    },
+    {
+      "page": "/counselor/commissions",
+      "regex": "^/counselor/commissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/commissions(?:/)?$"
+    },
+    {
+      "page": "/counselor/followups",
+      "regex": "^/counselor/followups(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/followups(?:/)?$"
+    },
+    {
       "page": "/counselor/leads",
       "regex": "^/counselor/leads(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/counselor/leads(?:/)?$"
+    },
+    {
+      "page": "/counselor/performance",
+      "regex": "^/counselor/performance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/performance(?:/)?$"
+    },
+    {
+      "page": "/counselor/tasks",
+      "regex": "^/counselor/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/tasks(?:/)?$"
+    },
+    {
+      "page": "/counselor/whatsapp",
+      "regex": "^/counselor/whatsapp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/counselor/whatsapp(?:/)?$"
     },
     {
       "page": "/dashboard",
@@ -151,6 +484,12 @@
       "regex": "^/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/unauthorized",
+      "regex": "^/unauthorized(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/unauthorized(?:/)?$"
     }
   ],
   "dataRoutes": [],

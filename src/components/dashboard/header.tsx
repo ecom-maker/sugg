@@ -44,7 +44,9 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     SUPER_ADMIN: "Super Admin",
     SUGG_COUNSELOR: "Counselor",
     COLLEGE_ADMIN: "College Admin",
+    AGENCY_OWNER: "Agency Owner",
     AGENCY_ADMIN: "Agency Admin",
+    BRANCH_MANAGER: "Branch Manager",
     AGENCY_COUNSELOR: "Agency Counselor",
   };
 
