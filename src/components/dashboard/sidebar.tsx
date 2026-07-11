@@ -69,7 +69,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Colleges", href: "/admin/colleges", icon: Building2 },
           { title: "Courses", href: "/admin/courses", icon: BookOpen },
           { title: "Agencies", href: "/admin/agencies", icon: Briefcase },
-          { title: "Sugg Branches", href: "/admin/sugg-branches", icon: GitBranch },
+          // "Sugg Branches" link restored when the Phase 2 admin UI ships.
         ],
       },
       {
@@ -92,27 +92,11 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       },
     ] as NavSection[],
 
-    SUGG_BRANCH_MANAGER: [
-      {
-        items: [
-          { title: "Dashboard", href: "/sugg-branch", icon: LayoutDashboard },
-        ],
-      },
-      {
-        title: "Territory",
-        items: [
-          { title: "Agencies", href: "/sugg-branch/agencies", icon: Briefcase },
-          { title: "Sugg Counselors", href: "/sugg-branch/counselors", icon: UserCheck },
-          { title: "Hierarchy", href: "/admin/hierarchy", icon: GitBranch },
-        ],
-      },
-      {
-        title: "Reports",
-        items: [
-          { title: "Territory Reports", href: "/sugg-branch/reports", icon: BarChart3 },
-        ],
-      },
-    ] as NavSection[],
+    // Phase 2 Sugg Branch Manager UI is not deployed yet. Keep this empty so no
+    // sidebar links point to unbuilt pages (which would 404). The full section
+    // (Dashboard, Agencies, Sugg Counselors, Reports) is restored when the
+    // /sugg-branch pages ship.
+    SUGG_BRANCH_MANAGER: [] as NavSection[],
 
     SUGG_COUNSELOR: [
       {
