@@ -128,6 +128,34 @@ export default async function AgencyDetailPage({
             )}
           </div>
 
+          {(agency.ownerName || agency.ownerMobile || agency.nationalIdNumber) && (
+            <div className="rounded-lg border bg-card p-5 space-y-3">
+              <h2 className="font-semibold">Owner &amp; identity</h2>
+              <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                {agency.ownerName && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner name</p>
+                    <p className="font-medium">{agency.ownerName}</p>
+                  </div>
+                )}
+                {agency.ownerMobile && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner mobile</p>
+                    <p className="font-medium">{agency.ownerMobile}</p>
+                  </div>
+                )}
+                {agency.nationalIdNumber && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {agency.nationalIdType ?? "National ID"}
+                    </p>
+                    <p className="font-medium">{agency.nationalIdNumber}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-lg border bg-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-muted-foreground" />

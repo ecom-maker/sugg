@@ -12,9 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Briefcase, Loader2, MapPin } from "lucide-react";
+import { Briefcase, Loader2, MapPin, UserRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { GeoPicker, type GeoValue } from "@/components/sugg-branches/geo-picker";
+
+const NONE_ID = "__none__";
+const NATIONAL_ID_TYPES = [
+  "Passport",
+  "Aadhaar",
+  "Emirates ID",
+  "PAN Card",
+  "Driving License",
+  "National ID",
+  "Other",
+];
 
 export interface AgencyFormData {
   id?: string;
@@ -23,6 +34,10 @@ export interface AgencyFormData {
   phone: string | null;
   website: string | null;
   registrationNumber: string | null;
+  ownerName: string | null;
+  ownerMobile: string | null;
+  nationalIdType: string | null;
+  nationalIdNumber: string | null;
   headquarters: string | null;
   address: string | null;
   city: string | null;
@@ -42,6 +57,10 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
   const [phone, setPhone] = useState(agency?.phone ?? "");
   const [website, setWebsite] = useState(agency?.website ?? "");
   const [registrationNumber, setRegistrationNumber] = useState(agency?.registrationNumber ?? "");
+  const [ownerName, setOwnerName] = useState(agency?.ownerName ?? "");
+  const [ownerMobile, setOwnerMobile] = useState(agency?.ownerMobile ?? "");
+  const [nationalIdType, setNationalIdType] = useState<string | null>(agency?.nationalIdType ?? null);
+  const [nationalIdNumber, setNationalIdNumber] = useState(agency?.nationalIdNumber ?? "");
   const [headquarters, setHeadquarters] = useState(agency?.headquarters ?? "");
   const [address, setAddress] = useState(agency?.address ?? "");
   const [city, setCity] = useState(agency?.city ?? "");
@@ -72,6 +91,10 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
         phone: phone.trim() || null,
         website: website.trim() || null,
         registrationNumber: registrationNumber.trim() || null,
+        ownerName: ownerName.trim() || null,
+        ownerMobile: ownerMobile.trim() || null,
+        nationalIdType: nationalIdType || null,
+        nationalIdNumber: nationalIdNumber.trim() || null,
         headquarters: headquarters.trim() || null,
         address: address.trim() || null,
         city: city.trim() || null,
@@ -171,6 +194,49 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
               </Select>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border bg-card p-5 space-y-4">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+          <UserRound className="w-4 h-4" /> Owner &amp; identity
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Owner Name</Label>
+            <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Full name of the agency owner" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Owner Mobile Number</Label>
+            <Input value={ownerMobile} onChange={(e) => setOwnerMobile(e.target.value)} placeholder="+91 98xxxxxxx" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>National ID Type</Label>
+            <Select
+              value={nationalIdType ?? NONE_ID}
+              onValueChange={(v) => setNationalIdType(v === NONE_ID ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select ID type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_ID}>—</SelectItem>
+                {NATIONAL_ID_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>National ID Number</Label>
+            <Input
+              value={nationalIdNumber}
+              onChange={(e) => setNationalIdNumber(e.target.value)}
+              placeholder="ID document number"
+            />
+          </div>
         </div>
       </div>
 

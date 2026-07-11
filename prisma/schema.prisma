@@ -1113,6 +1113,11 @@ model Agency {
   email              String   @unique
   phone              String?
   website            String?
+  // Agency owner / point-of-contact identity (captured at onboarding).
+  ownerName          String?  @map("owner_name")
+  ownerMobile        String?  @map("owner_mobile")
+  nationalIdType     String?  @map("national_id_type")
+  nationalIdNumber   String?  @map("national_id_number")
   headquarters       String?
   address            String?
   city               String?
