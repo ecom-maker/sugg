@@ -1,7 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/register", "/forgot-password", "/colleges", "/"];
+const publicRoutes = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/colleges",
+  // Public college self-registration flow (pre-auth: the account isn't active
+  // until a Super Admin approves it). Listed as specific paths so the protected
+  // /college dashboard stays gated.
+  "/college/register",
+  "/college/verify",
+  "/college/pending",
+  "/",
+];
 const authRoutes = ["/login", "/register"];
 
 function isPublicRoute(pathname: string): boolean {
