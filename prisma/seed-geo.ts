@@ -17,10 +17,45 @@ export async function seedGeo(prisma: PrismaClient) {
   const indiaStates: { name: string; code: string; districts: string[] }[] = [
     { name: "Delhi", code: "DL", districts: ["New Delhi", "South Delhi", "North Delhi"] },
     { name: "Maharashtra", code: "MH", districts: ["Mumbai", "Pune", "Nagpur"] },
-    { name: "Karnataka", code: "KA", districts: ["Bangalore", "Mysore", "Mangalore"] },
     { name: "Gujarat", code: "GJ", districts: ["Ahmedabad", "Surat", "Vadodara"] },
-    { name: "Tamil Nadu", code: "TN", districts: ["Chennai", "Coimbatore", "Madurai"] },
-    { name: "Kerala", code: "KL", districts: ["Ernakulam", "Thiruvananthapuram", "Kozhikode"] },
+    {
+      name: "Kerala",
+      code: "KL",
+      // All 14 districts.
+      districts: [
+        "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
+        "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
+        "Thiruvananthapuram", "Thrissur", "Wayanad",
+      ],
+    },
+    {
+      name: "Tamil Nadu",
+      code: "TN",
+      // All 38 districts.
+      districts: [
+        "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+        "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+        "Kanniyakumari", "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai",
+        "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai",
+        "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi",
+        "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli",
+        "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
+        "Vellore", "Viluppuram", "Virudhunagar",
+      ],
+    },
+    {
+      name: "Karnataka",
+      code: "KA",
+      // All 31 districts (official current names).
+      districts: [
+        "Bagalkote", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban",
+        "Bidar", "Chamarajanagar", "Chikkaballapura", "Chikkamagaluru",
+        "Chitradurga", "Dakshina Kannada", "Davanagere", "Dharwad", "Gadag",
+        "Hassan", "Haveri", "Kalaburagi", "Kodagu", "Kolar", "Koppal", "Mandya",
+        "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi",
+        "Uttara Kannada", "Vijayanagara", "Vijayapura", "Yadgiri",
+      ],
+    },
   ];
 
   const uaeStates: { name: string; code: string; districts: string[] }[] = [
