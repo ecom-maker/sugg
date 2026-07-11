@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,15 +17,20 @@ import { toast } from "@/hooks/use-toast";
 import { GeoPicker, type GeoValue } from "@/components/sugg-branches/geo-picker";
 
 const NONE_ID = "__none__";
-const NATIONAL_ID_TYPES = [
-  "Passport",
-  "Aadhaar",
-  "Emirates ID",
-  "PAN Card",
-  "Driving License",
-  "National ID",
-  "Other",
-];
+
+// National ID types offered per country (keyed by country code). Falls back to
+// a generic list for any other country.
+const ID_TYPES_BY_COUNTRY: Record<string, string[]> = {
+  IN: ["Aadhaar Card", "PAN Card", "Passport No."],
+  AE: ["Emirates ID (EID)", "Passport No."],
+};
+const DEFAULT_ID_TYPES = ["Passport No.", "National ID", "Other"];
+
+interface CountryOption {
+  id: string;
+  countryName: string;
+  countryCode: string;
+}
 
 export interface AgencyFormData {
   id?: string;
@@ -70,7 +75,32 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
     stateId: agency?.stateId ?? null,
     districtId: agency?.districtId ?? null,
   });
+  const [countries, setCountries] = useState<CountryOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load countries so we can offer country-specific National ID types.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/geo/countries")
+      .then((r) => r.json())
+      .then((d) => !cancelled && setCountries(d.countries ?? []))
+      .catch(() => !cancelled && setCountries([]));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const idTypes = useMemo(() => {
+    const code = countries.find((c) => c.id === geo.countryId)?.countryCode;
+    return (code && ID_TYPES_BY_COUNTRY[code]) || DEFAULT_ID_TYPES;
+  }, [countries, geo.countryId]);
+
+  // Reset the National ID type when the country changes, since the available
+  // options differ by country.
+  const handleGeoChange = (next: GeoValue) => {
+    if (next.countryId !== geo.countryId) setNationalIdType(null);
+    setGeo(next);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,13 +245,14 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
             <Select
               value={nationalIdType ?? NONE_ID}
               onValueChange={(v) => setNationalIdType(v === NONE_ID ? null : v)}
+              disabled={!geo.countryId}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select ID type" />
+                <SelectValue placeholder={geo.countryId ? "Select ID type" : "Select a country first"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NONE_ID}>—</SelectItem>
-                {NATIONAL_ID_TYPES.map((t) => (
+                {idTypes.map((t) => (
                   <SelectItem key={t} value={t}>
                     {t}
                   </SelectItem>
@@ -262,7 +293,7 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
             <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" />
           </div>
         </div>
-        <GeoPicker value={geo} onChange={setGeo} />
+        <GeoPicker value={geo} onChange={handleGeoChange} />
       </div>
 
       <div className="flex gap-3">
