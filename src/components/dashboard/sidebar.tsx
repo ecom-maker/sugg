@@ -69,7 +69,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Colleges", href: "/admin/colleges", icon: Building2 },
           { title: "Courses", href: "/admin/courses", icon: BookOpen },
           { title: "Agencies", href: "/admin/agencies", icon: Briefcase },
-          // "Sugg Branches" link restored when the Phase 2 admin UI ships.
+          { title: "Sugg Branches", href: "/admin/sugg-branches", icon: GitBranch },
         ],
       },
       {
