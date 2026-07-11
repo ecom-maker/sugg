@@ -69,6 +69,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Colleges", href: "/admin/colleges", icon: Building2 },
           { title: "Courses", href: "/admin/courses", icon: BookOpen },
           { title: "Agencies", href: "/admin/agencies", icon: Briefcase },
+          { title: "Sugg Branches", href: "/admin/sugg-branches", icon: GitBranch },
         ],
       },
       {
@@ -87,6 +88,28 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Notifications", href: "/admin/notifications", icon: Bell },
           { title: "Audit Logs", href: "/admin/audit-logs", icon: ClipboardList },
           { title: "Settings", href: "/admin/settings", icon: Settings },
+        ],
+      },
+    ] as NavSection[],
+
+    SUGG_BRANCH_MANAGER: [
+      {
+        items: [
+          { title: "Dashboard", href: "/sugg-branch", icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: "Territory",
+        items: [
+          { title: "Agencies", href: "/sugg-branch/agencies", icon: Briefcase },
+          { title: "Sugg Counselors", href: "/sugg-branch/counselors", icon: UserCheck },
+          { title: "Hierarchy", href: "/admin/hierarchy", icon: GitBranch },
+        ],
+      },
+      {
+        title: "Reports",
+        items: [
+          { title: "Territory Reports", href: "/sugg-branch/reports", icon: BarChart3 },
         ],
       },
     ] as NavSection[],
