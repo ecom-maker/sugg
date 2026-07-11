@@ -229,6 +229,31 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
 
       <div className="rounded-lg border bg-card p-5 space-y-4">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+          <MapPin className="w-4 h-4" /> Location
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Location determines the covering Sugg Branch. On create it is resolved automatically; you
+          can also map it manually from the agency page.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Headquarters</Label>
+            <Input value={headquarters} onChange={(e) => setHeadquarters(e.target.value)} placeholder="City / region" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>City</Label>
+            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Address</Label>
+            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" />
+          </div>
+        </div>
+        <GeoPicker value={geo} onChange={handleGeoChange} />
+      </div>
+
+      <div className="rounded-lg border bg-card p-5 space-y-4">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
           <UserRound className="w-4 h-4" /> Owner &amp; identity
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -269,31 +294,6 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
             />
           </div>
         </div>
-      </div>
-
-      <div className="rounded-lg border bg-card p-5 space-y-4">
-        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-          <MapPin className="w-4 h-4" /> Location
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          Location determines the covering Sugg Branch. On create it is resolved automatically; you
-          can also map it manually from the agency page.
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Headquarters</Label>
-            <Input value={headquarters} onChange={(e) => setHeadquarters(e.target.value)} placeholder="City / region" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>City</Label>
-            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label>Address</Label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" />
-          </div>
-        </div>
-        <GeoPicker value={geo} onChange={handleGeoChange} />
       </div>
 
       <div className="flex gap-3">
