@@ -17,45 +17,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { createCollege } from "@/actions/colleges";
 import { toast } from "@/hooks/use-toast";
 import { UniversitySelect } from "@/components/university/university-select";
-
-const COUNTRIES = [
-  "India",
-  "United States",
-  "United Kingdom",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Singapore",
-  "UAE",
-  "New Zealand",
-  "Ireland",
-  "Netherlands",
-  "Sweden",
-  "Italy",
-  "Spain",
-  "Japan",
-  "South Korea",
-  "China",
-  "Malaysia",
-  "South Africa",
-];
+import { GeoPicker, type GeoValue } from "@/components/sugg-branches/geo-picker";
 
 export function CollegeNewForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
-  const [country, setCountry] = useState("");
+  const [geo, setGeo] = useState<GeoValue>({ countryId: null, stateId: null, districtId: null });
   const [universityId, setUniversityId] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +35,14 @@ export function CollegeNewForm() {
     setErrors({});
 
     const formData = new FormData(e.currentTarget);
-    if (country) formData.set("country", country);
+    if (!geo.countryId) {
+      setLoading(false);
+      toast({ title: "Country is required", description: "Select a country.", variant: "destructive" });
+      return;
+    }
+    formData.set("countryId", geo.countryId);
+    if (geo.stateId) formData.set("stateId", geo.stateId);
+    if (geo.districtId) formData.set("districtId", geo.districtId);
     if (universityId) formData.set("universityId", universityId);
 
     const result = await createCollege(formData);
@@ -238,47 +216,24 @@ export function CollegeNewForm() {
               {fieldError("address")}
             </div>
 
-            <div>
-              <Label htmlFor="city">City</Label>
+            <div className="sm:col-span-2">
+              <Label htmlFor="city">City / Locality</Label>
               <Input
                 id="city"
                 name="city"
-                placeholder="e.g. Mumbai"
+                placeholder="Optional — defaults to the selected district"
                 className="mt-1"
               />
               {fieldError("city")}
             </div>
-
-            <div>
-              <Label htmlFor="state">State / Province</Label>
-              <Input
-                id="state"
-                name="state"
-                placeholder="e.g. Maharashtra"
-                className="mt-1"
-              />
-              {fieldError("state")}
-            </div>
-
-            <div className="sm:col-span-2">
-              <Label htmlFor="country">
-                Country <span className="text-red-500">*</span>
-              </Label>
-              <Select value={country} onValueChange={setCountry} required>
-                <SelectTrigger id="country" className="mt-1">
-                  <SelectValue placeholder="Select a country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldError("country")}
-            </div>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            Select country, state and district from the platform&apos;s geographic data so records
+            stay consistent and searchable.
+          </p>
+          <GeoPicker value={geo} onChange={setGeo} />
+          {fieldError("countryId")}
         </div>
 
         {/* Description */}

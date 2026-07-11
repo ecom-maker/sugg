@@ -14,8 +14,13 @@ const createCollegeSchema = z.object({
   contactPhone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
+  // Structured geography from the geo reference tables. The string
+  // state/country columns are derived from these for backward compatibility.
+  countryId: z.string().min(1, "Country is required"),
+  stateId: z.string().optional(),
+  districtId: z.string().optional(),
   state: z.string().optional(),
-  country: z.string().min(1, "Country is required"),
+  country: z.string().optional(),
   description: z.string().optional(),
   establishedYear: z.string().optional(),
   universityId: z.string().optional(),
@@ -42,6 +47,22 @@ export async function createCollege(formData: FormData) {
     slug = `${baseSlug}-${count}`;
   }
 
+  // Resolve geo names from the selected reference ids, so the string
+  // country/state columns stay consistent with the linked geo records.
+  const [countryRec, stateRec, districtRec] = await Promise.all([
+    prisma.country.findUnique({ where: { id: data.countryId }, select: { countryName: true } }),
+    data.stateId
+      ? prisma.state.findUnique({ where: { id: data.stateId }, select: { stateName: true } })
+      : Promise.resolve(null),
+    data.districtId
+      ? prisma.district.findUnique({ where: { id: data.districtId }, select: { districtName: true } })
+      : Promise.resolve(null),
+  ]);
+
+  if (!countryRec) {
+    return { error: { countryId: ["Selected country is invalid"] } };
+  }
+
   const college = await prisma.college.create({
     data: {
       name: data.name,
@@ -50,9 +71,12 @@ export async function createCollege(formData: FormData) {
       website: data.website || null,
       contactPhone: data.contactPhone || null,
       address: data.address || null,
-      city: data.city || null,
-      state: data.state || null,
-      country: data.country,
+      city: data.city || districtRec?.districtName || null,
+      state: stateRec?.stateName ?? data.state ?? null,
+      country: countryRec.countryName,
+      countryId: data.countryId,
+      stateId: data.stateId || null,
+      districtId: data.districtId || null,
       description: data.description || null,
       establishedYear: data.establishedYear ? parseInt(data.establishedYear) : null,
       universityId: data.universityId || null,
