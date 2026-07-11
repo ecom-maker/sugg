@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,14 +41,32 @@ export function SuggBranchForm({ branch }: { branch?: SuggBranchFormData }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // On create, preview the auto-generated code as the location changes. Codes
+  // are never regenerated on edit — an existing branch keeps its code.
+  useEffect(() => {
+    if (isEdit) return;
+    let cancelled = false;
+    const load = async (): Promise<string> => {
+      if (!geo.countryId) return "";
+      const params = new URLSearchParams({ countryId: geo.countryId });
+      if (geo.stateId) params.set("stateId", geo.stateId);
+      if (geo.districtId) params.set("districtId", geo.districtId);
+      const r = await fetch(`/api/admin/sugg-branches/next-code?${params}`);
+      const d = await r.json();
+      return d.code ?? "";
+    };
+    load()
+      .then((code) => !cancelled && setBranchCode(code))
+      .catch(() => !cancelled && setBranchCode(""));
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, geo.countryId, geo.stateId, geo.districtId]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (branchName.trim().length < 2) {
       toast({ title: "Branch name is required", variant: "destructive" });
-      return;
-    }
-    if (branchCode.trim().length < 2) {
-      toast({ title: "Branch code is required", variant: "destructive" });
       return;
     }
     if (!geo.countryId) {
@@ -60,7 +78,8 @@ export function SuggBranchForm({ branch }: { branch?: SuggBranchFormData }) {
     try {
       const payload = {
         branchName: branchName.trim(),
-        branchCode: branchCode.trim(),
+        // Create: server auto-generates the code. Edit: keep the existing code.
+        ...(isEdit ? { branchCode: branchCode.trim() } : {}),
         address: address.trim() || null,
         phone: phone.trim() || null,
         email: email.trim() || null,
@@ -114,8 +133,19 @@ export function SuggBranchForm({ branch }: { branch?: SuggBranchFormData }) {
             <Input value={branchName} onChange={(e) => setBranchName(e.target.value)} placeholder="e.g. Sugg Kerala" />
           </div>
           <div className="space-y-1.5">
-            <Label>Branch Code *</Label>
-            <Input value={branchCode} onChange={(e) => setBranchCode(e.target.value)} placeholder="e.g. SUGG-KL" />
+            <Label>Branch Code</Label>
+            <Input
+              value={branchCode}
+              readOnly
+              disabled
+              placeholder={isEdit ? "" : "Auto-generated from location"}
+              className="font-mono"
+            />
+            {!isEdit && (
+              <p className="text-xs text-muted-foreground">
+                Auto-generated from state &amp; district (e.g. SUGG-KL-PKD-1).
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Phone</Label>

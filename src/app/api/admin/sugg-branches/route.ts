@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { generateSuggBranchCode } from "@/lib/sugg-branch-code";
 import { z } from "zod";
 
 const createSchema = z.object({
   branchName: z.string().min(2).max(120),
-  branchCode: z.string().min(2).max(40),
+  // Optional — auto-generated from the branch's geography when omitted.
+  branchCode: z.string().max(40).optional(),
   address: z.string().max(500).optional(),
   countryId: z.string().min(1, "Country is required"),
   stateId: z.string().optional().nullable(),
@@ -76,16 +78,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = createSchema.parse(body);
 
-    const dupe = await prisma.suggBranch.findFirst({
-      where: {
-        OR: [{ branchName: data.branchName }, { branchCode: data.branchCode }],
-      },
-      select: { id: true, branchName: true, branchCode: true },
+    // Branch name must be unique.
+    const nameDupe = await prisma.suggBranch.findFirst({
+      where: { branchName: data.branchName },
+      select: { id: true },
     });
-    if (dupe) {
-      const field = dupe.branchName === data.branchName ? "name" : "code";
+    if (nameDupe) {
       return NextResponse.json(
-        { error: `A Sugg Branch with this ${field} already exists` },
+        { error: "A Sugg Branch with this name already exists" },
+        { status: 409 }
+      );
+    }
+
+    // Auto-generate the branch code from geography unless one was supplied.
+    const branchCode =
+      data.branchCode?.trim() ||
+      (await generateSuggBranchCode({
+        countryId: data.countryId,
+        stateId: data.stateId,
+        districtId: data.districtId,
+      }));
+
+    const codeDupe = await prisma.suggBranch.findFirst({
+      where: { branchCode },
+      select: { id: true },
+    });
+    if (codeDupe) {
+      return NextResponse.json(
+        { error: `A Sugg Branch with code ${branchCode} already exists` },
         { status: 409 }
       );
     }
@@ -107,7 +127,7 @@ export async function POST(request: NextRequest) {
       const created = await tx.suggBranch.create({
         data: {
           branchName: data.branchName,
-          branchCode: data.branchCode,
+          branchCode,
           address: data.address || null,
           countryId: data.countryId,
           stateId: data.stateId || null,
