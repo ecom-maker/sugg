@@ -20,6 +20,7 @@ export async function seedGeo(prisma: PrismaClient) {
     { name: "Karnataka", code: "KA", districts: ["Bangalore", "Mysore", "Mangalore"] },
     { name: "Gujarat", code: "GJ", districts: ["Ahmedabad", "Surat", "Vadodara"] },
     { name: "Tamil Nadu", code: "TN", districts: ["Chennai", "Coimbatore", "Madurai"] },
+    { name: "Kerala", code: "KL", districts: ["Ernakulam", "Thiruvananthapuram", "Kozhikode"] },
   ];
 
   const uaeStates: { name: string; code: string; districts: string[] }[] = [

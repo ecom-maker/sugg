@@ -87,4 +87,41 @@ export const NotificationMessages = {
     title: "College Approved",
     message: `${collegeName} has been approved on the platform`,
   }),
+
+  // ─── Sugg Branch Network ───────────────────────────────────────────────────
+
+  newAgencyInTerritory: (agencyName: string) => ({
+    title: "New Agency in Your Territory",
+    message: `${agencyName} has registered in your territory and is awaiting your recommendation`,
+  }),
+
+  unassignedTerritoryAgency: (agencyName: string) => ({
+    title: "Agency in Unassigned Territory",
+    message: `${agencyName} registered in a territory not covered by any Sugg Branch`,
+  }),
+
+  agencyDecisionForManager: (agencyName: string, decision: "approved" | "rejected") => ({
+    title: `Agency ${decision === "approved" ? "Approved" : "Rejected"}`,
+    message: `${agencyName} in your territory has been ${decision} by the Super Admin`,
+  }),
+
+  agencyRecommendationSubmitted: (agencyName: string, recommendation: string) => ({
+    title: "Agency Recommendation Submitted",
+    message: `A Sugg Branch Manager recommends to ${recommendation} ${agencyName}`,
+  }),
+
+  agencySuspensionRecommended: (agencyName: string, reason: string) => ({
+    title: "Agency Suspension Recommended",
+    message: `A Sugg Branch Manager recommends suspending ${agencyName}. Reason: ${reason}`,
+  }),
+
+  coveringSuggBranch: (branchName: string, contact: string) => ({
+    title: "Your Regional Sugg Branch",
+    message: `Your agency is now managed by ${branchName}. Regional contact: ${contact}`,
+  }),
+
+  territoryReportReady: (period: string) => ({
+    title: "Territory Report Ready",
+    message: `Your territory report for ${period} is ready to view`,
+  }),
 };

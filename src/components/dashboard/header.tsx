@@ -43,6 +43,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   const roleLabel: Record<AuthUser["role"], string> = {
     SUPER_ADMIN: "Super Admin",
     SUGG_COUNSELOR: "Counselor",
+    SUGG_BRANCH_MANAGER: "Sugg Branch Manager",
     COLLEGE_ADMIN: "College Admin",
     AGENCY_OWNER: "Agency Owner",
     AGENCY_ADMIN: "Agency Admin",

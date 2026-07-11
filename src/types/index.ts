@@ -3,6 +3,7 @@
 export type UserRole =
   | "SUPER_ADMIN"
   | "SUGG_COUNSELOR"
+  | "SUGG_BRANCH_MANAGER"
   | "COLLEGE_ADMIN"
   | "AGENCY_OWNER"
   | "AGENCY_ADMIN"

@@ -60,6 +60,8 @@ export function getRoleRedirectPath(role: UserRole): string {
       return "/admin";
     case "SUGG_COUNSELOR":
       return "/counselor";
+    case "SUGG_BRANCH_MANAGER":
+      return "/sugg-branch";
     case "COLLEGE_ADMIN":
       return "/college";
     case "AGENCY_OWNER":
@@ -90,6 +92,21 @@ export function canAccess(userRole: UserRole, resource: string, action: string):
       whatsapp: ["read", "send"],
       calls: ["create", "read"],
       tasks: ["create", "read", "update"],
+    },
+    // Sugg Branch Manager — manages agencies & Sugg counselors within own
+    // territory. Read-only on agency-owned data; recommend (not approve) on
+    // agency onboarding; write only on Sugg-internal counselors and leads.
+    SUGG_BRANCH_MANAGER: {
+      sugg_branch: ["read"],
+      agencies: ["read"],
+      agency_recommendations: ["create"],
+      sugg_counselors: ["create", "read", "update"],
+      leads: ["read", "assign"],
+      students: ["read"],
+      commissions: ["read"],
+      reports: ["read"],
+      hierarchy: ["read"],
+      notifications: ["read"],
     },
     COLLEGE_ADMIN: {
       college: ["read", "update"],

@@ -16,6 +16,7 @@ datasource db {
 enum UserRole {
   SUPER_ADMIN
   SUGG_COUNSELOR
+  SUGG_BRANCH_MANAGER
   COLLEGE_ADMIN
   AGENCY_OWNER
   AGENCY_ADMIN
@@ -34,6 +35,24 @@ enum AssignmentStrategy {
   MANUAL
   COURSE_BASED
   BRANCH_BASED
+}
+
+// Sugg Branch operational status. Reuses the ACTIVE/INACTIVE/ARCHIVED shape of
+// BranchStatus but is a distinct type so Sugg Branches are never conflated with
+// agency_branches at the schema level.
+enum SuggBranchStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// Agency lifecycle within the Sugg Branch onboarding workflow. Defaults to
+// APPROVED so all pre-existing agencies remain fully active after migration.
+enum AgencyApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
 }
 
 enum CollegeStatus {
@@ -127,6 +146,12 @@ enum NotificationType {
   DOCUMENT_EXPIRING
   POSSIBLE_DUPLICATE
   STUDENT_ANONYMIZED
+  NEW_AGENCY_IN_TERRITORY
+  AGENCY_ASSIGNED_SUGG_BRANCH
+  AGENCY_RECOMMENDATION_SUBMITTED
+  AGENCY_SUSPENSION_RECOMMENDED
+  UNASSIGNED_TERRITORY_AGENCY
+  TERRITORY_REPORT_READY
   INFO
   SUCCESS
   WARNING
@@ -300,6 +325,9 @@ model Country {
   colleges  College[]
   students  Student[]
   educationHistory StudentEducationHistory[]
+  agencies         Agency[]
+  suggBranches     SuggBranch[]
+  suggBranchTerritories SuggBranchTerritory[]
 
   @@map("countries")
 }
@@ -318,6 +346,9 @@ model State {
   branches  AgencyBranch[]
   colleges  College[]
   students  Student[]
+  agencies              Agency[]
+  suggBranches          SuggBranch[]
+  suggBranchTerritories SuggBranchTerritory[]
 
   @@unique([countryId, stateName])
   @@map("states")
@@ -336,6 +367,9 @@ model District {
   colleges  College[]
   students  Student[]
   teams     Team[]
+  agencies              Agency[]
+  suggBranches          SuggBranch[]
+  suggBranchTerritories SuggBranchTerritory[]
 
   @@unique([stateId, districtName])
   @@map("districts")
@@ -398,6 +432,7 @@ model User {
   collegeUser      CollegeUser?
   ownedAgency      Agency?       @relation("AgencyOwner")
   managedBranch    AgencyBranch? @relation("BranchManager")
+  managedSuggBranch SuggBranch?  @relation("SuggBranchManager")
   agencyUser       AgencyUser?
   counselor        Counselor?
 
@@ -414,6 +449,9 @@ model User {
   createdUniversities University[] @relation("UniversityCreator")
   updatedUniversities University[] @relation("UniversityUpdater")
   createdTeams        Team[]       @relation("TeamCreator")
+  createdSuggBranches SuggBranch[] @relation("SuggBranchCreator")
+  updatedSuggBranches SuggBranch[] @relation("SuggBranchUpdater")
+  recommendedAgencies Agency[]     @relation("AgencyRecommender")
   uploadedDocuments   StudentDocument[] @relation("DocumentUploader")
   verifiedDocuments   StudentDocument[] @relation("DocumentVerifier")
   shortlistsCreated   StudentShortlist[] @relation("ShortlistCreator")
@@ -706,13 +744,15 @@ model LeadFollowup {
 model Counselor {
   id              String   @id @default(cuid())
   userId          String   @unique @map("user_id")
+  suggBranchId    String?  @map("sugg_branch_id")
   specializations String[] // course types they specialize in
   maxLeads        Int      @default(50) @map("max_leads")
   isAvailable     Boolean  @default(true) @map("is_available")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suggBranch      SuggBranch? @relation(fields: [suggBranchId], references: [id], onDelete: SetNull)
 
   @@map("counselors")
 }
@@ -1082,11 +1122,33 @@ model Agency {
   isActive           Boolean  @default(true) @map("is_active")
   isVerified         Boolean  @default(false) @map("is_verified")
   assignmentStrategy AssignmentStrategy @default(ROUND_ROBIN) @map("assignment_strategy")
+
+  // Sugg Branch Network layer (nullable — agencies stay unassigned until a
+  // covering Sugg Branch + territory exists). suggBranchId is the covering
+  // regional office; geo FKs drive territory resolution.
+  suggBranchId       String?  @map("sugg_branch_id")
+  countryId          String?  @map("country_id")
+  stateId            String?  @map("state_id")
+  districtId         String?  @map("district_id")
+
+  // Onboarding recommendation workflow. Defaults to APPROVED so existing
+  // agencies are unaffected; new agencies enter PENDING and a Sugg Branch
+  // Manager recommends before a Super Admin makes the final decision.
+  approvalStatus     AgencyApprovalStatus @default(APPROVED) @map("approval_status")
+  recommendationNote String?  @map("recommendation_note")
+  recommendedById    String?  @map("recommended_by_id")
+  recommendedAt      DateTime? @map("recommended_at")
+
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   // Relations
   owner       User?         @relation("AgencyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  suggBranch  SuggBranch?   @relation(fields: [suggBranchId], references: [id], onDelete: SetNull)
+  geoCountry  Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  geoState    State?        @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  geoDistrict District?     @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  recommendedBy User?       @relation("AgencyRecommender", fields: [recommendedById], references: [id], onDelete: SetNull)
   branches    AgencyBranch[]
   agencyUsers AgencyUser[]
   referrals   StudentReferral[]
@@ -1095,6 +1157,72 @@ model Agency {
   students    Student[]
 
   @@map("agencies")
+}
+
+// ─── SUGG BRANCH NETWORK ─────────────────────────────────────────────────────
+// Sugg-operated regional offices that sit ABOVE partner agencies. These are a
+// distinct entity from agency_branches and must never be conflated with them.
+
+model SuggBranch {
+  id          String           @id @default(cuid())
+  branchName  String           @unique @map("branch_name")
+  branchCode  String           @unique @map("branch_code")
+  address     String?
+  countryId   String           @map("country_id")
+  stateId     String?          @map("state_id")
+  districtId  String?          @map("district_id")
+  phone       String?
+  email       String?
+  managerId   String?          @unique @map("manager_id")
+  status      SuggBranchStatus @default(ACTIVE)
+  createdById String?          @map("created_by")
+  updatedById String?          @map("updated_by")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  manager     User?     @relation("SuggBranchManager", fields: [managerId], references: [id], onDelete: SetNull)
+  createdBy   User?     @relation("SuggBranchCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?     @relation("SuggBranchUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  geoCountry  Country   @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  geoState    State?    @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  geoDistrict District? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  territories SuggBranchTerritory[]
+  agencies    Agency[]
+  counselors  Counselor[]
+
+  @@map("sugg_branches")
+}
+
+// Geographic coverage for a Sugg Branch. A null stateId means the whole
+// country; a null districtId means the whole state. Overlap is enforced in
+// application code (see src/lib/sugg-territory.ts) — most-specific match wins
+// at resolution time (district → state → country).
+model SuggBranchTerritory {
+  id           String   @id @default(cuid())
+  suggBranchId String   @map("sugg_branch_id")
+  countryId    String   @map("country_id")
+  stateId      String?  @map("state_id")
+  districtId   String?  @map("district_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  suggBranch  SuggBranch @relation(fields: [suggBranchId], references: [id], onDelete: Cascade)
+  geoCountry  Country    @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  geoState    State?     @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  geoDistrict District?  @relation(fields: [districtId], references: [id], onDelete: Cascade)
+
+  @@index([countryId, stateId, districtId])
+  @@map("sugg_branch_territories")
+}
+
+// Simple key/value store for platform-wide toggles (e.g. the territory-aware
+// lead-assignment flag, which ships OFF by default).
+model PlatformSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
 }
 
 model AgencyBranch {

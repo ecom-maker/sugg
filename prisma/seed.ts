@@ -660,6 +660,174 @@ async function main() {
 
   console.log("✅ Agency, branches, and staff created");
 
+  // ─── Sugg Branch Network ──────────────────────────────────────────────────
+  const SUGG_KERALA_MGR_EMAIL =
+    process.env.SEED_SUGG_KERALA_MANAGER_EMAIL ?? "kerala.manager@sugg.in";
+  const SUGG_DUBAI_MGR_EMAIL =
+    process.env.SEED_SUGG_DUBAI_MANAGER_EMAIL ?? "dubai.manager@sugg.in";
+
+  const keralaManager = await prisma.user.upsert({
+    where: { email: SUGG_KERALA_MGR_EMAIL },
+    update: { role: "SUGG_BRANCH_MANAGER" },
+    create: {
+      supabaseId: `sugg-kerala-mgr-${Date.now()}`,
+      email: SUGG_KERALA_MGR_EMAIL,
+      fullName: "Anjali Menon",
+      role: "SUGG_BRANCH_MANAGER",
+      isActive: true,
+    },
+  });
+
+  const dubaiManager = await prisma.user.upsert({
+    where: { email: SUGG_DUBAI_MGR_EMAIL },
+    update: { role: "SUGG_BRANCH_MANAGER" },
+    create: {
+      supabaseId: `sugg-dubai-mgr-${Date.now()}`,
+      email: SUGG_DUBAI_MGR_EMAIL,
+      fullName: "Omar Al Farsi",
+      role: "SUGG_BRANCH_MANAGER",
+      isActive: true,
+    },
+  });
+
+  const keralaGeo = geo["IN:Kerala:Ernakulam"];
+  const dubaiGeo = geo["AE:Dubai:Dubai City"];
+  const chennaiGeo = geo["IN:Tamil Nadu:Chennai"];
+  if (!keralaGeo || !dubaiGeo || !chennaiGeo) {
+    throw new Error("Expected Kerala, Dubai and Tamil Nadu geo entries to be seeded");
+  }
+
+  const suggKerala = await prisma.suggBranch.upsert({
+    where: { branchCode: "SUGG-KL" },
+    update: { managerId: keralaManager.id },
+    create: {
+      branchName: "Sugg Kerala",
+      branchCode: "SUGG-KL",
+      address: "MG Road, Kochi, Kerala",
+      countryId: keralaGeo.countryId,
+      stateId: keralaGeo.stateId,
+      phone: "+91 484 400 0100",
+      email: "kerala@sugg.in",
+      managerId: keralaManager.id,
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  const suggDubai = await prisma.suggBranch.upsert({
+    where: { branchCode: "SUGG-AE" },
+    update: { managerId: dubaiManager.id },
+    create: {
+      branchName: "Sugg Dubai",
+      branchCode: "SUGG-AE",
+      address: "Sheikh Zayed Road, Dubai",
+      countryId: dubaiGeo.countryId,
+      phone: "+971 4 400 0100",
+      email: "dubai@sugg.in",
+      managerId: dubaiManager.id,
+      status: "ACTIVE",
+      createdById: adminUser.id,
+      updatedById: adminUser.id,
+    },
+  });
+
+  // Territories: Sugg Kerala covers all of Kerala (state-level); Sugg Dubai
+  // covers the whole UAE (country-level). Idempotent create-if-absent.
+  async function ensureTerritory(
+    suggBranchId: string,
+    countryId: string,
+    stateId: string | null,
+    districtId: string | null
+  ) {
+    const existing = await prisma.suggBranchTerritory.findFirst({
+      where: { suggBranchId, countryId, stateId, districtId },
+    });
+    if (!existing) {
+      await prisma.suggBranchTerritory.create({
+        data: { suggBranchId, countryId, stateId, districtId },
+      });
+    }
+  }
+  await ensureTerritory(suggKerala.id, keralaGeo.countryId, keralaGeo.stateId, null);
+  await ensureTerritory(suggDubai.id, dubaiGeo.countryId, null, null);
+
+  // Assign the two seeded Sugg counselors to branches (demonstrates
+  // territory-aware Sugg-internal routing when the toggle is enabled).
+  await prisma.counselor.update({
+    where: { userId: counselor1.id },
+    data: { suggBranchId: suggKerala.id },
+  });
+  await prisma.counselor.update({
+    where: { userId: counselor2.id },
+    data: { suggBranchId: suggDubai.id },
+  });
+
+  // Map the existing EduVision agency into Kerala (covered by Sugg Kerala).
+  await prisma.agency.update({
+    where: { id: agency1.id },
+    data: {
+      headquarters: "Kochi",
+      city: "Kochi",
+      state: "Kerala",
+      countryId: keralaGeo.countryId,
+      stateId: keralaGeo.stateId,
+      districtId: keralaGeo.districtId,
+      suggBranchId: suggKerala.id,
+      approvalStatus: "APPROVED",
+    },
+  });
+
+  // Demo agency covered by Sugg Dubai.
+  await prisma.agency.upsert({
+    where: { slug: "gulf-education-partners" },
+    update: { suggBranchId: suggDubai.id },
+    create: {
+      name: "Gulf Education Partners",
+      slug: "gulf-education-partners",
+      email: "info@gulfedu.ae",
+      phone: "+971 4 555 1234",
+      city: "Dubai",
+      country: "United Arab Emirates",
+      countryId: dubaiGeo.countryId,
+      stateId: dubaiGeo.stateId,
+      districtId: dubaiGeo.districtId,
+      suggBranchId: suggDubai.id,
+      approvalStatus: "APPROVED",
+      isActive: true,
+      isVerified: true,
+    },
+  });
+
+  // Demo agency in an UNCOVERED territory (Tamil Nadu) → unassigned queue.
+  await prisma.agency.upsert({
+    where: { slug: "chennai-career-consultants" },
+    update: {},
+    create: {
+      name: "Chennai Career Consultants",
+      slug: "chennai-career-consultants",
+      email: "contact@chennaicareers.in",
+      phone: "+91 44 4000 9876",
+      city: "Chennai",
+      country: "India",
+      countryId: chennaiGeo.countryId,
+      stateId: chennaiGeo.stateId,
+      districtId: chennaiGeo.districtId,
+      suggBranchId: null,
+      approvalStatus: "PENDING",
+      isActive: true,
+    },
+  });
+
+  // Territory-aware lead assignment ships OFF by default.
+  await prisma.platformSetting.upsert({
+    where: { key: "territoryAwareLeadAssignment" },
+    update: {},
+    create: { key: "territoryAwareLeadAssignment", value: "false" },
+  });
+
+  console.log("✅ Sugg Branch Network seeded (Sugg Kerala + Sugg Dubai)");
+
   // ─── Sample Teams ─────────────────────────────────────────────────────────
   const au1 = await prisma.agencyUser.findUnique({ where: { userId: agencyCounselor1.id } });
   const au2 = await prisma.agencyUser.findUnique({ where: { userId: agencyCounselor2.id } });

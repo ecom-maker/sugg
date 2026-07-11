@@ -1,5 +1,94 @@
 // Automatic Lead Assignment Engine
 import { prisma } from "@/lib/prisma";
+import { isTerritoryAwareAssignmentEnabled } from "@/lib/platform-settings";
+import { resolveSuggBranch, type GeoInput } from "@/lib/sugg-territory";
+
+/**
+ * Territory-aware entry point for Sugg-internal lead routing. When the platform
+ * toggle is ON and the student's location resolves to a covering Sugg Branch
+ * with an active Sugg counselor, the lead is assigned within that branch
+ * (course-based, else round-robin). Otherwise it FALLS BACK to the existing
+ * global assignment, so behavior is unchanged while the toggle is OFF (default).
+ *
+ * Agency-side lead flows do not call this — they remain unchanged.
+ */
+export async function assignLeadTerritoryAware(
+  leadId: string,
+  geo: GeoInput,
+  interestedCourse?: string
+): Promise<string | null> {
+  try {
+    const enabled = await isTerritoryAwareAssignmentEnabled();
+    if (enabled) {
+      const branch = await resolveSuggBranch(geo);
+      if (branch) {
+        const counselorId = await assignWithinSuggBranch(leadId, branch.id, interestedCourse);
+        if (counselorId) return counselorId;
+      }
+    }
+  } catch (error) {
+    console.error("Territory-aware assignment error:", error);
+  }
+  // Fall back to existing global assignment.
+  return assignLeadToNextCounselor(leadId, interestedCourse);
+}
+
+/**
+ * Pick a Sugg counselor within a specific Sugg Branch. Course-based match first
+ * (specialists in the branch), then round-robin over the branch's counselors.
+ * Returns null when the branch has no eligible active counselor.
+ */
+async function assignWithinSuggBranch(
+  leadId: string,
+  suggBranchId: string,
+  interestedCourse?: string
+): Promise<string | null> {
+  const counselors = await prisma.counselor.findMany({
+    where: {
+      suggBranchId,
+      isAvailable: true,
+      user: { isActive: true, role: { in: ["SUGG_COUNSELOR", "SUGG_BRANCH_MANAGER"] } },
+    },
+    include: {
+      user: {
+        include: {
+          assignedLeads: {
+            where: { status: { notIn: ["ADMISSION_CONFIRMED", "LOST"] } },
+            select: { id: true },
+          },
+        },
+      },
+    },
+  });
+
+  const eligible = counselors.filter(
+    (c) => c.user.assignedLeads.length < c.maxLeads
+  );
+  if (!eligible.length) return null;
+
+  // Course-based: prefer a specialist in the branch with the fewest active leads.
+  if (interestedCourse) {
+    const courseNormalized = interestedCourse.toLowerCase();
+    const specialists = eligible
+      .filter((c) =>
+        c.specializations.some(
+          (s) => s.toLowerCase() === courseNormalized || s === interestedCourse
+        )
+      )
+      .sort((a, b) => a.user.assignedLeads.length - b.user.assignedLeads.length);
+    if (specialists.length) {
+      await assignLead(leadId, specialists[0].userId, "COURSE_BASED");
+      return specialists[0].userId;
+    }
+  }
+
+  // Round-robin within the branch: fewest active leads wins.
+  const selected = eligible.sort(
+    (a, b) => a.user.assignedLeads.length - b.user.assignedLeads.length
+  )[0];
+  await assignLead(leadId, selected.userId, "ROUND_ROBIN");
+  return selected.userId;
+}
 
 /**
  * Assign a lead to the next available counselor using round-robin or course-based assignment.
