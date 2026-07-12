@@ -1019,6 +1019,23 @@ model Course {
   @@map("courses")
 }
 
+// Master catalog of standard courses offered in India. This is reference data
+// (not tied to a college) used to populate the college "Add Course" picker.
+// Colleges may still add courses manually when a course isn't in the catalog.
+model CourseCatalog {
+  id         String     @id @default(cuid())
+  name       String
+  degreeType DegreeType
+  field      String?    // e.g. Engineering, Medical, Commerce, Arts, Science, Management, Law
+  duration   String?    // typical duration, e.g. "4 years"
+  isActive   Boolean    @default(true) @map("is_active")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@unique([name, degreeType])
+  @@index([name])
+  @@map("course_catalog")
+}
+
 model Gallery {
   id          String   @id @default(cuid())
   collegeId   String   @map("college_id")

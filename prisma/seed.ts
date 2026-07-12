@@ -1058,6 +1058,10 @@ async function main() {
   const { seedAgencyOnboarding } = await import("./seed-agency-onboarding");
   await seedAgencyOnboarding(prisma, geo);
 
+  // ─── Course Catalog (India master reference list) ──────────────────────────
+  const { seedCourseCatalog } = await import("./seed-course-catalog");
+  await seedCourseCatalog(prisma);
+
   console.log("\n🎉 Seed complete! Summary:");
   console.log("  - 1 Super Admin");
   console.log("  - 2 Sugg Counselors");

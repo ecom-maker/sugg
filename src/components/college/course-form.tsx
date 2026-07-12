@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Trash2, DollarSign, Info, Plus, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { upsertCourse, deleteCourse } from "@/actions/college-courses";
+import { CourseCatalogPicker } from "@/components/college/course-catalog-picker";
 import type { DegreeType } from "@/types";
 import {
   calculateCourseCommission,
@@ -184,6 +185,15 @@ export function CourseForm({ course }: { course?: CourseData }) {
       <div className="rounded-lg border bg-card p-5 space-y-4">
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Basic Info</h3>
         <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2 rounded-md bg-muted/40 border p-3">
+            <CourseCatalogPicker
+              onSelect={(c) => {
+                form.setValue("name", c.name, { shouldValidate: true });
+                form.setValue("degreeType", c.degreeType as FormData["degreeType"], { shouldValidate: true });
+                if (c.duration) form.setValue("duration", c.duration, { shouldValidate: true });
+              }}
+            />
+          </div>
           <div className="col-span-2 space-y-1.5">
             <Label>Course Name *</Label>
             <Input placeholder="e.g. Bachelor of Technology (Computer Science)" {...form.register("name")} />
