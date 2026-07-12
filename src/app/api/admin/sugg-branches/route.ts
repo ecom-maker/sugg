@@ -7,13 +7,13 @@ import { z } from "zod";
 const createSchema = z.object({
   branchName: z.string().min(2).max(120),
   // Optional — auto-generated from the branch's geography when omitted.
-  branchCode: z.string().max(40).optional(),
-  address: z.string().max(500).optional(),
+  branchCode: z.string().max(40).optional().nullable(),
+  address: z.string().max(500).optional().nullable(),
   countryId: z.string().min(1, "Country is required"),
   stateId: z.string().optional().nullable(),
   districtId: z.string().optional().nullable(),
-  phone: z.string().max(40).optional(),
-  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().max(40).optional().nullable(),
+  email: z.string().email().optional().or(z.literal("")).nullable(),
   managerId: z.string().optional().nullable(),
 });
 
