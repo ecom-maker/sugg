@@ -50,7 +50,7 @@ export interface AgencyFormData {
   stateId: string | null;
   districtId: string | null;
   isActive?: boolean;
-  approvalStatus?: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+  approvalStatus?: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED" | "ARCHIVED";
 }
 
 export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
@@ -220,6 +220,7 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
                   <SelectItem value="APPROVED">Approved</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
                   <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>

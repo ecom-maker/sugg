@@ -100,7 +100,12 @@ export async function createStudentAndLead(formData: FormData) {
   return { success: true, leadId: lead.id };
 }
 
-export async function updateLeadStatus(leadId: string, status: LeadStatus, reason?: string) {
+export async function updateLeadStatus(
+  leadId: string,
+  status: LeadStatus,
+  reason?: string,
+  note?: string
+) {
   const user = await requireAuth();
 
   const lead = await prisma.lead.findUnique({
@@ -111,41 +116,53 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus, reaso
   if (!lead) return { error: "Lead not found" };
 
   // Counselors can only update their own leads
-  if (user.role === "SUGG_COUNSELOR" && lead.assignedToId !== user.id) {
+  if (
+    (user.role === "SUGG_COUNSELOR" || user.role === "AGENCY_COUNSELOR") &&
+    lead.assignedToId !== user.id
+  ) {
     return { error: "Unauthorized" };
   }
+
+  const fromStatus = lead.status;
 
   const updateData: Record<string, unknown> = {
     status,
     lastContactedAt: new Date(),
   };
-
-  if (status === "CONTACTED" || status === "COUNSELING_SCHEDULED") {
-    updateData.lastContactedAt = new Date();
-  }
-
   if (status === "LOST") {
     updateData.lostReason = reason;
   }
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: updateData,
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.lead.update({ where: { id: leadId }, data: updateData });
 
-  // Log audit
-  await prisma.auditLog.create({
-    data: {
-      userId: user.id,
-      action: "UPDATE_STATUS",
-      resource: "lead",
-      resourceId: leadId,
-      newValue: { status },
-    },
+    // Append-only status history (spec §7).
+    await tx.leadStatusHistory.create({
+      data: {
+        leadId,
+        fromStatus,
+        toStatus: status,
+        changedById: user.id,
+        note: note ?? reason ?? null,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "UPDATE_LEAD_STATUS",
+        resource: "lead",
+        resourceId: leadId,
+        oldValue: { status: fromStatus },
+        newValue: { status },
+      },
+    });
   });
 
   revalidatePath(`/counselor/leads/${leadId}`);
   revalidatePath("/counselor/leads");
+  revalidatePath(`/agency/leads/${leadId}`);
+  revalidatePath("/agency/leads");
 
   return { success: true };
 }

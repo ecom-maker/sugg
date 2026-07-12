@@ -53,6 +53,31 @@ enum AgencyApprovalStatus {
   APPROVED
   REJECTED
   SUSPENDED
+  ARCHIVED
+}
+
+// How an agency entered the platform.
+enum OnboardingSource {
+  SELF_REGISTERED
+  ADMIN_CREATED
+}
+
+// Lifecycle of an agency staff member (invite → active).
+enum AgencyUserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// Agency areas of focus (stored as an array on agencies).
+enum AgencySpecialization {
+  DOMESTIC_ADMISSIONS
+  STUDY_ABROAD
+  MEDICAL
+  ENGINEERING
+  MANAGEMENT
+  OTHER
 }
 
 enum CollegeStatus {
@@ -152,6 +177,11 @@ enum NotificationType {
   AGENCY_SUSPENSION_RECOMMENDED
   UNASSIGNED_TERRITORY_AGENCY
   TERRITORY_REPORT_READY
+  NEW_AGENCY_REGISTRATION
+  AGENCY_APPROVED
+  AGENCY_REJECTED
+  AGENCY_SUSPENDED
+  COUNSELOR_ACTIVATED
   INFO
   SUCCESS
   WARNING
@@ -452,6 +482,8 @@ model User {
   createdSuggBranches SuggBranch[] @relation("SuggBranchCreator")
   updatedSuggBranches SuggBranch[] @relation("SuggBranchUpdater")
   recommendedAgencies Agency[]     @relation("AgencyRecommender")
+  approvedAgencies    Agency[]     @relation("AgencyApprover")
+  leadStatusChanges   LeadStatusHistory[] @relation("LeadStatusChanger")
   uploadedDocuments   StudentDocument[] @relation("DocumentUploader")
   verifiedDocuments   StudentDocument[] @relation("DocumentVerifier")
   shortlistsCreated   StudentShortlist[] @relation("ShortlistCreator")
@@ -576,9 +608,28 @@ model Lead {
   branch            AgencyBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
   notes             LeadNote[]
   followups         LeadFollowup[]
+  statusHistory     LeadStatusHistory[]
 
   @@index([studentId, isCurrent])
   @@map("leads")
+}
+
+// Append-only history of lead status transitions (mirrors
+// application_status_history). History starts from deployment; no backfill.
+model LeadStatusHistory {
+  id          String     @id @default(cuid())
+  leadId      String     @map("lead_id")
+  fromStatus  LeadStatus? @map("from_status")
+  toStatus    LeadStatus @map("to_status")
+  changedById String?    @map("changed_by_id")
+  note        String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  lead        Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  changedBy   User? @relation("LeadStatusChanger", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@map("lead_status_history")
 }
 
 // ─── STUDENT PROFILE ──────────────────────────────────────────────────────────
@@ -1116,8 +1167,16 @@ model Agency {
   // Agency owner / point-of-contact identity (captured at onboarding).
   ownerName          String?  @map("owner_name")
   ownerMobile        String?  @map("owner_mobile")
+  ownerEmail         String?  @map("owner_email")
   nationalIdType     String?  @map("national_id_type")
   nationalIdNumber   String?  @map("national_id_number")
+  // Optional manager captured at registration (an Agency Admin is pre-created).
+  managerName        String?  @map("manager_name")
+  managerPhone       String?  @map("manager_phone")
+  managerEmail       String?  @map("manager_email")
+  yearEstablished    Int?     @map("year_established")
+  counselorCountEstimate Int? @map("counselor_count_estimate")
+  specialization     AgencySpecialization[]
   headquarters       String?
   address            String?
   city               String?
@@ -1144,11 +1203,23 @@ model Agency {
   recommendedById    String?  @map("recommended_by_id")
   recommendedAt      DateTime? @map("recommended_at")
 
+  // Onboarding lifecycle (mirrors the college flow). isVerified = combined
+  // VERIFIED state once email + mobile OTP succeed.
+  onboardingSource   OnboardingSource @default(ADMIN_CREATED) @map("onboarding_source")
+  verificationToken  String?  @map("verification_token")
+  verificationExpiry DateTime? @map("verification_expiry")
+  emailVerified      Boolean  @default(false) @map("email_verified")
+  mobileVerified     Boolean  @default(false) @map("mobile_verified")
+  approvedById       String?  @map("approved_by_id")
+  approvedAt         DateTime? @map("approved_at")
+  rejectionReason    String?  @map("rejection_reason")
+
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   // Relations
   owner       User?         @relation("AgencyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  approvedBy  User?         @relation("AgencyApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   suggBranch  SuggBranch?   @relation(fields: [suggBranchId], references: [id], onDelete: SetNull)
   geoCountry  Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
   geoState    State?        @relation(fields: [stateId], references: [id], onDelete: SetNull)
@@ -1306,6 +1377,7 @@ model AgencyUser {
   userId    String   @unique @map("user_id")
   agencyId  String   @map("agency_id")
   branchId  String?  @map("branch_id")
+  status    AgencyUserStatus @default(ACTIVE)
   createdAt DateTime @default(now()) @map("created_at")
 
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)

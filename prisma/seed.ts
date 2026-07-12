@@ -1054,6 +1054,10 @@ async function main() {
 
   console.log("✅ Plans created");
 
+  // ─── Agency Onboarding demo data ───────────────────────────────────────────
+  const { seedAgencyOnboarding } = await import("./seed-agency-onboarding");
+  await seedAgencyOnboarding(prisma, geo);
+
   console.log("\n🎉 Seed complete! Summary:");
   console.log("  - 1 Super Admin");
   console.log("  - 2 Sugg Counselors");

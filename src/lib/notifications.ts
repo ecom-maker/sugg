@@ -124,4 +124,31 @@ export const NotificationMessages = {
     title: "Territory Report Ready",
     message: `Your territory report for ${period} is ready to view`,
   }),
+
+  // ─── Agency onboarding ─────────────────────────────────────────────────────
+
+  newAgencyRegistration: (agencyName: string) => ({
+    title: "New Agency Registration",
+    message: `${agencyName} has registered and is awaiting approval.`,
+  }),
+
+  agencyApprovedWelcome: (agencyName: string) => ({
+    title: "Agency Approved!",
+    message: `${agencyName} has been approved. You can now log in and set up your agency.`,
+  }),
+
+  agencyRejected: (agencyName: string, reason: string) => ({
+    title: "Registration Rejected",
+    message: `${agencyName} was not approved. Reason: ${reason}`,
+  }),
+
+  agencySuspended: (agencyName: string) => ({
+    title: "Agency Suspended",
+    message: `${agencyName} has been suspended. Please contact the platform administrator.`,
+  }),
+
+  counselorActivated: (counselorName: string) => ({
+    title: "Counselor Activated",
+    message: `${counselorName} has completed setup and is now active.`,
+  }),
 };
