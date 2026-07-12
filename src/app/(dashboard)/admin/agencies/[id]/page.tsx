@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Mail, Phone, Globe, MapPin, Building2, Hash } from "lucide-react";
 import { MapToBranch } from "@/components/agencies/map-to-branch";
 import { AgencyApprovalActions } from "@/components/agencies/agency-approval-actions";
+import { AgencyLoginCredentials } from "@/components/agencies/agency-login-credentials";
 
 export const metadata: Metadata = { title: "Agency" };
 
@@ -241,6 +242,7 @@ export default async function AgencyDetailPage({
             </div>
           </div>
           <AgencyApprovalActions agencyId={agency.id} status={agency.approvalStatus} />
+          {agency.approvalStatus === "APPROVED" && <AgencyLoginCredentials agencyId={agency.id} />}
           <MapToBranch agencyId={agency.id} currentBranchId={agency.suggBranchId} />
         </div>
       </div>
