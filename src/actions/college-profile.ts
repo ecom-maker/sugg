@@ -10,6 +10,7 @@ interface ProfileData {
   contactPhone?: string;
   contactPersonName?: string;
   contactPersonDesig?: string;
+  contactPersonPhone?: string;
   address?: string;
   city?: string;
   state?: string;
@@ -52,6 +53,7 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
       contactPhone: data.contactPhone || null,
       contactPersonName: data.contactPersonName || null,
       contactPersonDesig: data.contactPersonDesig || null,
+      contactPersonPhone: data.contactPersonPhone || null,
       address: data.address || null,
       city: data.city || null,
       state: data.state || null,

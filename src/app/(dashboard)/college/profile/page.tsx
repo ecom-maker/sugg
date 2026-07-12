@@ -18,6 +18,7 @@ export default async function CollegeProfilePage() {
       contactPhone: true,
       contactPersonName: true,
       contactPersonDesig: true,
+      contactPersonPhone: true,
       address: true,
       city: true,
       state: true,

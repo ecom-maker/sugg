@@ -925,6 +925,7 @@ model College {
   contactPhone          String?       @map("contact_phone")
   contactPersonName     String?       @map("contact_person_name")
   contactPersonDesig    String?       @map("contact_person_desig")
+  contactPersonPhone    String?       @map("contact_person_phone")
   address               String?
   city                  String?
   state                 String?

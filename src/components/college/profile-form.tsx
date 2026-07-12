@@ -19,6 +19,7 @@ const schema = z.object({
   contactPhone: z.string().optional(),
   contactPersonName: z.string().optional(),
   contactPersonDesig: z.string().optional(),
+  contactPersonPhone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -38,6 +39,7 @@ interface CollegeData {
   contactPhone: string | null;
   contactPersonName: string | null;
   contactPersonDesig: string | null;
+  contactPersonPhone: string | null;
   address: string | null;
   city: string | null;
   state: string | null;
@@ -62,6 +64,7 @@ export function CollegeProfileForm({ college }: { college: CollegeData | null })
       contactPhone: college.contactPhone ?? "",
       contactPersonName: college.contactPersonName ?? "",
       contactPersonDesig: college.contactPersonDesig ?? "",
+      contactPersonPhone: college.contactPersonPhone ?? "",
       address: college.address ?? "",
       city: college.city ?? "",
       state: college.state ?? "",
@@ -181,6 +184,13 @@ export function CollegeProfileForm({ college }: { college: CollegeData | null })
           <div className="space-y-1.5">
             <Label>Designation</Label>
             <Input placeholder="Head of Admissions" {...form.register("contactPersonDesig")} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Contact Number</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input className="pl-9" placeholder="+91 9876543210" {...form.register("contactPersonPhone")} />
+            </div>
           </div>
         </div>
       </div>
