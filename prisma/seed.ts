@@ -1062,6 +1062,10 @@ async function main() {
   const { seedCourseCatalog } = await import("./seed-course-catalog");
   await seedCourseCatalog(prisma);
 
+  // ─── Universities (Tamil Nadu reference list) ──────────────────────────────
+  const { seedUniversities } = await import("./seed-universities");
+  await seedUniversities(prisma);
+
   console.log("\n🎉 Seed complete! Summary:");
   console.log("  - 1 Super Admin");
   console.log("  - 2 Sugg Counselors");
