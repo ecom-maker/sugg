@@ -195,18 +195,18 @@ export function CourseForm({ course }: { course?: CourseData }) {
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label>Course Name *</Label>
-            <Input placeholder="e.g. Bachelor of Technology (Computer Science)" {...form.register("name")} />
+            <Input placeholder="e.g. Bachelor of Technology (Computer Science)" required {...form.register("name")} />
             {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
           </div>
           <div className="space-y-1.5">
             <Label>Degree Type *</Label>
-            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...form.register("degreeType")}>
+            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required {...form.register("degreeType")}>
               {DEGREE_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
             <Label>Duration *</Label>
-            <Input placeholder="e.g. 4 years" {...form.register("duration")} />
+            <Input placeholder="e.g. 4 years" required {...form.register("duration")} />
           </div>
           <div className="space-y-1.5">
             <Label>Duration (months)</Label>

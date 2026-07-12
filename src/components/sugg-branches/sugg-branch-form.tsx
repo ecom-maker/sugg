@@ -130,7 +130,7 @@ export function SuggBranchForm({ branch }: { branch?: SuggBranchFormData }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Branch Name *</Label>
-            <Input value={branchName} onChange={(e) => setBranchName(e.target.value)} placeholder="e.g. Sugg Kerala" />
+            <Input required value={branchName} onChange={(e) => setBranchName(e.target.value)} placeholder="e.g. Sugg Kerala" />
           </div>
           <div className="space-y-1.5">
             <Label>Branch Code</Label>

@@ -38,6 +38,19 @@
   --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
+/* Highlight mandatory (required) form fields with a red border. Unlayered so it
+   overrides Tailwind's border-input utility on inputs/selects/textareas. */
+input:required,
+select:required,
+textarea:required {
+  border-color: #ef4444; /* red-500 */
+}
+input:required:focus-visible,
+select:required:focus-visible,
+textarea:required:focus-visible {
+  border-color: #dc2626; /* red-600 */
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;

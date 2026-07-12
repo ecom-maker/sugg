@@ -165,19 +165,19 @@ export function AgencyRegisterForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label>Agency Name *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Global Pathway Consultants" className="mt-1" />
+              <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Global Pathway Consultants" className="mt-1" />
             </div>
             <div>
               <Label>Registration / Trade License No. *</Label>
-              <Input value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} className="mt-1" />
+              <Input required value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} className="mt-1" />
             </div>
             <div>
               <Label>Agency Contact Number *</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 …" className="mt-1" />
+              <Input required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 …" className="mt-1" />
             </div>
             <div>
               <Label>Agency Email *</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
             </div>
             <div>
               <Label>Website</Label>
@@ -185,11 +185,11 @@ export function AgencyRegisterForm() {
             </div>
             <div className="sm:col-span-2">
               <Label>Address *</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" />
+              <Input required value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" />
             </div>
             <div>
               <Label>City *</Label>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" />
+              <Input required value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" />
             </div>
             <div>
               <Label>Year Established</Label>
@@ -232,15 +232,15 @@ export function AgencyRegisterForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label>Owner Name *</Label>
-            <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="mt-1" />
+            <Input required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label>Owner Contact Number *</Label>
-            <Input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+91 …" className="mt-1" />
+            <Input required value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+91 …" className="mt-1" />
           </div>
           <div>
             <Label>Owner Email * (login identity)</Label>
-            <Input type="email" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} className="mt-1" />
+            <Input type="email" required value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} className="mt-1" />
           </div>
         </div>
       )}

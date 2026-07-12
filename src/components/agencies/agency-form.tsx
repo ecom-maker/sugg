@@ -205,11 +205,11 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Agency Name *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. EduVision Consultants" />
+            <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. EduVision Consultants" />
           </div>
           <div className="space-y-1.5">
             <Label>Email *</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@agency.com" />
+            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@agency.com" />
           </div>
           <div className="space-y-1.5">
             <Label>Phone</Label>
