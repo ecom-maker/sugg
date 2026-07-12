@@ -22,6 +22,7 @@ import {
   ClipboardList,
   UserCheck,
   Briefcase,
+  Contact,
   ChevronRight,
   X,
 } from "lucide-react";
@@ -60,6 +61,12 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Duplicate Students", href: "/admin/students/duplicates", icon: Users },
           { title: "Counselors", href: "/admin/counselors", icon: UserCheck },
           { title: "Applications", href: "/admin/applications", icon: FileText },
+        ],
+      },
+      {
+        title: "HR",
+        items: [
+          { title: "Employees", href: "/admin/hr/employees", icon: Contact },
         ],
       },
       {

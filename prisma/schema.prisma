@@ -1526,3 +1526,47 @@ model Payment {
 
   @@map("payments")
 }
+
+// ─── HR ──────────────────────────────────────────────────────────────────────
+
+enum EmployeeType {
+  BRANCH_MANAGER
+  ASST_BRANCH_MANAGER
+  TEAM_LEADER
+  COUNSELLOR
+  OFFICE_ASSISTANT
+  DRIVER
+}
+
+enum EmployeeIdType {
+  AADHAAR
+  PASSPORT
+  DRIVING_LICENSE
+  PAN
+  VOTERS_ID
+}
+
+model Employee {
+  id                String          @id @default(cuid())
+  firstName         String          @map("first_name")
+  lastName          String          @map("last_name")
+  dob               DateTime?       @db.Date
+  address           String?
+  personalPhone     String?         @map("personal_phone")
+  officialPhone     String?         @map("official_phone")
+  personalEmail     String?         @map("personal_email")
+  officialEmail     String?         @map("official_email")
+  emergencyName     String?         @map("emergency_name")
+  emergencyRelation String?         @map("emergency_relation")
+  emergencyPhone    String?         @map("emergency_phone")
+  nationalIdType    EmployeeIdType? @map("national_id_type")
+  nationalIdNumber  String?         @map("national_id_number")
+  employeeType      EmployeeType    @map("employee_type")
+  isActive          Boolean         @default(true) @map("is_active")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  @@index([employeeType])
+  @@index([lastName])
+  @@map("employees")
+}
