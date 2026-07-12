@@ -42,12 +42,14 @@
    overrides Tailwind's border-input utility on inputs/selects/textareas. */
 input:required,
 select:required,
-textarea:required {
+textarea:required,
+[aria-required="true"] {
   border-color: #ef4444; /* red-500 */
 }
 input:required:focus-visible,
 select:required:focus-visible,
-textarea:required:focus-visible {
+textarea:required:focus-visible,
+[aria-required="true"]:focus-visible {
   border-color: #dc2626; /* red-600 */
 }
 

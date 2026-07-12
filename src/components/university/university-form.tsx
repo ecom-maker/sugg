@@ -231,7 +231,7 @@ export function UniversityForm({ university }: { university?: UniversityData }) 
             <div className="sm:col-span-2">
               <Label>Country *</Label>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1" aria-required="true">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>

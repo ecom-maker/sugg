@@ -95,7 +95,7 @@ export function GeoPicker({ value, onChange, territoryMode, disabled }: GeoPicke
           onValueChange={(v) => onChange({ countryId: v, stateId: null, districtId: null })}
           disabled={disabled}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-required="true">
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
           <SelectContent>

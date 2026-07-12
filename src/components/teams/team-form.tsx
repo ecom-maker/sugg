@@ -100,7 +100,7 @@ export function TeamForm({ branches }: { branches: BranchOption[] }) {
         <div>
           <Label>Branch *</Label>
           <Select value={branchId} onValueChange={(v) => { setBranchId(v); setMemberIds([]); setTeamLeadId(""); }}>
-            <SelectTrigger className="mt-1"><SelectValue placeholder="Select branch" /></SelectTrigger>
+            <SelectTrigger className="mt-1" aria-required="true"><SelectValue placeholder="Select branch" /></SelectTrigger>
             <SelectContent>
               {branches.map((b) => (
                 <SelectItem key={b.id} value={b.id} disabled={!b.districtId}>
