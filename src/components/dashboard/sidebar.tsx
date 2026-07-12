@@ -182,6 +182,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Teams", href: "/agency/teams", icon: Users },
           { title: "All Staff", href: "/agency/staff", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
+          { title: "Leads", href: "/agency/leads", icon: ClipboardList },
         ],
       },
       {
@@ -226,6 +227,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
           { title: "Teams", href: "/agency/teams", icon: Users },
           { title: "Counselors", href: "/agency/counselors", icon: UserCheck },
           { title: "Students", href: "/agency/students", icon: Users },
+          { title: "Leads", href: "/agency/leads", icon: ClipboardList },
         ],
       },
       {

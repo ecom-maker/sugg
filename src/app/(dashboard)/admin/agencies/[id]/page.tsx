@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Mail, Phone, Globe, MapPin, Building2, Hash } from "lucide-react";
 import { MapToBranch } from "@/components/agencies/map-to-branch";
+import { AgencyApprovalActions } from "@/components/agencies/agency-approval-actions";
 
 export const metadata: Metadata = { title: "Agency" };
 
@@ -126,6 +127,47 @@ export default async function AgencyDetailPage({
                 <p className="text-muted-foreground">{agency.owner.email}</p>
               </div>
             )}
+            {agency.managerName && (
+              <div className="border-t pt-3 text-sm">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Manager</p>
+                <p className="font-medium">{agency.managerName}</p>
+                {agency.managerEmail && <p className="text-muted-foreground">{agency.managerEmail}</p>}
+              </div>
+            )}
+            <div className="border-t pt-3 grid gap-3 sm:grid-cols-3 text-sm">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Onboarding</p>
+                <p className="font-medium">
+                  {agency.onboardingSource === "SELF_REGISTERED" ? "Self-registered" : "Admin-created"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Verification</p>
+                <p className="font-medium">{agency.isVerified ? "Verified" : "Unverified"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Registered</p>
+                <p className="font-medium">{new Date(agency.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            {agency.specialization.length > 0 && (
+              <div className="border-t pt-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Specialization</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {agency.specialization.map((s) => (
+                    <Badge key={s} variant="secondary">
+                      {s.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase())}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {agency.approvalStatus === "REJECTED" && agency.rejectionReason && (
+              <div className="border-t pt-3 text-sm">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Rejection reason</p>
+                <p className="text-red-600">{agency.rejectionReason}</p>
+              </div>
+            )}
           </div>
 
           {(agency.ownerName || agency.ownerMobile || agency.nationalIdNumber) && (
@@ -198,6 +240,7 @@ export default async function AgencyDetailPage({
               <p className="text-xs text-muted-foreground">Commissions</p>
             </div>
           </div>
+          <AgencyApprovalActions agencyId={agency.id} status={agency.approvalStatus} />
           <MapToBranch agencyId={agency.id} currentBranchId={agency.suggBranchId} />
         </div>
       </div>

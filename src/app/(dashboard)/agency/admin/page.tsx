@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Building2, Users, TrendingUp, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { OnboardingChecklist } from "@/components/agency/onboarding-checklist";
 
 export const metadata: Metadata = { title: "Agency Admin Dashboard" };
 
@@ -57,6 +58,8 @@ export default async function AgencyAdminDashboard() {
           <Building2 className="w-4 h-4" />New Branch
         </Link>
       </div>
+
+      <OnboardingChecklist />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card) => {

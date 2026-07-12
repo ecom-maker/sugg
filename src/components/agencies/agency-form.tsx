@@ -26,6 +26,15 @@ const ID_TYPES_BY_COUNTRY: Record<string, string[]> = {
 };
 const DEFAULT_ID_TYPES = ["Passport No.", "National ID", "Other"];
 
+const SPECIALIZATIONS: { value: string; label: string }[] = [
+  { value: "DOMESTIC_ADMISSIONS", label: "Domestic Admissions" },
+  { value: "STUDY_ABROAD", label: "Study Abroad" },
+  { value: "MEDICAL", label: "Medical" },
+  { value: "ENGINEERING", label: "Engineering" },
+  { value: "MANAGEMENT", label: "Management" },
+  { value: "OTHER", label: "Other" },
+];
+
 interface CountryOption {
   id: string;
   countryName: string;
@@ -41,8 +50,10 @@ export interface AgencyFormData {
   registrationNumber: string | null;
   ownerName: string | null;
   ownerMobile: string | null;
+  ownerEmail: string | null;
   nationalIdType: string | null;
   nationalIdNumber: string | null;
+  specialization?: string[];
   headquarters: string | null;
   address: string | null;
   city: string | null;
@@ -64,8 +75,10 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
   const [registrationNumber, setRegistrationNumber] = useState(agency?.registrationNumber ?? "");
   const [ownerName, setOwnerName] = useState(agency?.ownerName ?? "");
   const [ownerMobile, setOwnerMobile] = useState(agency?.ownerMobile ?? "");
+  const [ownerEmail, setOwnerEmail] = useState(agency?.ownerEmail ?? "");
   const [nationalIdType, setNationalIdType] = useState<string | null>(agency?.nationalIdType ?? null);
   const [nationalIdNumber, setNationalIdNumber] = useState(agency?.nationalIdNumber ?? "");
+  const [specialization, setSpecialization] = useState<string[]>(agency?.specialization ?? []);
   const [headquarters, setHeadquarters] = useState(agency?.headquarters ?? "");
   const [address, setAddress] = useState(agency?.address ?? "");
   const [city, setCity] = useState(agency?.city ?? "");
@@ -123,8 +136,10 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
         registrationNumber: registrationNumber.trim() || null,
         ownerName: ownerName.trim() || null,
         ownerMobile: ownerMobile.trim() || null,
+        ownerEmail: ownerEmail.trim() || (isEdit ? null : ""),
         nationalIdType: nationalIdType || null,
         nationalIdNumber: nationalIdNumber.trim() || null,
+        specialization,
         headquarters: headquarters.trim() || null,
         address: address.trim() || null,
         city: city.trim() || null,
@@ -266,6 +281,10 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
             <Label>Owner Mobile Number</Label>
             <Input value={ownerMobile} onChange={(e) => setOwnerMobile(e.target.value)} placeholder="+91 98xxxxxxx" />
           </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Owner Email {!isEdit && <span className="text-muted-foreground">(creates the owner login)</span>}</Label>
+            <Input type="email" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} placeholder="owner@agency.com" />
+          </div>
           <div className="space-y-1.5">
             <Label>National ID Type</Label>
             <Select
@@ -293,6 +312,30 @@ export function AgencyForm({ agency }: { agency?: AgencyFormData }) {
               onChange={(e) => setNationalIdNumber(e.target.value)}
               placeholder="ID document number"
             />
+          </div>
+        </div>
+        <div className="space-y-1.5 border-t pt-4">
+          <Label>Specialization</Label>
+          <div className="flex flex-wrap gap-2">
+            {SPECIALIZATIONS.map((s) => {
+              const on = specialization.includes(s.value);
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() =>
+                    setSpecialization((prev) =>
+                      prev.includes(s.value) ? prev.filter((x) => x !== s.value) : [...prev, s.value]
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    on ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

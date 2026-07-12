@@ -12,6 +12,11 @@ const publicRoutes = [
   "/college/register",
   "/college/verify",
   "/college/pending",
+  // Public agency self-registration flow (same pattern; /agency dashboard stays
+  // gated).
+  "/agency/register",
+  "/agency/verify",
+  "/agency/pending",
   "/",
 ];
 const authRoutes = ["/login", "/register"];

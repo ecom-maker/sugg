@@ -11,8 +11,12 @@ const updateSchema = z.object({
   registrationNumber: z.string().max(120).optional().nullable(),
   ownerName: z.string().max(200).optional().nullable(),
   ownerMobile: z.string().max(40).optional().nullable(),
+  ownerEmail: z.string().email().optional().or(z.literal("")).nullable(),
   nationalIdType: z.string().max(60).optional().nullable(),
   nationalIdNumber: z.string().max(120).optional().nullable(),
+  specialization: z
+    .array(z.enum(["DOMESTIC_ADMISSIONS", "STUDY_ABROAD", "MEDICAL", "ENGINEERING", "MANAGEMENT", "OTHER"]))
+    .optional(),
   headquarters: z.string().max(200).optional().nullable(),
   address: z.string().max(500).optional().nullable(),
   city: z.string().max(120).optional().nullable(),
@@ -20,7 +24,7 @@ const updateSchema = z.object({
   stateId: z.string().optional().nullable(),
   districtId: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
-  approvalStatus: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]).optional(),
+  approvalStatus: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED", "ARCHIVED"]).optional(),
 });
 
 /**
@@ -81,6 +85,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           ...(data.registrationNumber !== undefined ? { registrationNumber: data.registrationNumber || null } : {}),
           ...(data.ownerName !== undefined ? { ownerName: data.ownerName || null } : {}),
           ...(data.ownerMobile !== undefined ? { ownerMobile: data.ownerMobile || null } : {}),
+          ...(data.ownerEmail !== undefined ? { ownerEmail: data.ownerEmail || null } : {}),
+          ...(data.specialization !== undefined ? { specialization: data.specialization } : {}),
           ...(data.nationalIdType !== undefined ? { nationalIdType: data.nationalIdType || null } : {}),
           ...(data.nationalIdNumber !== undefined ? { nationalIdNumber: data.nationalIdNumber || null } : {}),
           ...(data.headquarters !== undefined ? { headquarters: data.headquarters || null } : {}),

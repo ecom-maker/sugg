@@ -18,14 +18,21 @@ const approvalVariant: Record<string, "success" | "warning" | "destructive" | "s
 export default async function AdminAgenciesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unassigned?: string }>;
+  searchParams: Promise<{ unassigned?: string; status?: string }>;
 }) {
   await requireRole(["SUPER_ADMIN"]);
-  const { unassigned } = await searchParams;
+  const { unassigned, status } = await searchParams;
   const unassignedOnly = unassigned === "true";
+  const pendingOnly = status === "PENDING";
+
+  const where = unassignedOnly
+    ? { suggBranchId: null }
+    : pendingOnly
+      ? { approvalStatus: "PENDING" as const }
+      : {};
 
   const agencies = await prisma.agency.findMany({
-    where: unassignedOnly ? { suggBranchId: null } : {},
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       suggBranch: { select: { id: true, branchName: true } },
@@ -39,7 +46,8 @@ export default async function AdminAgenciesPage({
         <div>
           <h1 className="text-2xl font-bold">Agencies</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {agencies.length} {unassignedOnly ? "unassigned-territory " : "partner "}agencies
+            {agencies.length}{" "}
+            {unassignedOnly ? "unassigned-territory " : pendingOnly ? "pending " : "partner "}agencies
           </p>
         </div>
         <Button asChild className="gap-2">
@@ -53,10 +61,18 @@ export default async function AdminAgenciesPage({
         <Link
           href="/admin/agencies"
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            !unassignedOnly ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+            !unassignedOnly && !pendingOnly ? "border-primary text-primary" : "border-transparent text-muted-foreground"
           }`}
         >
           All
+        </Link>
+        <Link
+          href="/admin/agencies?status=PENDING"
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            pendingOnly ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+          }`}
+        >
+          Pending approval
         </Link>
         <Link
           href="/admin/agencies?unassigned=true"
@@ -71,7 +87,11 @@ export default async function AdminAgenciesPage({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {agencies.length === 0 ? (
           <div className="col-span-3 text-center py-16 text-muted-foreground border rounded-lg">
-            {unassignedOnly ? "No unassigned agencies." : "No agencies yet."}
+            {unassignedOnly
+              ? "No unassigned agencies."
+              : pendingOnly
+                ? "No agencies pending approval."
+                : "No agencies yet."}
           </div>
         ) : (
           agencies.map((agency) => (
