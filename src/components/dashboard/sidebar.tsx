@@ -143,7 +143,6 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "My College",
         items: [
           { title: "Profile", href: "/college/profile", icon: Building2 },
-          { title: "Universities", href: "/admin/universities", icon: GraduationCap },
           { title: "Courses", href: "/college/courses", icon: BookOpen },
           { title: "Gallery", href: "/college/gallery", icon: Building2 },
         ],
