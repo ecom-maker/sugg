@@ -13,16 +13,12 @@ import { toast } from "@/hooks/use-toast";
 import { upsertCourse, deleteCourse } from "@/actions/college-courses";
 import { CourseCatalogPicker } from "@/components/college/course-catalog-picker";
 import type { DegreeType } from "@/types";
-import {
-  calculateCourseCommission,
-  getCurrencySymbol,
-  type SlabRule,
-} from "@/lib/commission-calculator";
+import { getCurrencySymbol, type SlabRule } from "@/lib/commission-calculator";
 
 const slabRuleSchema = z.object({
-  min: z.coerce.number().min(0),
+  min: z.coerce.number().min(1),
   max: z.coerce.number().min(1),
-  percentage: z.coerce.number().min(0.01).max(100),
+  amount: z.coerce.number().min(0),
 });
 
 const schema = z.object({
@@ -121,18 +117,21 @@ export function CourseForm({ course }: { course?: CourseData }) {
       }
     } else if (watchedType === "SLAB") {
       if (slabRules.length === 0) {
-        setPreview("Add slab rules to configure commission");
-      } else if (tuition > 0) {
-        const result = calculateCourseCommission({ commissionType: "SLAB", commissionValue: 0, commissionRules: slabRules }, tuition, watchedCurrency);
-        if (result) setPreview(`Agency earns ${sym}${result.commissionAmount.toLocaleString()} at ${result.appliedRate}% (${sym}${tuition.toLocaleString()} tuition)`);
+        setPreview("Add slab tiers to configure commission");
       } else {
-        const rates = slabRules.map(r => `${r.percentage}%`).join(" / ");
-        setPreview(`Slab rates: ${rates}`);
+        const tiers = slabRules
+          .map((r) => `apps ${r.min}–${r.max}: ${sym}${Number(r.amount).toLocaleString("en-IN")}`)
+          .join(" · ");
+        setPreview(`Fixed commission per admission — ${tiers}`);
       }
     }
   }, [watchedType, watchedValue, watchedFee, watchedCurrency, slabRules]);
 
-  const addSlab = () => setSlabRules(prev => [...prev, { min: 0, max: 100000, percentage: 10 }]);
+  const addSlab = () =>
+    setSlabRules((prev) => {
+      const lastMax = prev.length ? prev[prev.length - 1].max : 0;
+      return [...prev, { min: lastMax + 1, max: lastMax + 10, amount: 20000 }];
+    });
   const removeSlab = (i: number) => setSlabRules(prev => prev.filter((_, idx) => idx !== i));
   const updateSlab = (i: number, field: keyof SlabRule, val: string) => {
     setSlabRules(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: Number(val) } : r));
@@ -298,13 +297,17 @@ export function CourseForm({ course }: { course?: CourseData }) {
         {watchedType === "SLAB" && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Slab Rules</Label>
+              <Label>Slab Rules (by application count)</Label>
               <button type="button" onClick={addSlab} className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:underline">
                 <Plus className="w-3 h-3" />Add Slab
               </button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Fixed commission per admission, tiered by how many applications the agency brings.
+              e.g. applications 1–10 → {getCurrencySymbol(watchedCurrency)}20,000, 11–20 → {getCurrencySymbol(watchedCurrency)}40,000.
+            </p>
             {slabRules.length === 0 && (
-              <p className="text-xs text-muted-foreground italic">No slabs yet. Click &ldquo;Add Slab&rdquo; to create a rule.</p>
+              <p className="text-xs text-muted-foreground italic">No slabs yet. Click &ldquo;Add Slab&rdquo; to create a tier.</p>
             )}
             <div className="space-y-2">
               {slabRules.map((rule, i) => (
@@ -312,7 +315,7 @@ export function CourseForm({ course }: { course?: CourseData }) {
                   <span className="text-muted-foreground text-xs w-5">{i + 1}.</span>
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <div>
-                      <Label className="text-xs">Min ({getCurrencySymbol(watchedCurrency)})</Label>
+                      <Label className="text-xs">Applications from</Label>
                       <Input
                         type="number"
                         value={rule.min}
@@ -321,7 +324,7 @@ export function CourseForm({ course }: { course?: CourseData }) {
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">Max ({getCurrencySymbol(watchedCurrency)})</Label>
+                      <Label className="text-xs">to</Label>
                       <Input
                         type="number"
                         value={rule.max}
@@ -330,12 +333,11 @@ export function CourseForm({ course }: { course?: CourseData }) {
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">Rate (%)</Label>
+                      <Label className="text-xs">Commission ({getCurrencySymbol(watchedCurrency)})</Label>
                       <Input
                         type="number"
-                        step="0.01"
-                        value={rule.percentage}
-                        onChange={(e) => updateSlab(i, "percentage", e.target.value)}
+                        value={rule.amount}
+                        onChange={(e) => updateSlab(i, "amount", e.target.value)}
                         className="h-8 text-xs"
                       />
                     </div>

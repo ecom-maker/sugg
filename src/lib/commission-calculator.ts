@@ -3,10 +3,12 @@
  * Single source of truth used by the commission engine, preview API, and UI.
  */
 
+// A slab is an APPLICATION-COUNT tier with a FIXED commission amount.
+// e.g. { min: 1, max: 10, amount: 20000 } → admissions 1–10 earn 20,000 each.
 export interface SlabRule {
-  min: number;
-  max: number;
-  percentage: number;
+  min: number; // application number (from)
+  max: number; // application number (to)
+  amount: number; // fixed commission amount for admissions in this tier
 }
 
 export interface CommissionConfig {
@@ -29,7 +31,9 @@ export interface CommissionResult {
 export function calculateCourseCommission(
   config: CommissionConfig,
   tuitionAmount: number,
-  currency = "INR"
+  currency = "INR",
+  // For SLAB: which admission number this is for the agency+course (1-based).
+  applicationIndex = 1
 ): CommissionResult | null {
   if (!config.commissionType) return null;
 
@@ -61,16 +65,15 @@ export function calculateCourseCommission(
       const rules = (config.commissionRules ?? []) as SlabRule[];
       if (rules.length === 0) return null;
 
-      // Find the applicable slab
-      const slab = rules.find(
-        (r) => tuitionAmount >= r.min && tuitionAmount <= r.max
-      ) ?? rules[rules.length - 1]; // fall back to last slab if above all ranges
+      // Slabs are application-count tiers with a fixed amount.
+      const slab =
+        rules.find((r) => applicationIndex >= r.min && applicationIndex <= r.max) ??
+        rules[rules.length - 1]; // fall back to the last tier beyond all ranges
 
-      const amount = (tuitionAmount * slab.percentage) / 100;
       return {
-        commissionAmount: parseFloat(amount.toFixed(2)),
+        commissionAmount: Number(slab.amount ?? 0),
         appliedType: "SLAB",
-        appliedRate: slab.percentage,
+        appliedRate: null,
         appliedSlab: slab,
         currency,
       };
@@ -108,9 +111,11 @@ export function formatCommissionLabel(
 
     case "SLAB": {
       const rules = (config.commissionRules ?? []) as SlabRule[];
-      if (rules.length === 0) return "Slab-based (no rules set)";
-      const rates = rules.map((r) => `${r.percentage}%`).join(" / ");
-      return `Slab-based (${rates})`;
+      if (rules.length === 0) return "Slab-based (no tiers set)";
+      const tiers = rules
+        .map((r) => `${sym}${Number(r.amount ?? 0).toLocaleString("en-IN")} (apps ${r.min}–${r.max})`)
+        .join(", ");
+      return `Slab-based: ${tiers}`;
     }
 
     default:
@@ -143,6 +148,6 @@ export function parseSlabRules(raw: unknown): SlabRule[] {
       r !== null &&
       typeof (r as SlabRule).min === "number" &&
       typeof (r as SlabRule).max === "number" &&
-      typeof (r as SlabRule).percentage === "number"
+      typeof (r as SlabRule).amount === "number"
   );
 }

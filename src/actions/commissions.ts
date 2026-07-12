@@ -54,6 +54,20 @@ export async function createCommissionTransaction(params: {
 
   const course = application.course;
   if (course?.commissionType) {
+    // For slab (application-count tiers), determine which admission number this
+    // is for the referring agency + this course.
+    let applicationIndex = 1;
+    if (course.commissionType === "SLAB") {
+      const agencyId = application.student.referral?.agencyId ?? null;
+      const prior = await prisma.commissionTransaction.count({
+        where: {
+          application: { courseId: course.id },
+          ...(agencyId ? { agencyId } : {}),
+        },
+      });
+      applicationIndex = prior + 1;
+    }
+
     const result = calculateCourseCommission(
       {
         commissionType: course.commissionType as "FIXED" | "PERCENTAGE" | "SLAB",
@@ -61,7 +75,8 @@ export async function createCommissionTransaction(params: {
         commissionRules: parseSlabRules(course.commissionRules),
       },
       params.tuitionAmount,
-      course.commissionCurrency
+      course.commissionCurrency,
+      applicationIndex
     );
     if (result) {
       commissionAmount = result.commissionAmount;
