@@ -5,6 +5,7 @@ const publicRoutes = [
   "/login",
   "/register",
   "/forgot-password",
+  "/reset-password",
   "/colleges",
   // Public college self-registration flow (pre-auth: the account isn't active
   // until a Super Admin approves it). Listed as specific paths so the protected
