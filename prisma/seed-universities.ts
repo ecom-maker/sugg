@@ -46,9 +46,24 @@ const TAMIL_NADU_UNIVERSITIES: U[] = [
   { name: "Krea University", establishmentYear: 2018, city: "Sri City", state: "Andhra Pradesh", type: "PRIVATE" },
 ];
 
+// Kerala state universities.
+const KERALA_UNIVERSITIES: U[] = [
+  { name: "APJ Abdul Kalam Technological University", establishmentYear: 2014, city: "Thiruvananthapuram", state: "Kerala", type: "PUBLIC" },
+  { name: "University of Kerala", establishmentYear: 1937, city: "Thiruvananthapuram", state: "Kerala", type: "PUBLIC" },
+  { name: "Mahatma Gandhi University", establishmentYear: 1983, city: "Kottayam", state: "Kerala", type: "PUBLIC" },
+  { name: "Cochin University of Science & Technology (CUSAT)", establishmentYear: 1971, city: "Kochi", state: "Kerala", type: "PUBLIC" },
+  { name: "University of Calicut", establishmentYear: 1968, city: "Malappuram", state: "Kerala", type: "PUBLIC" },
+  { name: "Kannur University", establishmentYear: 1996, city: "Kannur", state: "Kerala", type: "PUBLIC" },
+  { name: "Thunchath Ezhuthachan Malayalam University", establishmentYear: 2012, city: "Tirur", state: "Kerala", type: "PUBLIC" },
+  { name: "National University of Advanced Legal Studies (NUALS)", establishmentYear: 2005, city: "Kochi", state: "Kerala", type: "PUBLIC" },
+  { name: "Sree Sankaracharya University of Sanskrit", establishmentYear: 1993, city: "Kalady", state: "Kerala", type: "PUBLIC" },
+];
+
+const ALL_UNIVERSITIES: U[] = [...TAMIL_NADU_UNIVERSITIES, ...KERALA_UNIVERSITIES];
+
 export async function seedUniversities(prisma: PrismaClient) {
   const res = await prisma.university.createMany({
-    data: TAMIL_NADU_UNIVERSITIES.map((u) => ({
+    data: ALL_UNIVERSITIES.map((u) => ({
       name: u.name,
       establishmentYear: u.establishmentYear,
       location: u.city,
@@ -60,5 +75,5 @@ export async function seedUniversities(prisma: PrismaClient) {
     })),
     skipDuplicates: true,
   });
-  console.log(`✅ Universities: ${TAMIL_NADU_UNIVERSITIES.length} prepared, ${res.count} inserted`);
+  console.log(`✅ Universities: ${ALL_UNIVERSITIES.length} prepared, ${res.count} inserted`);
 }
