@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 
 const schema = z.object({
   collegeName: z.string().min(3, "College name must be at least 3 characters"),
-  website: z.string().url("Enter a valid URL (https://...)").optional().or(z.literal("")),
+  website: z.string().optional(),
   officialEmail: z.string().email("Enter a valid email address"),
   contactPersonName: z.string().min(2, "Contact person name required"),
   contactPersonDesig: z.string().min(2, "Designation required"),
@@ -87,7 +87,7 @@ export function CollegeRegisterForm() {
           <div className="md:col-span-2">
             <Field name="officialEmail" label="Official Email Address *" icon={Mail} placeholder="admissions@college.edu" type="email" />
           </div>
-          <Field name="website" label="Website" icon={Globe} placeholder="https://college.edu" />
+          <Field name="website" label="Website (optional)" icon={Globe} placeholder="https://college.edu" />
           <Field name="mobileNumber" label="Contact Mobile *" icon={Phone} placeholder="+91 9876543210" />
         </div>
       </div>

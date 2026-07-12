@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   collegeName: z.string().min(3),
-  website: z.string().url().optional().or(z.literal("")),
+  website: z.string().optional(),
   officialEmail: z.string().email(),
   contactPersonName: z.string().min(2),
   contactPersonDesig: z.string().min(2),
