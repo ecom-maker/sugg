@@ -176,10 +176,8 @@ export function CollegesManagementPage({
             <tr>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">College</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden xl:table-cell">University</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Contact Person</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Location</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Verified</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Reg. Date</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
               <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
             </tr>
@@ -213,16 +211,6 @@ export function CollegesManagementPage({
                       >
                         {college.university.name}
                       </Link>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    {college.contactPersonName ? (
-                      <div>
-                        <p className="text-sm">{college.contactPersonName}</p>
-                        <p className="text-xs text-muted-foreground">{college.contactPersonDesig ?? ""}</p>
-                      </div>
                     ) : (
                       <span className="text-muted-foreground text-sm">—</span>
                     )}
