@@ -104,6 +104,7 @@ export interface AuthUser {
   fullName: string;
   avatarUrl?: string;
   role: UserRole;
+  capabilities: string[];
   isActive: boolean;
 }
 

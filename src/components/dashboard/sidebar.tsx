@@ -266,6 +266,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "My Branch",
         items: [
+          { title: "Employees", href: "/admin/hr/employees", icon: Contact },
           { title: "Counselors", href: "/branch/counselors", icon: UserCheck },
           { title: "Teams", href: "/branch/teams", icon: Users },
           { title: "Students", href: "/branch/students", icon: Users },
@@ -334,9 +335,22 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
   return base[role] || [];
 }
 
+// Extra nav driven by per-user capability grants (additive access on top of
+// role). Kept separate so a granted employee sees only what they were given.
+function getCapabilitySections(capabilities: string[] = []): NavSection[] {
+  const items: NavSection["items"] = [];
+  if (capabilities.includes("VIEW_COMMISSIONS")) {
+    items.push({ title: "Commissions", href: "/staff/commissions", icon: DollarSign });
+  }
+  return items.length ? [{ title: "Access", items }] : [];
+}
+
 export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const navSections = getNavSections(user.role);
+  const navSections = [
+    ...getNavSections(user.role),
+    ...getCapabilitySections(user.capabilities),
+  ];
 
   return (
     <>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { AuthUser, UserRole } from "@/types";
+import { capabilitiesAllow, type Capability } from "@/lib/capabilities";
 
 export async function getAuthUser(): Promise<AuthUser | null> {
   const supabase = await createClient();
@@ -23,6 +24,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       fullName: true,
       avatarUrl: true,
       role: true,
+      capabilities: true,
       isActive: true,
     },
   });
@@ -30,6 +32,27 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   if (!dbUser || !dbUser.isActive) return null;
 
   return dbUser as AuthUser;
+}
+
+/** True if the user has been granted the given capability. */
+export function hasCapability(user: AuthUser, capability: Capability): boolean {
+  return user.capabilities?.includes(capability) ?? false;
+}
+
+/**
+ * Allow access if the user's role is permitted OR they hold the capability.
+ * Use for pages/actions that a role opens by default but a capability can also
+ * unlock (e.g. read-only commissions for a granted employee).
+ */
+export async function requireCapabilityOrRole(
+  allowedRoles: UserRole[],
+  capability: Capability
+): Promise<AuthUser> {
+  const user = await requireAuth();
+  if (allowedRoles.includes(user.role) || hasCapability(user, capability)) {
+    return user;
+  }
+  redirect("/unauthorized");
 }
 
 export async function requireAuth(): Promise<AuthUser> {
@@ -77,7 +100,14 @@ export function getRoleRedirectPath(role: UserRole): string {
   }
 }
 
-export function canAccess(userRole: UserRole, resource: string, action: string): boolean {
+export function canAccess(
+  userRole: UserRole,
+  resource: string,
+  action: string,
+  capabilities: string[] = []
+): boolean {
+  // Additive per-user grants can unlock a resource/action the role omits.
+  if (capabilitiesAllow(capabilities, resource, action)) return true;
   const permissions: Record<UserRole, Record<string, string[]>> = {
     SUPER_ADMIN: {
       "*": ["*"],

@@ -452,6 +452,7 @@ model User {
   fullName         String    @map("full_name")
   avatarUrl        String?   @map("avatar_url")
   role             UserRole
+  capabilities     String[]  @default([])
   isActive         Boolean   @default(true) @map("is_active")
   lastLoginAt      DateTime? @map("last_login_at")
   createdAt        DateTime  @default(now()) @map("created_at")
@@ -489,6 +490,7 @@ model User {
   shortlistsCreated   StudentShortlist[] @relation("ShortlistCreator")
   consentsCaptured    StudentConsent[] @relation("ConsentCapturedBy")
   duplicateReviews    StudentDuplicateFlag[] @relation("DuplicateReviewer")
+  employee            Employee?    @relation("EmployeeUser")
 
   @@map("users")
 }
@@ -1351,6 +1353,7 @@ model AgencyBranch {
   targets     BranchTarget[]
   reports     BranchReport[]
   teams       Team[]
+  employees   Employee[]   @relation("BranchEmployees")
   geoCountry  Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
   geoState    State?       @relation(fields: [stateId], references: [id], onDelete: SetNull)
   geoDistrict District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
@@ -1530,6 +1533,7 @@ model Payment {
 // ─── HR ──────────────────────────────────────────────────────────────────────
 
 enum EmployeeType {
+  SUPER_ADMIN
   BRANCH_MANAGER
   ASST_BRANCH_MANAGER
   TEAM_LEADER
@@ -1564,10 +1568,16 @@ model Employee {
   nationalIdNumber  String?         @map("national_id_number")
   employeeType      EmployeeType    @map("employee_type")
   isActive          Boolean         @default(true) @map("is_active")
+  userId            String?         @unique @map("user_id")
+  branchId          String?         @map("branch_id")
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
 
+  user              User?           @relation("EmployeeUser", fields: [userId], references: [id], onDelete: SetNull)
+  branch            AgencyBranch?   @relation("BranchEmployees", fields: [branchId], references: [id], onDelete: SetNull)
+
   @@index([employeeType])
   @@index([lastName])
+  @@index([branchId])
   @@map("employees")
 }

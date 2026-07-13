@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { getEmployeeScope } from "@/lib/employee-scope";
 import { nextEmployeeCode } from "@/lib/employee-code";
+import { EMPLOYEE_TYPE_LABELS } from "@/lib/hr";
 import { z } from "zod";
 
 const employeeTypes = [
+  "SUPER_ADMIN",
   "BRANCH_MANAGER",
   "ASST_BRANCH_MANAGER",
   "TEAM_LEADER",
@@ -18,7 +21,8 @@ const idTypes = ["AADHAAR", "PASSPORT", "DRIVING_LICENSE", "PAN", "VOTERS_ID"] a
 
 const emptyToNull = (v: unknown) => (v === "" ? null : v);
 
-const createSchema = z.object({
+/** Field validators shared by create and update. */
+export const employeeFields = {
   firstName: z.string().min(1, "First name is required").max(120),
   lastName: z.string().min(1, "Last name is required").max(120),
   dob: z.preprocess(emptyToNull, z.string().date().nullable().optional()),
@@ -33,25 +37,31 @@ const createSchema = z.object({
   nationalIdType: z.preprocess(emptyToNull, z.enum(idTypes).nullable().optional()),
   nationalIdNumber: z.preprocess(emptyToNull, z.string().max(60).nullable().optional()),
   employeeType: z.enum(employeeTypes, { required_error: "Employee type is required" }),
-});
+  branchId: z.preprocess(emptyToNull, z.string().nullable().optional()),
+};
 
-/** GET /api/admin/employees?q= — Super Admin only. */
+const createSchema = z.object(employeeFields);
+
+/** GET /api/admin/employees?q= — Super Admin (all) or Branch Manager (own branch). */
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user || user.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const scope = await getEmployeeScope(user);
+  if (!scope) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const q = request.nextUrl.searchParams.get("q") ?? "";
-  const where = q
-    ? {
-        OR: [
-          { firstName: { contains: q, mode: "insensitive" as const } },
-          { lastName: { contains: q, mode: "insensitive" as const } },
-          { officialEmail: { contains: q, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  const where: Prisma.EmployeeWhereInput = {
+    ...scope.where,
+    ...(q
+      ? {
+          OR: [
+            { firstName: { contains: q, mode: "insensitive" } },
+            { lastName: { contains: q, mode: "insensitive" } },
+            { officialEmail: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
 
   const employees = await prisma.employee.findMany({
     where,
@@ -61,16 +71,40 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ employees });
 }
 
-/** POST /api/admin/employees — Super Admin only. Creates an employee. */
+/** POST /api/admin/employees — create, scoped to the caller's branch/role. */
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user || user.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const scope = await getEmployeeScope(user);
+  if (!scope) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const body = await request.json();
     const data = createSchema.parse(body);
+
+    // A user can only assign employee types within their scope.
+    if (!scope.assignableTypes.includes(data.employeeType)) {
+      return NextResponse.json(
+        {
+          error: `You can only assign: ${scope.assignableTypes
+            .map((t) => EMPLOYEE_TYPE_LABELS[t])
+            .join(", ")}`,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Branch Manager: force their own branch. Super Admin: optional, validated.
+    let branchId: string | null;
+    if (scope.isSuperAdmin) {
+      branchId = data.branchId ?? null;
+      if (branchId) {
+        const branch = await prisma.agencyBranch.findUnique({ where: { id: branchId }, select: { id: true } });
+        if (!branch) return NextResponse.json({ error: "Branch not found" }, { status: 400 });
+      }
+    } else {
+      branchId = scope.branchId;
+    }
 
     const baseData = {
       firstName: data.firstName.trim(),
@@ -87,6 +121,7 @@ export async function POST(request: NextRequest) {
       nationalIdType: data.nationalIdType ?? null,
       nationalIdNumber: data.nationalIdNumber ?? null,
       employeeType: data.employeeType,
+      branchId,
     };
 
     // The employee code is system-generated. Retry on the rare event that a
@@ -98,11 +133,7 @@ export async function POST(request: NextRequest) {
         employee = await prisma.employee.create({ data: { ...baseData, employeeCode } });
         break;
       } catch (e) {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === "P2002" &&
-          attempt < 5
-        ) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002" && attempt < 5) {
           continue;
         }
         throw e;
@@ -122,6 +153,7 @@ export async function POST(request: NextRequest) {
           employeeCode: employee.employeeCode,
           name: `${employee.firstName} ${employee.lastName}`,
           employeeType: employee.employeeType,
+          branchId: employee.branchId,
         },
       },
     });

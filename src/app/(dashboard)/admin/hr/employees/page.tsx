@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getEmployeeScope } from "@/lib/employee-scope";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Mail, Phone } from "lucide-react";
@@ -10,10 +12,14 @@ import { EMPLOYEE_TYPE_LABELS, EMPLOYEE_ID_TYPE_LABELS } from "@/lib/hr";
 export const metadata: Metadata = { title: "Employees" };
 
 export default async function AdminEmployeesPage() {
-  await requireRole(["SUPER_ADMIN"]);
+  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER"]);
+  const scope = await getEmployeeScope(user);
+  if (!scope) redirect("/unauthorized");
 
   const employees = await prisma.employee.findMany({
+    where: scope.where,
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    include: { branch: { select: { branchName: true } } },
   });
 
   return (
@@ -39,6 +45,7 @@ export default async function AdminEmployeesPage() {
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Code</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Branch</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Official Contact</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Personal Contact</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">National ID</th>
@@ -47,7 +54,7 @@ export default async function AdminEmployeesPage() {
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-16 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">
                   <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   No employees yet. Click &ldquo;Add Employee&rdquo; to create the first one.
                 </td>
@@ -65,13 +72,18 @@ export default async function AdminEmployeesPage() {
                         {(e.lastName[0] ?? "").toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-medium">{e.firstName} {e.lastName}</p>
+                        <Link href={`/admin/hr/employees/${e.id}`} className="font-medium hover:text-primary transition-colors">
+                          {e.firstName} {e.lastName}
+                        </Link>
                         {!e.isActive && <p className="text-xs text-muted-foreground">Inactive</p>}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="secondary">{EMPLOYEE_TYPE_LABELS[e.employeeType]}</Badge>
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground">
+                    {e.branch?.branchName ?? "—"}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
                     <div className="space-y-0.5">

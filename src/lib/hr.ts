@@ -1,6 +1,7 @@
 import type { EmployeeType, EmployeeIdType } from "@prisma/client";
 
 export const EMPLOYEE_TYPE_LABELS: Record<EmployeeType, string> = {
+  SUPER_ADMIN: "Super Admin",
   BRANCH_MANAGER: "Branch Manager",
   ASST_BRANCH_MANAGER: "Asst. Branch Manager",
   TEAM_LEADER: "Team Leader",
