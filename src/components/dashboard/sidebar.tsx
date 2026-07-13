@@ -99,11 +99,19 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       },
     ] as NavSection[],
 
-    // Phase 2 Sugg Branch Manager UI is not deployed yet. Keep this empty so no
-    // sidebar links point to unbuilt pages (which would 404). The full section
-    // (Dashboard, Agencies, Sugg Counselors, Reports) is restored when the
-    // /sugg-branch pages ship.
-    SUGG_BRANCH_MANAGER: [] as NavSection[],
+    SUGG_BRANCH_MANAGER: [
+      {
+        items: [
+          { title: "Dashboard", href: "/sugg-branch", icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: "My Branch",
+        items: [
+          { title: "Employees", href: "/admin/hr/employees", icon: Contact },
+        ],
+      },
+    ] as NavSection[],
 
     SUGG_COUNSELOR: [
       {

@@ -22,7 +22,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER"]);
+  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER", "SUGG_BRANCH_MANAGER"]);
   const scope = await getEmployeeScope(user);
   if (!scope) redirect("/unauthorized");
 

@@ -7,7 +7,7 @@ import { EmployeeForm } from "@/components/hr/employee-form";
 export const metadata: Metadata = { title: "New Employee" };
 
 export default async function NewEmployeePage() {
-  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER"]);
+  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER", "SUGG_BRANCH_MANAGER"]);
   const scope = await getEmployeeScope(user);
   if (!scope) redirect("/unauthorized");
   const ctx = await getEmployeeFormContext(scope);

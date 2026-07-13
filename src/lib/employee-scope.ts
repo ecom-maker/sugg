@@ -38,7 +38,7 @@ export async function getEmployeeScope(user: AuthUser): Promise<EmployeeScope | 
   if (user.role === "SUPER_ADMIN") {
     return { isSuperAdmin: true, branchId: null, where: {}, assignableTypes: ALL_TYPES };
   }
-  if (user.role === "BRANCH_MANAGER") {
+  if (user.role === "SUGG_BRANCH_MANAGER" || user.role === "BRANCH_MANAGER") {
     // A branch manager's Sugg Branch comes from their own employee record, or
     // from a Sugg Branch they manage directly.
     const emp = await prisma.employee.findFirst({

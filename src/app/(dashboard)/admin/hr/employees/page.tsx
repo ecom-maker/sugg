@@ -12,7 +12,7 @@ import { EMPLOYEE_TYPE_LABELS, EMPLOYEE_ID_TYPE_LABELS } from "@/lib/hr";
 export const metadata: Metadata = { title: "Employees" };
 
 export default async function AdminEmployeesPage() {
-  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER"]);
+  const user = await requireRole(["SUPER_ADMIN", "BRANCH_MANAGER", "SUGG_BRANCH_MANAGER"]);
   const scope = await getEmployeeScope(user);
   if (!scope) redirect("/unauthorized");
 
