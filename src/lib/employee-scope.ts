@@ -39,15 +39,25 @@ export async function getEmployeeScope(user: AuthUser): Promise<EmployeeScope | 
     return { isSuperAdmin: true, branchId: null, where: {}, assignableTypes: ALL_TYPES };
   }
   if (user.role === "BRANCH_MANAGER") {
-    const branch = await prisma.agencyBranch.findFirst({
+    // Resolve their branch: either the agency branch they manage, or — for a
+    // branch manager provisioned from an HR employee — that employee's branch.
+    const managed = await prisma.agencyBranch.findFirst({
       where: { managerId: user.id },
       select: { id: true },
     });
-    if (!branch) return null;
+    let branchId = managed?.id ?? null;
+    if (!branchId) {
+      const emp = await prisma.employee.findFirst({
+        where: { userId: user.id },
+        select: { branchId: true },
+      });
+      branchId = emp?.branchId ?? null;
+    }
+    if (!branchId) return null;
     return {
       isSuperAdmin: false,
-      branchId: branch.id,
-      where: { branchId: branch.id },
+      branchId,
+      where: { branchId },
       assignableTypes: BRANCH_MANAGER_ASSIGNABLE,
     };
   }

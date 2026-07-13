@@ -48,6 +48,13 @@ export async function provisionEmployeeLogin(employeeId: string) {
     await prisma.employee.update({ where: { id: employeeId }, data: { userId } });
   }
 
+  // Keep the login's role aligned with the employee type on every (re)provision,
+  // so a previously mis-mapped account is repaired. Never demote a Super Admin.
+  const current = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (current && current.role !== "SUPER_ADMIN" && current.role !== role) {
+    await prisma.user.update({ where: { id: userId }, data: { role } });
+  }
+
   const result = await provisionLogin({ userId, email, fullName, role });
   if (result.error) return { error: result.error };
 

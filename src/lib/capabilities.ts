@@ -61,8 +61,12 @@ export function capabilitiesAllow(
 
 export const EMPLOYEE_ROLE_MAP: Record<EmployeeType, UserRole> = {
   SUPER_ADMIN: "SUPER_ADMIN",
-  BRANCH_MANAGER: "SUGG_BRANCH_MANAGER",
-  ASST_BRANCH_MANAGER: "SUGG_BRANCH_MANAGER",
+  // Branch managers get the agency BRANCH_MANAGER role: it has a working /branch
+  // dashboard and is what the employee (HR) scope keys off. SUGG_BRANCH_MANAGER's
+  // dashboard was never built, so it 404s on login.
+  BRANCH_MANAGER: "BRANCH_MANAGER",
+  ASST_BRANCH_MANAGER: "BRANCH_MANAGER",
+  // Non-managers land on the counselor dashboard (/counselor exists).
   TEAM_LEADER: "SUGG_COUNSELOR",
   COUNSELLOR: "SUGG_COUNSELOR",
   OFFICE_ASSISTANT: "SUGG_COUNSELOR",
