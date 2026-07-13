@@ -4,23 +4,37 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { provisionLogin } from "@/lib/agency-auth";
 import { EMPLOYEE_ROLE_MAP, CAPABILITY_KEYS } from "@/lib/capabilities";
+import { getEmployeeScope, scopeCanManage } from "@/lib/employee-scope";
 import { revalidatePath } from "next/cache";
 
 /**
- * Provision (or reset) a login for an employee. Creates the app user + Supabase
- * auth account, links it to the employee, and returns a one-time temp password.
- * Super Admin only.
+ * Provision (or reset) a login for an employee. Creates/links the app user +
+ * Supabase auth account. Optionally sets a specific login email and password;
+ * when no password is given, a temp one is generated and returned once.
+ * Allowed for whoever can manage the employee (Super Admin, or the Branch
+ * Manager of the employee's branch).
  */
-export async function provisionEmployeeLogin(employeeId: string) {
+export async function provisionEmployeeLogin(
+  employeeId: string,
+  opts?: { email?: string; password?: string }
+) {
   const actor = await getAuthUser();
-  if (!actor || actor.role !== "SUPER_ADMIN") return { error: "Unauthorized" };
+  if (!actor) return { error: "Unauthorized" };
+  const scope = await getEmployeeScope(actor);
+  if (!scope) return { error: "Unauthorized" };
 
   const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
   if (!employee) return { error: "Employee not found" };
+  if (!scopeCanManage(scope, employee.branchId, employee.employeeType)) {
+    return { error: "You cannot manage this employee" };
+  }
 
-  const email = employee.officialEmail || employee.personalEmail;
+  const email = (opts?.email?.trim() || employee.officialEmail || employee.personalEmail || "").trim();
   if (!email) {
-    return { error: "Add an official or personal email to this employee first" };
+    return { error: "Enter a login email (or add an official/personal email to this employee)" };
+  }
+  if (opts?.password !== undefined && opts.password.length > 0 && opts.password.length < 6) {
+    return { error: "Password must be at least 6 characters" };
   }
 
   const fullName = `${employee.firstName} ${employee.lastName}`.trim();
@@ -55,7 +69,13 @@ export async function provisionEmployeeLogin(employeeId: string) {
     await prisma.user.update({ where: { id: userId }, data: { role } });
   }
 
-  const result = await provisionLogin({ userId, email, fullName, role });
+  const result = await provisionLogin({
+    userId,
+    email,
+    fullName,
+    role,
+    password: opts?.password || undefined,
+  });
   if (result.error) return { error: result.error };
 
   await prisma.auditLog.create({
@@ -64,7 +84,7 @@ export async function provisionEmployeeLogin(employeeId: string) {
       action: "PROVISION_EMPLOYEE_LOGIN",
       resource: "employee",
       resourceId: employeeId,
-      newValue: { email, role },
+      newValue: { email, role, passwordSet: Boolean(opts?.password) },
     },
   });
 

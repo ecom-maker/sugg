@@ -13,7 +13,10 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
   if (!scope) redirect("/unauthorized");
 
   const { id } = await params;
-  const e = await prisma.employee.findUnique({ where: { id } });
+  const e = await prisma.employee.findUnique({
+    where: { id },
+    include: { user: { select: { email: true } } },
+  });
   if (!e) notFound();
   if (!scopeCanManage(scope, e.branchId, e.employeeType)) redirect("/unauthorized");
 
@@ -47,6 +50,7 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
         allowedTypes={ctx.allowedTypes}
         canPickBranch={ctx.canPickBranch}
         fixedBranchLabel={ctx.fixedBranchLabel}
+        existingLoginEmail={e.user?.email ?? null}
       />
     </div>
   );

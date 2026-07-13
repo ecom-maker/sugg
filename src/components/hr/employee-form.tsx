@@ -12,10 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, User, Phone, ShieldAlert, IdCard, Briefcase, Building2 } from "lucide-react";
+import { Loader2, User, Phone, ShieldAlert, IdCard, Briefcase, Building2, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { EmployeeType, EmployeeIdType } from "@prisma/client";
 import { EMPLOYEE_TYPE_LABELS, EMPLOYEE_ID_TYPE_OPTIONS } from "@/lib/hr";
+import { provisionEmployeeLogin } from "@/actions/employees";
 
 const NONE_ID = "__none__";
 const NONE_BRANCH = "__none_branch__";
@@ -50,6 +51,8 @@ interface Props {
   canPickBranch: boolean;
   /** The fixed branch label shown to a Branch Manager. */
   fixedBranchLabel?: string | null;
+  /** The employee's existing login email, if a login was already created. */
+  existingLoginEmail?: string | null;
 }
 
 const empty: EmployeeFormValues = {
@@ -59,13 +62,15 @@ const empty: EmployeeFormValues = {
   nationalIdType: null, nationalIdNumber: "", employeeType: "", branchId: null,
 };
 
-export function EmployeeForm({ employee, branchOptions, allowedTypes, canPickBranch, fixedBranchLabel }: Props) {
+export function EmployeeForm({ employee, branchOptions, allowedTypes, canPickBranch, fixedBranchLabel, existingLoginEmail }: Props) {
   const router = useRouter();
   const isEdit = Boolean(employee?.id);
   const init = employee ?? empty;
 
   const [v, setV] = useState<EmployeeFormValues>(init);
   const [employeeCode, setEmployeeCode] = useState(employee?.employeeCode ?? "");
+  const [loginEmail, setLoginEmail] = useState(existingLoginEmail ?? init.officialEmail ?? init.personalEmail ?? "");
+  const [loginPassword, setLoginPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const set = <K extends keyof EmployeeFormValues>(k: K, val: EmployeeFormValues[K]) =>
@@ -90,6 +95,14 @@ export function EmployeeForm({ employee, branchOptions, allowedTypes, canPickBra
     }
     if (!v.employeeType) {
       toast({ title: "Employee type is required", variant: "destructive" });
+      return;
+    }
+    if (loginPassword && loginPassword.length < 6) {
+      toast({ title: "Login password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    if (loginPassword && !loginEmail.trim()) {
+      toast({ title: "Enter a login email for the password", variant: "destructive" });
       return;
     }
 
@@ -128,8 +141,26 @@ export function EmployeeForm({ employee, branchOptions, allowedTypes, canPickBra
         return;
       }
 
-      toast({ title: isEdit ? "Employee updated" : "Employee added" });
       const id = data.employee?.id ?? employee?.id;
+
+      // Optionally create/set the login now, once the employee exists.
+      if (loginPassword && id) {
+        const prov = await provisionEmployeeLogin(id, { email: loginEmail.trim(), password: loginPassword });
+        if (prov?.error) {
+          toast({
+            title: "Employee saved, but login failed",
+            description: prov.error,
+            variant: "destructive",
+          });
+          router.push(`/admin/hr/employees/${id}`);
+          router.refresh();
+          return;
+        }
+        toast({ title: "Employee saved and login created" });
+      } else {
+        toast({ title: isEdit ? "Employee updated" : "Employee added" });
+      }
+
       router.push(id ? `/admin/hr/employees/${id}` : "/admin/hr/employees");
       router.refresh();
     } finally {
@@ -278,6 +309,41 @@ export function EmployeeForm({ employee, branchOptions, allowedTypes, canPickBra
           <div className="space-y-1.5">
             <Label>ID Number</Label>
             <Input value={v.nationalIdNumber} onChange={(e) => set("nationalIdNumber", e.target.value)} placeholder="Document number" disabled={!v.nationalIdType} />
+          </div>
+        </div>
+      </div>
+
+      {/* Login access */}
+      <div className="rounded-lg border bg-card p-5 space-y-4">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+          <KeyRound className="w-4 h-4" /> Login access
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          {existingLoginEmail
+            ? "This employee already has a login. Enter a new password below to reset it."
+            : "Give this employee a login (e.g. a counsellor). Fill both fields to create it now, or leave the password blank to skip."}
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Login Email</Label>
+            <Input
+              type="email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              placeholder="name@sugg.in"
+              readOnly={Boolean(existingLoginEmail)}
+              disabled={Boolean(existingLoginEmail)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{existingLoginEmail ? "New Password" : "Password"}</Label>
+            <Input
+              type="password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              placeholder="Min 6 characters"
+              autoComplete="new-password"
+            />
           </div>
         </div>
       </div>

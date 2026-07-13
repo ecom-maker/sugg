@@ -32,8 +32,14 @@ export async function provisionLogin(target: {
   email: string;
   fullName: string;
   role: string;
+  /** When set, use this exact password; otherwise a temp one is generated. */
+  password?: string;
 }): Promise<ProvisionResult> {
-  const password = tempPassword();
+  // Only echo the password back to the caller when we generated it (so it can
+  // be shown once). An admin-supplied password is not returned.
+  const generated = !target.password;
+  const password = target.password || tempPassword();
+  const shown = generated ? password : undefined;
   const base = { email: target.email, role: target.role };
 
   try {
@@ -49,7 +55,7 @@ export async function provisionLogin(target: {
 
     if (!error && data.user) {
       await prisma.user.update({ where: { id: target.userId }, data: { supabaseId: data.user.id } });
-      return { ...base, password };
+      return { ...base, password: shown };
     }
 
     // Already exists → find it and reset the password.
@@ -60,7 +66,7 @@ export async function provisionLogin(target: {
     if (existing) {
       await supabase.auth.admin.updateUserById(existing.id, { password, email_confirm: true });
       await prisma.user.update({ where: { id: target.userId }, data: { supabaseId: existing.id } });
-      return { ...base, password };
+      return { ...base, password: shown };
     }
 
     return { ...base, error: error?.message ?? "Could not create the login account" };
