@@ -8,6 +8,7 @@ import { assignLeadToNextCounselor, manualAssignLead } from "@/lib/lead-assignme
 import { normalizeMobileE164 } from "@/lib/mobile-normalize";
 import { calculateLeadScore } from "@/lib/utils";
 import { createNotification, NotificationMessages } from "@/lib/notifications";
+import { getSuggBranchScope } from "@/lib/sugg-branch-scope";
 import type { LeadStatus } from "@/types";
 
 const createStudentSchema = z.object({
@@ -97,6 +98,79 @@ export async function createStudentAndLead(formData: FormData) {
   revalidatePath("/counselor/leads");
   revalidatePath("/admin/leads");
 
+  return { success: true, leadId: lead.id };
+}
+
+/**
+ * Add a lead directly under a Sugg Branch (not routed through an agency).
+ * Only a Sugg Branch Manager with a resolved branch may do this; the lead is
+ * tagged with their Sugg Branch so it appears in the branch's scoped view.
+ */
+export async function createSuggBranchLead(formData: FormData) {
+  const user = await requireRole(["SUGG_BRANCH_MANAGER", "SUPER_ADMIN"]);
+  const scope = await getSuggBranchScope(user);
+  if (!scope) return { error: { _form: ["No Sugg Branch is assigned to you."] } };
+
+  const parsed = createStudentSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
+  const data = parsed.data;
+
+  const normalizedMobile = normalizeMobileE164(data.mobile);
+  const existing = await prisma.student.findFirst({
+    where: { OR: [{ mobile: data.mobile }, { mobileNumberNormalized: normalizedMobile }] },
+    select: { id: true },
+  });
+  if (existing) return { error: { mobile: ["A student with this phone number already exists"] } };
+
+  const score = calculateLeadScore({
+    hasEmail: !!data.email,
+    hasCity: !!data.city,
+    hasBudget: !!data.budget,
+    hasQualification: !!data.qualification,
+    hasPreferredCollege: !!data.preferredCollege,
+    source: "MANUAL_ENTRY",
+  });
+
+  const student = await prisma.student.create({
+    data: {
+      name: data.name,
+      mobile: data.mobile,
+      mobileNumberNormalized: normalizedMobile,
+      email: data.email || null,
+      city: data.city || null,
+      country: data.country || null,
+      educationLevel: data.educationLevel || null,
+      qualification: data.qualification || null,
+      interestedCourse: data.interestedCourse || null,
+      preferredCollege: data.preferredCollege || null,
+      preferredCountry: data.preferredCountry || null,
+      budget: data.budget ? parseFloat(data.budget) : null,
+      source: "MANUAL_ENTRY",
+    },
+  });
+
+  const lead = await prisma.lead.create({
+    data: {
+      studentId: student.id,
+      source: "MANUAL_ENTRY",
+      status: "NEW",
+      score,
+      isCurrent: true,
+      suggBranchId: scope.suggBranchId,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      action: "CREATE_LEAD",
+      resource: "lead",
+      resourceId: lead.id,
+      newValue: { student: student.name, suggBranchId: scope.suggBranchId },
+    },
+  });
+
+  revalidatePath("/sugg-branch/leads");
   return { success: true, leadId: lead.id };
 }
 

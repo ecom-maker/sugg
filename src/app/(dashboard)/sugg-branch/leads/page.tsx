@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSuggBranchScope, scopedLeadWhere } from "@/lib/sugg-branch-scope";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ClipboardList, Plus } from "lucide-react";
 
-export const metadata: Metadata = { title: "Branch Leads" };
+export const metadata: Metadata = { title: "Students & Leads" };
 
 const statusVariant: Record<string, "success" | "warning" | "secondary" | "destructive"> = {
   ADMISSION_CONFIRMED: "success", OFFER_RECEIVED: "success",
@@ -33,11 +35,18 @@ export default async function BranchLeadsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Leads</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {scope ? `${leads.length} leads in ${scope.branchName}` : "No Sugg Branch assigned to you yet."}
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Students &amp; Leads</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {scope ? `${leads.length} leads in ${scope.branchName}` : "No Sugg Branch assigned to you yet."}
+          </p>
+        </div>
+        {scope && (
+          <Button asChild className="gap-2">
+            <Link href="/sugg-branch/leads/new"><Plus className="w-4 h-4" /> Add Lead</Link>
+          </Button>
+        )}
       </div>
 
       <div className="rounded-lg border bg-card overflow-x-auto">

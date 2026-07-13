@@ -109,8 +109,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "My Branch",
         items: [
           { title: "Employees", href: "/admin/hr/employees", icon: Contact },
-          { title: "Students", href: "/sugg-branch/students", icon: Users },
-          { title: "Leads", href: "/sugg-branch/leads", icon: ClipboardList },
+          { title: "Students & Leads", href: "/sugg-branch/leads", icon: Users },
           { title: "Agencies", href: "/sugg-branch/agencies", icon: Briefcase },
         ],
       },

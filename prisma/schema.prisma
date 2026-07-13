@@ -597,6 +597,7 @@ model Lead {
   isCurrent         Boolean    @default(true) @map("is_current")
   assignedToId      String?    @map("assigned_to_id")
   branchId          String?    @map("branch_id")
+  suggBranchId      String?    @map("sugg_branch_id")
   assignmentRule    AssignmentRule? @map("assignment_rule")
   lastContactedAt   DateTime?  @map("last_contacted_at")
   nextFollowUpAt    DateTime?  @map("next_follow_up_at")
@@ -608,6 +609,7 @@ model Lead {
   student           Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   assignedTo        User?        @relation("AssignedCounselor", fields: [assignedToId], references: [id], onDelete: SetNull)
   branch            AgencyBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  suggBranch        SuggBranch?  @relation("SuggBranchLeads", fields: [suggBranchId], references: [id], onDelete: SetNull)
   notes             LeadNote[]
   followups         LeadFollowup[]
   statusHistory     LeadStatusHistory[]
@@ -1286,6 +1288,7 @@ model SuggBranch {
   agencies    Agency[]
   counselors  Counselor[]
   employees   Employee[] @relation("SuggBranchEmployees")
+  leads       Lead[]     @relation("SuggBranchLeads")
 
   @@map("sugg_branches")
 }

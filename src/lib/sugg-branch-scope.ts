@@ -87,6 +87,8 @@ export async function scopedLeadWhere(suggBranchId: string) {
     OR: [
       { student: { agencyId: { in: agencyIds } } },
       { assignedToId: { in: counselorUserIds } },
+      // Leads the branch added directly (not routed through an agency).
+      { suggBranchId },
     ],
   };
 }
