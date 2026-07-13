@@ -39,19 +39,19 @@ export async function getEmployeeScope(user: AuthUser): Promise<EmployeeScope | 
     return { isSuperAdmin: true, branchId: null, where: {}, assignableTypes: ALL_TYPES };
   }
   if (user.role === "BRANCH_MANAGER") {
-    // Resolve their branch: either the agency branch they manage, or — for a
-    // branch manager provisioned from an HR employee — that employee's branch.
-    const managed = await prisma.agencyBranch.findFirst({
-      where: { managerId: user.id },
-      select: { id: true },
+    // A branch manager's Sugg Branch comes from their own employee record, or
+    // from a Sugg Branch they manage directly.
+    const emp = await prisma.employee.findFirst({
+      where: { userId: user.id },
+      select: { branchId: true },
     });
-    let branchId = managed?.id ?? null;
+    let branchId = emp?.branchId ?? null;
     if (!branchId) {
-      const emp = await prisma.employee.findFirst({
-        where: { userId: user.id },
-        select: { branchId: true },
+      const managed = await prisma.suggBranch.findFirst({
+        where: { managerId: user.id },
+        select: { id: true },
       });
-      branchId = emp?.branchId ?? null;
+      branchId = managed?.id ?? null;
     }
     if (!branchId) return null;
     return {
@@ -67,19 +67,19 @@ export async function getEmployeeScope(user: AuthUser): Promise<EmployeeScope | 
 /** Inputs the employee create/edit form needs, derived from the caller's scope. */
 export async function getEmployeeFormContext(scope: EmployeeScope) {
   if (scope.isSuperAdmin) {
-    const branches = await prisma.agencyBranch.findMany({
-      select: { id: true, branchName: true, agency: { select: { name: true } } },
+    const branches = await prisma.suggBranch.findMany({
+      select: { id: true, branchName: true, branchCode: true },
       orderBy: { branchName: "asc" },
     });
     return {
       canPickBranch: true,
-      branchOptions: branches.map((b) => ({ value: b.id, label: `${b.branchName} — ${b.agency.name}` })),
+      branchOptions: branches.map((b) => ({ value: b.id, label: `${b.branchName} (${b.branchCode})` })),
       allowedTypes: scope.assignableTypes,
       fixedBranchLabel: null as string | null,
     };
   }
   const branch = scope.branchId
-    ? await prisma.agencyBranch.findUnique({ where: { id: scope.branchId }, select: { branchName: true } })
+    ? await prisma.suggBranch.findUnique({ where: { id: scope.branchId }, select: { branchName: true } })
     : null;
   return {
     canPickBranch: false,

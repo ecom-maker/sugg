@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (scope.isSuperAdmin) {
       branchId = data.branchId ?? null;
       if (branchId) {
-        const branch = await prisma.agencyBranch.findUnique({ where: { id: branchId }, select: { id: true } });
+        const branch = await prisma.suggBranch.findUnique({ where: { id: branchId }, select: { id: true } });
         if (!branch) return NextResponse.json({ error: "Branch not found" }, { status: 400 });
       }
     } else {

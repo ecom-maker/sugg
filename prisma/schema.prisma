@@ -1285,6 +1285,7 @@ model SuggBranch {
   territories SuggBranchTerritory[]
   agencies    Agency[]
   counselors  Counselor[]
+  employees   Employee[] @relation("SuggBranchEmployees")
 
   @@map("sugg_branches")
 }
@@ -1353,7 +1354,6 @@ model AgencyBranch {
   targets     BranchTarget[]
   reports     BranchReport[]
   teams       Team[]
-  employees   Employee[]   @relation("BranchEmployees")
   geoCountry  Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
   geoState    State?       @relation(fields: [stateId], references: [id], onDelete: SetNull)
   geoDistrict District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
@@ -1574,7 +1574,7 @@ model Employee {
   updatedAt         DateTime        @updatedAt @map("updated_at")
 
   user              User?           @relation("EmployeeUser", fields: [userId], references: [id], onDelete: SetNull)
-  branch            AgencyBranch?   @relation("BranchEmployees", fields: [branchId], references: [id], onDelete: SetNull)
+  branch            SuggBranch?     @relation("SuggBranchEmployees", fields: [branchId], references: [id], onDelete: SetNull)
 
   @@index([employeeType])
   @@index([lastName])
