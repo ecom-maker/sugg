@@ -74,7 +74,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         items: [
           { title: "Universities", href: "/admin/universities", icon: GraduationCap },
           { title: "Colleges", href: "/admin/colleges", icon: Building2 },
-          { title: "Courses", href: "/admin/courses", icon: BookOpen },
+          { title: "Course Catalog", href: "/admin/courses", icon: BookOpen },
           { title: "Agencies", href: "/admin/agencies", icon: Briefcase },
           { title: "Sugg Branches", href: "/admin/sugg-branches", icon: GitBranch },
         ],
