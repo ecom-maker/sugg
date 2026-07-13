@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserPlus, Plus, X, GraduationCap, MapPin } from "lucide-react";
+import { Loader2, UserPlus, X, GraduationCap, MapPin, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+
+interface CatalogCourse {
+  id: string;
+  name: string;
+  degreeType: string;
+}
 
 interface Rec {
   courseId: string;
@@ -40,18 +46,57 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
   const [budget, setBudget] = useState("");
   const [courses, setCourses] = useState<string[]>([]);
   const [courseInput, setCourseInput] = useState("");
+  const [courseResults, setCourseResults] = useState<CatalogCourse[]>([]);
+  const [courseOpen, setCourseOpen] = useState(false);
+  const [courseLoading, setCourseLoading] = useState(false);
+  const courseBoxRef = useRef<HTMLDivElement>(null);
   const [preferredCollege, setPreferredCollege] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [recs, setRecs] = useState<Rec[]>([]);
   const [recsLoading, setRecsLoading] = useState(false);
 
-  const addCourse = () => {
-    const c = courseInput.trim();
+  const addCourse = (nameRaw: string) => {
+    const c = nameRaw.trim();
     if (c && !courses.includes(c)) setCourses((s) => [...s, c]);
     setCourseInput("");
+    setCourseResults([]);
+    setCourseOpen(false);
   };
   const removeCourse = (c: string) => setCourses((s) => s.filter((x) => x !== c));
+
+  // Autocomplete interested courses from the standardised course catalog.
+  useEffect(() => {
+    if (courseInput.trim().length < 1) {
+      setCourseResults([]);
+      return;
+    }
+    let cancelled = false;
+    setCourseLoading(true);
+    const t = setTimeout(() => {
+      fetch(`/api/course-catalog?q=${encodeURIComponent(courseInput)}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return;
+          setCourseResults(d.courses ?? []);
+          setCourseOpen(true);
+        })
+        .catch(() => {})
+        .finally(() => !cancelled && setCourseLoading(false));
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [courseInput]);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (courseBoxRef.current && !courseBoxRef.current.contains(e.target as Node)) setCourseOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -147,24 +192,47 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Input value={budget} onChange={(e) => setBudget(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="e.g. 200000" />
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="space-y-1.5 sm:col-span-2" ref={courseBoxRef}>
           <Label>Interested Courses</Label>
-          <div className="flex gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
+              className="pl-9"
               value={courseInput}
               onChange={(e) => setCourseInput(e.target.value)}
+              onFocus={() => courseResults.length > 0 && setCourseOpen(true)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === ",") {
+                if (e.key === "Enter") {
                   e.preventDefault();
-                  addCourse();
+                  if (courseResults[0]) addCourse(courseResults[0].name);
                 }
               }}
-              placeholder="Type a course and press Enter (e.g. B.Tech CSE)"
+              placeholder="Search the standard course list…"
             />
-            <Button type="button" variant="outline" onClick={addCourse} className="gap-1 shrink-0">
-              <Plus className="w-4 h-4" /> Add
-            </Button>
+            {courseLoading && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+            {courseOpen && courseResults.length > 0 && (
+              <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md max-h-64 overflow-auto">
+                {courseResults.map((c) => {
+                  const already = courses.includes(c.name);
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      disabled={already}
+                      onClick={() => addCourse(c.name)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent flex items-center justify-between disabled:opacity-50"
+                    >
+                      <span>{c.name}</span>
+                      <span className="text-xs text-muted-foreground">{already ? "Added" : c.degreeType}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
+          <p className="text-xs text-muted-foreground">Select from the standard course list to keep courses consistent.</p>
           {courses.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-1">
               {courses.map((c) => (
