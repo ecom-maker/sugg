@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getSuggBranchScope } from "@/lib/sugg-branch-scope";
-import { AddLeadForm } from "@/components/sugg-branch/add-lead-form";
+import { createSuggBranchLead } from "@/actions/leads";
+import { LeadCaptureForm } from "@/components/leads/lead-capture-form";
 
 export const metadata: Metadata = { title: "Add Lead" };
 
@@ -12,7 +13,7 @@ export default async function AddBranchLeadPage() {
   if (!scope) redirect("/sugg-branch");
   return (
     <div className="p-6">
-      <AddLeadForm />
+      <LeadCaptureForm action={createSuggBranchLead} redirectTo="/sugg-branch/leads" />
     </div>
   );
 }

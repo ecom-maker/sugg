@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus, Plus, X, GraduationCap, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { createSuggBranchLead } from "@/actions/leads";
 
 interface Rec {
   courseId: string;
@@ -19,12 +18,19 @@ interface Rec {
   fee: number | null;
 }
 
+interface Props {
+  /** Server action that creates the lead from FormData. */
+  action: (formData: FormData) => Promise<{ error?: unknown; success?: boolean; leadId?: string } | void>;
+  /** Where to go after a successful create. */
+  redirectTo: string;
+}
+
 function money(n: number | null) {
   if (n == null) return "Fee N/A";
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 }
 
-export function AddLeadForm() {
+export function LeadCaptureForm({ action, redirectTo }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -47,7 +53,6 @@ export function AddLeadForm() {
   };
   const removeCourse = (c: string) => setCourses((s) => s.filter((x) => x !== c));
 
-  // Fetch recommended colleges as interested courses / budget change (debounced).
   useEffect(() => {
     if (courses.length === 0) {
       setRecs([]);
@@ -92,17 +97,17 @@ export function AddLeadForm() {
       fd.set("interestedCourse", courses.join(", "));
       fd.set("preferredCollege", preferredCollege.trim());
       fd.set("source", "MANUAL_ENTRY");
-      const res = await createSuggBranchLead(fd);
-      if (res?.error) {
+      const res = await action(fd);
+      if (res && "error" in res && res.error) {
         const msg =
           typeof res.error === "object"
-            ? (Object.values(res.error).flat().filter(Boolean)[0] as string)
-            : "Could not add lead";
-        toast({ title: "Error", description: msg, variant: "destructive" });
+            ? (Object.values(res.error as Record<string, unknown>).flat().filter(Boolean)[0] as string)
+            : String(res.error);
+        toast({ title: "Error", description: msg ?? "Could not add lead", variant: "destructive" });
         return;
       }
       toast({ title: "Lead added" });
-      router.push("/sugg-branch/leads");
+      router.push(redirectTo);
       router.refresh();
     } finally {
       setLoading(false);
@@ -113,7 +118,7 @@ export function AddLeadForm() {
     <form onSubmit={submit} className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold">Add Lead</h1>
-        <p className="text-muted-foreground text-sm mt-1">Create a new student lead for your branch.</p>
+        <p className="text-muted-foreground text-sm mt-1">Create a new student lead.</p>
       </div>
 
       <div className="rounded-lg border bg-card p-5 grid gap-4 sm:grid-cols-2">
@@ -142,7 +147,6 @@ export function AddLeadForm() {
           <Input value={budget} onChange={(e) => setBudget(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="e.g. 200000" />
         </div>
 
-        {/* Interested courses — multi */}
         <div className="space-y-1.5 sm:col-span-2">
           <Label>Interested Courses</Label>
           <div className="flex gap-2">
@@ -181,7 +185,6 @@ export function AddLeadForm() {
         </div>
       </div>
 
-      {/* Recommended colleges */}
       {courses.length > 0 && (
         <div className="rounded-lg border bg-card p-5 space-y-3">
           <div className="flex items-center gap-2">

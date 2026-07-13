@@ -8,8 +8,10 @@ import { getAuthUser } from "@/lib/auth";
  * the budget. Read-only reference for the Add Lead form.
  */
 export async function GET(request: NextRequest) {
+  // Read-only college/course/fee reference lookup — any authenticated user
+  // (branch managers, counselors) may use it while capturing a lead.
   const user = await getAuthUser();
-  if (!user || !["SUGG_BRANCH_MANAGER", "SUPER_ADMIN"].includes(user.role)) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
