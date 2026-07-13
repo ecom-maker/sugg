@@ -20,11 +20,18 @@ export interface SuggBranchScope {
  */
 export async function getSuggBranchScope(user: AuthUser): Promise<SuggBranchScope | null> {
   if (user.role !== "SUGG_BRANCH_MANAGER") return null;
-  const branch = await prisma.suggBranch.findFirst({
+  // Resolve via a Sugg Branch they manage directly, or their own employee record.
+  const managed = await prisma.suggBranch.findFirst({
     where: { managerId: user.id },
     select: { id: true, branchName: true },
   });
-  return branch ? { suggBranchId: branch.id, branchName: branch.branchName } : null;
+  if (managed) return { suggBranchId: managed.id, branchName: managed.branchName };
+
+  const emp = await prisma.employee.findFirst({
+    where: { userId: user.id, branchId: { not: null } },
+    select: { branch: { select: { id: true, branchName: true } } },
+  });
+  return emp?.branch ? { suggBranchId: emp.branch.id, branchName: emp.branch.branchName } : null;
 }
 
 /** Agency ids covered by this Sugg Branch (agency.sugg_branch_id = branch). */
