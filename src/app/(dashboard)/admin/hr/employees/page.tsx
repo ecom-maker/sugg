@@ -36,6 +36,7 @@ export default async function AdminEmployeesPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b">
             <tr>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Code</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Official Contact</th>
@@ -46,7 +47,7 @@ export default async function AdminEmployeesPage() {
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-16 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-16 text-center text-muted-foreground">
                   <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   No employees yet. Click &ldquo;Add Employee&rdquo; to create the first one.
                 </td>
@@ -54,6 +55,9 @@ export default async function AdminEmployeesPage() {
             ) : (
               employees.map((e) => (
                 <tr key={e.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap">
+                    {e.employeeCode}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-xs font-semibold text-blue-600">

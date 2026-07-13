@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,20 @@ export function EmployeeForm() {
   const [nationalIdType, setNationalIdType] = useState<EmployeeIdType | null>(null);
   const [nationalIdNumber, setNationalIdNumber] = useState("");
   const [employeeType, setEmployeeType] = useState<EmployeeType | "">("");
+  const [employeeCode, setEmployeeCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Preview the code the system will assign on save.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/employees/next-code")
+      .then((r) => r.json())
+      .then((d) => !cancelled && setEmployeeCode(d.code ?? ""))
+      .catch(() => !cancelled && setEmployeeCode(""));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +120,19 @@ export function EmployeeForm() {
           <User className="w-4 h-4" /> Personal information
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Employee Code</Label>
+            <Input
+              value={employeeCode}
+              readOnly
+              disabled
+              placeholder="Auto-generated on save"
+              className="font-mono max-w-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              System-generated (e.g. SUGG-EMP-0001).
+            </p>
+          </div>
           <div className="space-y-1.5">
             <Label>First Name *</Label>
             <Input required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" />

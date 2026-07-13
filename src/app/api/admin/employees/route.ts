@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { nextEmployeeCode } from "@/lib/employee-code";
 import { z } from "zod";
 
 const employeeTypes = [
@@ -70,24 +72,45 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = createSchema.parse(body);
 
-    const employee = await prisma.employee.create({
-      data: {
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        dob: data.dob ? new Date(data.dob) : null,
-        address: data.address ?? null,
-        personalPhone: data.personalPhone ?? null,
-        officialPhone: data.officialPhone ?? null,
-        personalEmail: data.personalEmail ?? null,
-        officialEmail: data.officialEmail ?? null,
-        emergencyName: data.emergencyName ?? null,
-        emergencyRelation: data.emergencyRelation ?? null,
-        emergencyPhone: data.emergencyPhone ?? null,
-        nationalIdType: data.nationalIdType ?? null,
-        nationalIdNumber: data.nationalIdNumber ?? null,
-        employeeType: data.employeeType,
-      },
-    });
+    const baseData = {
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+      dob: data.dob ? new Date(data.dob) : null,
+      address: data.address ?? null,
+      personalPhone: data.personalPhone ?? null,
+      officialPhone: data.officialPhone ?? null,
+      personalEmail: data.personalEmail ?? null,
+      officialEmail: data.officialEmail ?? null,
+      emergencyName: data.emergencyName ?? null,
+      emergencyRelation: data.emergencyRelation ?? null,
+      emergencyPhone: data.emergencyPhone ?? null,
+      nationalIdType: data.nationalIdType ?? null,
+      nationalIdNumber: data.nationalIdNumber ?? null,
+      employeeType: data.employeeType,
+    };
+
+    // The employee code is system-generated. Retry on the rare event that a
+    // concurrent create claimed the same sequence (unique constraint).
+    let employee: Awaited<ReturnType<typeof prisma.employee.create>> | null = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const employeeCode = await nextEmployeeCode(attempt);
+      try {
+        employee = await prisma.employee.create({ data: { ...baseData, employeeCode } });
+        break;
+      } catch (e) {
+        if (
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === "P2002" &&
+          attempt < 5
+        ) {
+          continue;
+        }
+        throw e;
+      }
+    }
+    if (!employee) {
+      return NextResponse.json({ error: "Could not allocate an employee code" }, { status: 500 });
+    }
 
     await prisma.auditLog.create({
       data: {
@@ -96,6 +119,7 @@ export async function POST(request: NextRequest) {
         resource: "employee",
         resourceId: employee.id,
         newValue: {
+          employeeCode: employee.employeeCode,
           name: `${employee.firstName} ${employee.lastName}`,
           employeeType: employee.employeeType,
         },

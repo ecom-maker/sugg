@@ -1548,6 +1548,7 @@ enum EmployeeIdType {
 
 model Employee {
   id                String          @id @default(cuid())
+  employeeCode      String          @unique @map("employee_code")
   firstName         String          @map("first_name")
   lastName          String          @map("last_name")
   dob               DateTime?       @db.Date
