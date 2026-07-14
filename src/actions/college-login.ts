@@ -3,7 +3,60 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { provisionLogin } from "@/lib/agency-auth";
+import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+
+/**
+ * Change a college's login (admin) email. Super Admin only. Updates the app
+ * user and the Supabase auth account (when one exists).
+ */
+export async function changeCollegeLoginEmail(collegeId: string, newEmailRaw: string) {
+  const actor = await getAuthUser();
+  if (!actor || actor.role !== "SUPER_ADMIN") return { error: "Unauthorized" };
+
+  const newEmail = newEmailRaw.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return { error: "Enter a valid email address" };
+
+  const college = await prisma.college.findUnique({
+    where: { id: collegeId },
+    select: { id: true, admin: { select: { id: true, email: true, supabaseId: true } } },
+  });
+  if (!college) return { error: "College not found" };
+  if (!college.admin) return { error: "This college has no login yet — use Reset password to create one first." };
+  if (college.admin.email.toLowerCase() === newEmail) return { error: "That is already the login email" };
+
+  const clash = await prisma.user.findFirst({
+    where: { email: newEmail, NOT: { id: college.admin.id } },
+    select: { id: true },
+  });
+  if (clash) return { error: "That email is already in use by another account" };
+
+  // Update the Supabase auth email if a real auth account exists.
+  if (college.admin.supabaseId && !college.admin.supabaseId.startsWith("pending-")) {
+    const supabase = await createAdminClient();
+    const { error } = await supabase.auth.admin.updateUserById(college.admin.supabaseId, {
+      email: newEmail,
+      email_confirm: true,
+    });
+    if (error) return { error: `Could not update the login: ${error.message}` };
+  }
+
+  await prisma.user.update({ where: { id: college.admin.id }, data: { email: newEmail } });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: actor.id,
+      action: "CHANGE_COLLEGE_LOGIN_EMAIL",
+      resource: "college",
+      resourceId: collegeId,
+      oldValue: { email: college.admin.email },
+      newValue: { email: newEmail },
+    },
+  });
+
+  revalidatePath(`/admin/colleges/${collegeId}/edit`);
+  return { success: true, email: newEmail };
+}
 
 /**
  * Reset (or provision) the login for a college's admin account. Super Admin
