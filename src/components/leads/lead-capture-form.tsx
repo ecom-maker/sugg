@@ -37,6 +37,9 @@ function money(n: number | null) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 }
 
+const MAX_FEE = 5000000; // ₹50 lakh cap for the Max Fees slider
+const FEE_STEP = 25000;
+
 export function LeadCaptureForm({ action, redirectTo }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -197,13 +200,35 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Label>City</Label>
           <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-2">
           <Label>Qualification</Label>
           <Input value={qualification} onChange={(e) => setQualification(e.target.value)} placeholder="e.g. 12th, Diploma" />
         </div>
-        <div className="space-y-1.5">
-          <Label>Budget (₹)</Label>
-          <Input value={budget} onChange={(e) => setBudget(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="e.g. 200000" />
+        <div className="space-y-2 sm:col-span-2">
+          <div className="flex items-center justify-between">
+            <Label>Max Fees</Label>
+            <span className="text-sm font-medium">
+              {Number(budget) > 0
+                ? `₹${Number(budget).toLocaleString("en-IN")}${Number(budget) >= MAX_FEE ? " (Max.)" : ""}`
+                : "Any"}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={MAX_FEE}
+            step={FEE_STEP}
+            value={Number(budget) || 0}
+            onChange={(e) => setBudget(e.target.value)}
+            className="fee-slider w-full"
+            style={{
+              background: `linear-gradient(to right, #4f46e5 ${((Number(budget) || 0) / MAX_FEE) * 100}%, #e5e7eb ${((Number(budget) || 0) / MAX_FEE) * 100}%)`,
+            }}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>₹0</span>
+            <span>Max.</span>
+          </div>
         </div>
 
         <div className="space-y-1.5 sm:col-span-2" ref={courseBoxRef}>
