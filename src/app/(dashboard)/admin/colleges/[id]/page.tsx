@@ -29,6 +29,17 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
     include: { student: { select: { name: true } }, course: { select: { name: true } } },
   });
 
+  const courses = await prisma.course.findMany({
+    where: { collegeId: id },
+    orderBy: [{ isActive: "desc" }, { name: "asc" }],
+    select: { id: true, name: true, degreeType: true, duration: true, totalFee: true, annualFee: true, isActive: true },
+  });
+
+  const money = (v: unknown) => {
+    const n = Number(v ?? 0);
+    return n > 0 ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n) : "—";
+  };
+
   const STATUS_COLORS: Record<string, string> = {
     PENDING: "bg-yellow-100 text-yellow-700",
     APPROVED: "bg-green-100 text-green-700",
@@ -135,6 +146,45 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
             </div>
           );
         })}
+      </div>
+
+      {/* Courses */}
+      <div>
+        <h2 className="font-semibold mb-3">Courses ({courses.length})</h2>
+        <div className="rounded-lg border bg-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 border-b">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Course</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Degree</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Duration</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Total Fee</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.length === 0 ? (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                  <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-30" />No courses added for this college yet.
+                </td></tr>
+              ) : courses.map((c) => (
+                <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted">{c.degreeType}</span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{c.duration}</td>
+                  <td className="px-4 py-3 text-right">{money(c.totalFee ?? c.annualFee)}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                      {c.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Recent Applications */}
