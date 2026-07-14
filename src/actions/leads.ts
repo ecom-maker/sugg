@@ -80,6 +80,10 @@ export async function createStudentAndLead(formData: FormData) {
     },
   });
 
+  // A counsellor who adds a lead owns it directly, so it shows in their
+  // "My Leads". Admin-created leads still go through the assignment engine.
+  const isCounselor = user.role === "SUGG_COUNSELOR" || user.role === "AGENCY_COUNSELOR";
+
   const lead = await prisma.lead.create({
     data: {
       studentId: student.id,
@@ -87,11 +91,12 @@ export async function createStudentAndLead(formData: FormData) {
       status: "NEW",
       score,
       isCurrent: true,
+      assignedToId: isCounselor ? user.id : undefined,
     },
   });
 
-  // Auto-assign if manual entry
-  if (data.source === "MANUAL_ENTRY") {
+  // Auto-assign only when a non-counsellor created it.
+  if (data.source === "MANUAL_ENTRY" && !isCounselor) {
     await assignLeadToNextCounselor(lead.id, data.interestedCourse);
   }
 
