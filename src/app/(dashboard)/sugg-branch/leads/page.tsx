@@ -68,7 +68,9 @@ export default async function BranchLeadsPage() {
             ) : leads.map((l) => (
               <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3">
-                  <p className="font-medium">{l.student.name}</p>
+                  <Link href={`/counselor/leads/${l.id}`} className="font-medium hover:text-primary transition-colors">
+                    {l.student.name}
+                  </Link>
                   <p className="text-xs text-muted-foreground">{l.student.mobile}</p>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{l.student.agency?.name ?? "—"}</td>

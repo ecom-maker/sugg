@@ -9,7 +9,82 @@ import { normalizeMobileE164 } from "@/lib/mobile-normalize";
 import { calculateLeadScore } from "@/lib/utils";
 import { createNotification, NotificationMessages } from "@/lib/notifications";
 import { getSuggBranchScope } from "@/lib/sugg-branch-scope";
+import { resolveLeadAccess } from "@/lib/lead-access";
+import { Prisma } from "@prisma/client";
 import type { LeadStatus } from "@/types";
+
+/**
+ * Edit a lead's student-facing details (max fees, interested courses, preferred
+ * colleges). Scoped: assigned counsellor, their branch manager, or Super Admin.
+ * Each change is recorded to the audit log (shown as change history).
+ */
+export async function updateLeadDetails(
+  leadId: string,
+  input: { budget?: string | null; interestedCourse?: string | null; preferredCollege?: string | null }
+) {
+  const user = await requireAuth();
+
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    select: {
+      id: true, studentId: true, assignedToId: true, suggBranchId: true,
+      student: { select: { budget: true, interestedCourse: true, preferredCollege: true } },
+    },
+  });
+  if (!lead) return { error: "Lead not found" };
+
+  const access = await resolveLeadAccess(user, lead);
+  if (!access.canEdit) return { error: "You cannot edit this lead" };
+
+  const data: Record<string, unknown> = {};
+  const oldValue: Record<string, unknown> = {};
+  const newValue: Record<string, unknown> = {};
+
+  if (input.budget !== undefined) {
+    const next = input.budget && input.budget !== "" ? parseFloat(input.budget) : null;
+    const prev = lead.student.budget != null ? Number(lead.student.budget) : null;
+    if (next !== prev) {
+      data.budget = next;
+      oldValue.maxFees = prev;
+      newValue.maxFees = next;
+    }
+  }
+  if (input.interestedCourse !== undefined) {
+    const next = input.interestedCourse?.trim() || null;
+    if (next !== (lead.student.interestedCourse || null)) {
+      data.interestedCourse = next;
+      oldValue.interestedCourse = lead.student.interestedCourse;
+      newValue.interestedCourse = next;
+    }
+  }
+  if (input.preferredCollege !== undefined) {
+    const next = input.preferredCollege?.trim() || null;
+    if (next !== (lead.student.preferredCollege || null)) {
+      data.preferredCollege = next;
+      oldValue.preferredCollege = lead.student.preferredCollege;
+      newValue.preferredCollege = next;
+    }
+  }
+
+  if (Object.keys(data).length === 0) return { success: true };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.student.update({ where: { id: lead.studentId }, data });
+    await tx.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "UPDATE_LEAD_DETAILS",
+        resource: "lead",
+        resourceId: leadId,
+        oldValue: oldValue as Prisma.InputJsonValue,
+        newValue: newValue as Prisma.InputJsonValue,
+      },
+    });
+  });
+
+  revalidatePath(`/counselor/leads/${leadId}`);
+  return { success: true };
+}
 
 const createStudentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
