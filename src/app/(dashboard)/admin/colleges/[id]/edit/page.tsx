@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ArrowLeft } from "lucide-react";
 import { CollegeProfileForm } from "@/components/college/profile-form";
+import { CollegeResetPassword } from "@/components/college/college-reset-password";
 
 export const metadata: Metadata = { title: "Edit College" };
 
@@ -19,9 +20,12 @@ export default async function AdminCollegeEditPage({ params }: { params: Promise
       contactPersonName: true, contactPersonDesig: true, contactPersonPhone: true,
       address: true, city: true, state: true, country: true, pincode: true,
       description: true, establishedYear: true, universityId: true, status: true,
+      admin: { select: { email: true } },
     },
   });
   if (!college) notFound();
+
+  const loginEmail = college.admin?.email ?? college.officialEmail ?? null;
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
@@ -33,6 +37,8 @@ export default async function AdminCollegeEditPage({ params }: { params: Promise
         <p className="text-muted-foreground text-sm mt-1">Update {college.name}&apos;s details.</p>
       </div>
       <CollegeProfileForm college={college} />
+
+      <CollegeResetPassword collegeId={college.id} loginEmail={loginEmail} />
     </div>
   );
 }
