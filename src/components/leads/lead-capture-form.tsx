@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserPlus, X, GraduationCap, MapPin, Search } from "lucide-react";
+import { Loader2, UserPlus, X, GraduationCap, MapPin, Search, ExternalLink, Plus, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface CatalogCourse {
@@ -17,6 +17,7 @@ interface CatalogCourse {
 
 interface Rec {
   courseId: string;
+  collegeId: string;
   collegeName: string;
   location: string;
   courseName: string;
@@ -50,8 +51,21 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
   const [courseOpen, setCourseOpen] = useState(false);
   const [courseLoading, setCourseLoading] = useState(false);
   const courseBoxRef = useRef<HTMLDivElement>(null);
-  const [preferredCollege, setPreferredCollege] = useState("");
+  const [preferredColleges, setPreferredColleges] = useState<string[]>([]);
+  const [preferredInput, setPreferredInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const togglePreferred = (nameRaw: string) => {
+    const c = nameRaw.trim();
+    if (!c) return;
+    setPreferredColleges((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
+  };
+  const addPreferredManual = () => {
+    const c = preferredInput.trim();
+    if (c && !preferredColleges.includes(c)) setPreferredColleges((s) => [...s, c]);
+    setPreferredInput("");
+  };
+  const removePreferred = (c: string) => setPreferredColleges((s) => s.filter((x) => x !== c));
 
   const [recs, setRecs] = useState<Rec[]>([]);
   const [recsLoading, setRecsLoading] = useState(false);
@@ -140,7 +154,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       fd.set("qualification", qualification.trim());
       fd.set("budget", budget.trim());
       fd.set("interestedCourse", courses.join(", "));
-      fd.set("preferredCollege", preferredCollege.trim());
+      fd.set("preferredCollege", preferredColleges.join(", "));
       fd.set("source", "MANUAL_ENTRY");
       const res = await action(fd);
       if (res && "error" in res && res.error) {
@@ -248,8 +262,35 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
         </div>
 
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Preferred College</Label>
-          <Input value={preferredCollege} onChange={(e) => setPreferredCollege(e.target.value)} placeholder="Preferred college" />
+          <Label>Preferred Colleges</Label>
+          <div className="flex gap-2">
+            <Input
+              value={preferredInput}
+              onChange={(e) => setPreferredInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addPreferredManual();
+                }
+              }}
+              placeholder="Add a college, or pick from Recommended below"
+            />
+            <Button type="button" variant="outline" onClick={addPreferredManual} className="gap-1 shrink-0">
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </div>
+          {preferredColleges.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {preferredColleges.map((c) => (
+                <Badge key={c} variant="secondary" className="gap-1 pr-1">
+                  {c}
+                  <button type="button" onClick={() => removePreferred(c)} className="hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -262,7 +303,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           </div>
           <p className="text-xs text-muted-foreground">
             Colleges offering the interested course{courses.length > 1 ? "s" : ""}
-            {budget ? ` with fees within ±15% of ₹${Number(budget).toLocaleString("en-IN")}` : ""}. Click to set as preferred.
+            {budget ? ` with fees within ±15% of ₹${Number(budget).toLocaleString("en-IN")}` : ""}. Select colleges to add them to preferred, or open one in a new tab.
           </p>
           {recs.length === 0 ? (
             <p className="text-sm text-muted-foreground py-3">
@@ -270,25 +311,44 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
             </p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              {recs.map((r) => (
-                <button
-                  type="button"
-                  key={r.courseId}
-                  onClick={() => setPreferredCollege(r.collegeName)}
-                  className={`text-left rounded-md border p-3 hover:border-primary/50 hover:bg-muted/30 transition-colors ${
-                    preferredCollege === r.collegeName ? "border-primary bg-primary/5" : ""
-                  }`}
-                >
-                  <p className="font-medium text-sm">{r.collegeName}</p>
-                  <p className="text-xs text-muted-foreground">{r.courseName} · {r.degreeType.replace(/_/g, " ")}</p>
-                  <div className="flex items-center justify-between mt-1.5 text-xs">
-                    <span className="inline-flex items-center gap-1 text-muted-foreground">
-                      <MapPin className="w-3 h-3" />{r.location || "—"}
-                    </span>
-                    <span className="font-medium">{money(r.fee)}</span>
+              {recs.map((r) => {
+                const selected = preferredColleges.includes(r.collegeName);
+                return (
+                  <div
+                    key={r.courseId}
+                    className={`rounded-md border p-3 transition-colors ${selected ? "border-primary bg-primary/5" : ""}`}
+                  >
+                    <p className="font-medium text-sm">{r.collegeName}</p>
+                    <p className="text-xs text-muted-foreground">{r.courseName} · {r.degreeType.replace(/_/g, " ")}</p>
+                    <div className="flex items-center justify-between mt-1.5 text-xs">
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <MapPin className="w-3 h-3" />{r.location || "—"}
+                      </span>
+                      <span className="font-medium">{money(r.fee)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={selected ? "default" : "outline"}
+                        onClick={() => togglePreferred(r.collegeName)}
+                        className="h-7 gap-1 text-xs"
+                      >
+                        {selected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                        {selected ? "Preferred" : "Select as preferred"}
+                      </Button>
+                      <a
+                        href={`/colleges/${r.collegeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="w-3 h-3" /> View
+                      </a>
+                    </div>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

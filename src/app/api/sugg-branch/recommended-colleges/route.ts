@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       degreeType: true,
       totalFee: true,
       annualFee: true,
-      college: { select: { name: true, city: true, state: true } },
+      college: { select: { id: true, name: true, city: true, state: true } },
     },
     take: 200,
   });
@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     const fee = c.totalFee ?? c.annualFee;
     return {
       courseId: c.id,
+      collegeId: c.college.id,
       collegeName: c.college.name,
       location: [c.college.city, c.college.state].filter(Boolean).join(", "),
       courseName: c.name,
