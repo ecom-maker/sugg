@@ -286,6 +286,9 @@ export function CollegesManagementPage({
                       <Button size="sm" variant="ghost" asChild className="h-7">
                         <Link href={`/admin/colleges/${college.id}`}>View</Link>
                       </Button>
+                      <Button size="sm" variant="outline" asChild className="h-7">
+                        <Link href={`/admin/colleges/${college.id}/edit`}>Edit</Link>
+                      </Button>
                     </div>
                   </td>
                 </tr>
