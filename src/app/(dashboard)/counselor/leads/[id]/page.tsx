@@ -78,6 +78,15 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
         <Badge variant="secondary">{lead.status.replace(/_/g, " ")}</Badge>
       </div>
 
+      {s.shortlistedCollege && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 flex items-center gap-2">
+          <Building2 className="w-4 h-4 shrink-0" />
+          <span className="text-sm">
+            <span className="font-semibold">Shortlisted College:</span> {s.shortlistedCollege}
+          </span>
+        </div>
+      )}
+
       <div className="rounded-lg border bg-card p-5 space-y-2">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-1">Student</h2>
         <Row icon={Phone} label="Mobile" value={s.mobile} />
@@ -102,7 +111,9 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
         />
       )}
 
-      {access.canEdit && <LeadActions leadId={lead.id} currentStatus={lead.status as LeadStatus} />}
+      {access.canEdit && (
+        <LeadActions leadId={lead.id} currentStatus={lead.status as LeadStatus} shortlistedCollege={s.shortlistedCollege} />
+      )}
 
       {/* Change history */}
       <div className="rounded-lg border bg-card p-5 space-y-3">

@@ -254,11 +254,14 @@ export async function createSuggBranchLead(formData: FormData) {
   return { success: true, leadId: lead.id };
 }
 
+const FOLLOWUP_STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "COUNSELING_SCHEDULED"];
+
 export async function updateLeadStatus(
   leadId: string,
   status: LeadStatus,
   reason?: string,
-  note?: string
+  note?: string,
+  opts?: { followUpAt?: string | null; shortlistedCollege?: string | null }
 ) {
   const user = await requireAuth();
 
@@ -311,10 +314,46 @@ export async function updateLeadStatus(
         newValue: { status },
       },
     });
+
+    // A date/time on an early-stage status schedules a follow-up (calendar).
+    if (opts?.followUpAt && FOLLOWUP_STATUSES.includes(status)) {
+      const dueAt = new Date(opts.followUpAt);
+      if (!isNaN(dueAt.getTime())) {
+        await tx.leadFollowup.create({
+          data: {
+            leadId,
+            userId: lead.assignedToId ?? user.id,
+            title: `${status.replace(/_/g, " ")} — ${lead.student.name}`,
+            dueAt,
+            status: "PENDING",
+          },
+        });
+        await tx.lead.update({ where: { id: leadId }, data: { nextFollowUpAt: dueAt } });
+      }
+    }
+
+    // Shortlisting records the college on the student profile.
+    if (status === "COLLEGE_SHORTLISTED" && opts?.shortlistedCollege?.trim()) {
+      await tx.student.update({
+        where: { id: lead.studentId },
+        data: { shortlistedCollege: opts.shortlistedCollege.trim() },
+      });
+      await tx.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "UPDATE_LEAD_DETAILS",
+          resource: "lead",
+          resourceId: leadId,
+          oldValue: { shortlistedCollege: lead.student.shortlistedCollege },
+          newValue: { shortlistedCollege: opts.shortlistedCollege.trim() },
+        },
+      });
+    }
   });
 
   revalidatePath(`/counselor/leads/${leadId}`);
   revalidatePath("/counselor/leads");
+  revalidatePath("/counselor/followups");
   revalidatePath(`/agency/leads/${leadId}`);
   revalidatePath("/agency/leads");
 

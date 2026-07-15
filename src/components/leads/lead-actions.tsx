@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, MessageSquarePlus } from "lucide-react";
+import { Loader2, Save, MessageSquarePlus, CalendarClock, Building2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { updateLeadStatus, addLeadNote } from "@/actions/leads";
 import type { LeadStatus } from "@/types";
@@ -13,27 +14,48 @@ const STATUSES: LeadStatus[] = [
   "NEW", "CONTACTED", "QUALIFIED", "COUNSELING_SCHEDULED", "COLLEGE_SHORTLISTED",
   "APPLICATION_SUBMITTED", "OFFER_RECEIVED", "ADMISSION_CONFIRMED", "LOST",
 ];
+const FOLLOWUP_STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "COUNSELING_SCHEDULED"];
 
-export function LeadActions({ leadId, currentStatus }: { leadId: string; currentStatus: LeadStatus }) {
+export function LeadActions({
+  leadId,
+  currentStatus,
+  shortlistedCollege,
+}: {
+  leadId: string;
+  currentStatus: LeadStatus;
+  shortlistedCollege?: string | null;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<LeadStatus>(currentStatus);
+  const [followUpAt, setFollowUpAt] = useState("");
+  const [shortlisted, setShortlisted] = useState(shortlistedCollege ?? "");
   const [note, setNote] = useState("");
   const [savingStatus, setSavingStatus] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
 
+  const wantsFollowUp = FOLLOWUP_STATUSES.includes(status);
+  const wantsShortlist = status === "COLLEGE_SHORTLISTED";
+
   const saveStatus = async () => {
-    if (status === currentStatus) {
-      toast({ title: "Status unchanged" });
+    if (wantsShortlist && !shortlisted.trim()) {
+      toast({ title: "Enter the shortlisted college name", variant: "destructive" });
       return;
     }
     setSavingStatus(true);
     try {
-      const res = await updateLeadStatus(leadId, status);
+      const res = await updateLeadStatus(leadId, status, undefined, undefined, {
+        followUpAt: wantsFollowUp && followUpAt ? followUpAt : null,
+        shortlistedCollege: wantsShortlist ? shortlisted.trim() : null,
+      });
       if (res?.error) {
         toast({ title: "Error", description: res.error, variant: "destructive" });
         return;
       }
-      toast({ title: "Status updated" });
+      toast({
+        title: "Status updated",
+        description: wantsFollowUp && followUpAt ? "Follow-up added to the calendar." : undefined,
+      });
+      setFollowUpAt("");
       router.refresh();
     } finally {
       setSavingStatus(false);
@@ -61,24 +83,39 @@ export function LeadActions({ leadId, currentStatus }: { leadId: string; current
     <div className="rounded-lg border bg-card p-5 space-y-4">
       <div className="space-y-1.5">
         <Label>Update status</Label>
-        <div className="flex gap-2">
-          <select
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as LeadStatus)}
-          >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
-            ))}
-          </select>
-          <Button onClick={saveStatus} disabled={savingStatus} className="gap-2 shrink-0">
-            {savingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save
-          </Button>
-        </div>
+        <select
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as LeadStatus)}
+        >
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+          ))}
+        </select>
       </div>
 
-      <div className="space-y-1.5">
+      {wantsFollowUp && (
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5" /> Follow-up date &amp; time</Label>
+          <Input type="datetime-local" value={followUpAt} onChange={(e) => setFollowUpAt(e.target.value)} className="max-w-xs" />
+          <p className="text-xs text-muted-foreground">Adds a follow-up to the calendar for this lead&apos;s counsellor.</p>
+        </div>
+      )}
+
+      {wantsShortlist && (
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> Shortlisted college</Label>
+          <Input value={shortlisted} onChange={(e) => setShortlisted(e.target.value)} placeholder="College name" />
+          <p className="text-xs text-muted-foreground">Saved on the student profile as the shortlisted college.</p>
+        </div>
+      )}
+
+      <Button onClick={saveStatus} disabled={savingStatus} className="gap-2">
+        {savingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        Save status
+      </Button>
+
+      <div className="space-y-1.5 pt-2 border-t">
         <Label>Add a note</Label>
         <textarea
           className="flex min-h-[70px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
