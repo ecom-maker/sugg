@@ -4,22 +4,10 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAgencyLeadWhere } from "@/lib/agency-access";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Users } from "lucide-react";
+import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Leads" };
-
-const statusVariant: Record<string, "default" | "secondary" | "success" | "warning" | "destructive" | "info"> = {
-  NEW: "info",
-  CONTACTED: "info",
-  QUALIFIED: "warning",
-  COUNSELING_SCHEDULED: "warning",
-  COLLEGE_SHORTLISTED: "warning",
-  APPLICATION_SUBMITTED: "warning",
-  OFFER_RECEIVED: "success",
-  ADMISSION_CONFIRMED: "success",
-  LOST: "destructive",
-};
 
 function label(s: string) {
   return s.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
@@ -106,7 +94,9 @@ export default async function AgencyLeadsPage() {
                     {l.branch?.branchName ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={statusVariant[l.status] ?? "secondary"}>{label(l.status)}</Badge>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${leadStatusClass(l.status as LeadStatus)}`}>
+                      {leadStatusLabel(l.status as LeadStatus)}
+                    </span>
                   </td>
                 </tr>
               ))

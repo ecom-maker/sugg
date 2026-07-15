@@ -3,18 +3,11 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSuggBranchScope, scopedLeadWhere } from "@/lib/sugg-branch-scope";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Plus } from "lucide-react";
+import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Students & Leads" };
-
-const statusVariant: Record<string, "success" | "warning" | "secondary" | "destructive"> = {
-  ADMISSION_CONFIRMED: "success", OFFER_RECEIVED: "success",
-  NEW: "secondary", CONTACTED: "warning", QUALIFIED: "warning",
-  COUNSELING_SCHEDULED: "warning", COLLEGE_SHORTLISTED: "warning", APPLICATION_SUBMITTED: "warning",
-  LOST: "destructive",
-};
 
 // Leads within this Sugg Branch's territory (mapped agencies + branch counselors).
 export default async function BranchLeadsPage() {
@@ -75,7 +68,11 @@ export default async function BranchLeadsPage() {
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{l.student.agency?.name ?? "—"}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{l.assignedTo?.fullName ?? "Unassigned"}</td>
-                <td className="px-4 py-3"><Badge variant={statusVariant[l.status] ?? "secondary"}>{l.status.replace(/_/g, " ")}</Badge></td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${leadStatusClass(l.status as LeadStatus)}`}>
+                    {leadStatusLabel(l.status as LeadStatus)}
+                  </span>
+                </td>
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground">{new Date(l.createdAt).toLocaleDateString("en-IN")}</td>
               </tr>
             ))}

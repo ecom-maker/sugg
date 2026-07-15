@@ -2,19 +2,9 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Users } from "lucide-react";
+import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Branch Leads" };
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-100 text-blue-700",
-  CONTACTED: "bg-yellow-100 text-yellow-700",
-  QUALIFIED: "bg-purple-100 text-purple-700",
-  COUNSELING_SCHEDULED: "bg-orange-100 text-orange-700",
-  APPLICATION_SUBMITTED: "bg-teal-100 text-teal-700",
-  OFFER_RECEIVED: "bg-cyan-100 text-cyan-700",
-  ADMISSION_CONFIRMED: "bg-green-100 text-green-700",
-  LOST: "bg-red-100 text-red-700",
-};
 
 export default async function BranchLeadsPage() {
   const user = await requireRole(["BRANCH_MANAGER", "SUPER_ADMIN"]);
@@ -68,8 +58,8 @@ export default async function BranchLeadsPage() {
                   </td>
                   <td className="px-4 py-3">{lead.assignedTo?.fullName ?? <span className="text-muted-foreground">Unassigned</span>}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[lead.status] ?? "bg-gray-100 text-gray-600"}`}>
-                      {lead.status.replace(/_/g, " ")}
+                    <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${leadStatusClass(lead.status as LeadStatus)}`}>
+                      {leadStatusLabel(lead.status as LeadStatus)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString("en-IN")}</td>

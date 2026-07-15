@@ -5,17 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Filter } from "lucide-react";
 import Link from "next/link";
+import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Students & Leads" };
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-100 text-blue-700",
-  CONTACTED: "bg-yellow-100 text-yellow-700",
-  QUALIFIED: "bg-purple-100 text-purple-700",
-  APPLICATION_SUBMITTED: "bg-orange-100 text-orange-700",
-  ADMISSION_CONFIRMED: "bg-green-100 text-green-700",
-  LOST: "bg-red-100 text-red-700",
-};
 
 export default async function AdminLeadsPage() {
   await requireRole(["SUPER_ADMIN"]);
@@ -75,8 +67,8 @@ export default async function AdminLeadsPage() {
                   <td className="px-4 py-3 text-muted-foreground">{lead.source}</td>
                   <td className="px-4 py-3">{lead.assignedTo?.fullName ?? <span className="text-muted-foreground">Unassigned</span>}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status] ?? "bg-gray-100 text-gray-700"}`}>
-                      {lead.status.replace(/_/g, " ")}
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${leadStatusClass(lead.status as LeadStatus)}`}>
+                      {leadStatusLabel(lead.status as LeadStatus)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">

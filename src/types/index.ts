@@ -151,17 +151,29 @@ export interface LeadStatusConfig {
   bgColor: string;
 }
 
+// Canonical lead-status colours — used across every view for consistency.
 export const LEAD_STATUS_CONFIG: Record<LeadStatus, LeadStatusConfig> = {
-  NEW: { value: "NEW", label: "New", color: "text-blue-700", bgColor: "bg-blue-50" },
-  CONTACTED: { value: "CONTACTED", label: "Contacted", color: "text-purple-700", bgColor: "bg-purple-50" },
-  QUALIFIED: { value: "QUALIFIED", label: "Qualified", color: "text-indigo-700", bgColor: "bg-indigo-50" },
-  COUNSELING_SCHEDULED: { value: "COUNSELING_SCHEDULED", label: "Counseling Scheduled", color: "text-orange-700", bgColor: "bg-orange-50" },
-  COLLEGE_SHORTLISTED: { value: "COLLEGE_SHORTLISTED", label: "College Shortlisted", color: "text-cyan-700", bgColor: "bg-cyan-50" },
-  APPLICATION_SUBMITTED: { value: "APPLICATION_SUBMITTED", label: "Application Submitted", color: "text-teal-700", bgColor: "bg-teal-50" },
-  OFFER_RECEIVED: { value: "OFFER_RECEIVED", label: "Offer Received", color: "text-green-700", bgColor: "bg-green-50" },
-  ADMISSION_CONFIRMED: { value: "ADMISSION_CONFIRMED", label: "Admission Confirmed", color: "text-emerald-700", bgColor: "bg-emerald-100" },
-  LOST: { value: "LOST", label: "Lost", color: "text-red-700", bgColor: "bg-red-50" },
+  NEW: { value: "NEW", label: "New", color: "text-blue-700", bgColor: "bg-blue-100" },
+  CONTACTED: { value: "CONTACTED", label: "Contacted", color: "text-yellow-700", bgColor: "bg-yellow-100" },
+  QUALIFIED: { value: "QUALIFIED", label: "Qualified", color: "text-purple-700", bgColor: "bg-purple-100" },
+  COUNSELING_SCHEDULED: { value: "COUNSELING_SCHEDULED", label: "Counseling Scheduled", color: "text-indigo-700", bgColor: "bg-indigo-100" },
+  COLLEGE_SHORTLISTED: { value: "COLLEGE_SHORTLISTED", label: "College Shortlisted", color: "text-cyan-700", bgColor: "bg-cyan-100" },
+  APPLICATION_SUBMITTED: { value: "APPLICATION_SUBMITTED", label: "Application Submitted", color: "text-orange-700", bgColor: "bg-orange-100" },
+  OFFER_RECEIVED: { value: "OFFER_RECEIVED", label: "Offer Received", color: "text-teal-700", bgColor: "bg-teal-100" },
+  ADMISSION_CONFIRMED: { value: "ADMISSION_CONFIRMED", label: "Admission Confirmed", color: "text-green-700", bgColor: "bg-green-100" },
+  LOST: { value: "LOST", label: "Lost", color: "text-red-700", bgColor: "bg-red-100" },
 };
+
+/** Canonical badge classes for a lead status (bg + text). */
+export function leadStatusClass(status: LeadStatus): string {
+  const c = LEAD_STATUS_CONFIG[status];
+  return c ? `${c.bgColor} ${c.color}` : "bg-gray-100 text-gray-700";
+}
+
+/** Canonical human label for a lead status. */
+export function leadStatusLabel(status: LeadStatus): string {
+  return LEAD_STATUS_CONFIG[status]?.label ?? String(status).replace(/_/g, " ");
+}
 
 export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   SUBMITTED: { label: "Submitted", color: "text-blue-700", bgColor: "bg-blue-50" },

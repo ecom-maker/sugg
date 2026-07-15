@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Phone, Mail, MapPin, GraduationCap, Wallet, Building2, History } from "lucide-react";
 import { LeadActions } from "@/components/leads/lead-actions";
 import { LeadDetailsEditor } from "@/components/leads/lead-details-editor";
-import type { LeadStatus } from "@/types";
+import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Lead" };
 
@@ -75,7 +75,9 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
           <h1 className="text-2xl font-bold">{s.name}</h1>
           <p className="text-sm text-muted-foreground">Lead · {lead.source.replace(/_/g, " ")} · score {lead.score}</p>
         </div>
-        <Badge variant="secondary">{lead.status.replace(/_/g, " ")}</Badge>
+        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${leadStatusClass(lead.status as LeadStatus)}`}>
+          {leadStatusLabel(lead.status as LeadStatus)}
+        </span>
       </div>
 
       {s.shortlistedCollege && (
