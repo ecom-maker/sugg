@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Menu, Search, LogOut, Settings, User, Moon, Sun } from "lucide-react";
+import { Menu, Search, LogOut, Settings, User, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { AuthUser } from "@/types";
@@ -81,15 +81,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
-          <Badge
-            variant="destructive"
-            className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
-          >
-            3
-          </Badge>
-        </Button>
+        <NotificationBell />
 
         {/* User Menu */}
         <DropdownMenu>
