@@ -2,24 +2,48 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Calendar, ChevronRight } from "lucide-react";
+import { managerBranchId } from "@/lib/lead-access";
+import { Calendar, ChevronRight, User } from "lucide-react";
+import type { Prisma } from "@prisma/client";
 
 export const metadata: Metadata = { title: "Follow-ups" };
 
 export default async function FollowupsPage() {
-  const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
+  const user = await requireRole([
+    "SUGG_COUNSELOR", "AGENCY_COUNSELOR", "SUGG_BRANCH_MANAGER", "BRANCH_MANAGER", "SUPER_ADMIN",
+  ]);
+
+  const isBranchManager = user.role === "SUGG_BRANCH_MANAGER" || user.role === "BRANCH_MANAGER";
+  const isCounselor = user.role === "SUGG_COUNSELOR" || user.role === "AGENCY_COUNSELOR";
+
+  // Scope: counsellor → own; branch manager → all counsellors in their branch;
+  // super admin → all.
+  let scopeWhere: Prisma.LeadFollowupWhereInput = {};
+  if (isCounselor) {
+    scopeWhere = { userId: user.id };
+  } else if (isBranchManager) {
+    const branchId = await managerBranchId(user.id);
+    if (!branchId) {
+      scopeWhere = { id: "__none__" };
+    } else {
+      const emps = await prisma.employee.findMany({
+        where: { branchId, userId: { not: null } },
+        select: { userId: true },
+      });
+      const userIds = emps.map((e) => e.userId!).filter(Boolean);
+      scopeWhere = { OR: [{ userId: { in: userIds } }, { lead: { suggBranchId: branchId } }] };
+    }
+  }
 
   // Only follow-ups that actually have a scheduled date/time are shown here.
   const followups = await prisma.leadFollowup.findMany({
-    where: {
-      dueAt: { not: undefined },
-      ...(user.role === "SUGG_COUNSELOR" ? { user: { supabaseId: user.supabaseId } } : {}),
-    },
+    where: scopeWhere,
     orderBy: { dueAt: "asc" },
     include: {
       lead: { include: { student: { select: { name: true } } } },
+      user: { select: { fullName: true } },
     },
-    take: 50,
+    take: 100,
   });
 
   const now = new Date();
@@ -28,7 +52,9 @@ export default async function FollowupsPage() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Follow-ups</h1>
-        <p className="text-muted-foreground text-sm mt-1">{followups.length} scheduled</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          {followups.length} scheduled{isBranchManager ? " across your branch's counsellors" : ""}
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -60,6 +86,9 @@ export default async function FollowupsPage() {
                   <p className="font-medium text-sm">{f.title}</p>
                   {f.description && <p className="text-sm text-muted-foreground mt-0.5">{f.description}</p>}
                   <p className="text-xs text-muted-foreground mt-1">{new Date(f.dueAt).toLocaleString("en-IN")}</p>
+                  {!isCounselor && f.user?.fullName && (
+                    <p className="text-xs text-muted-foreground mt-0.5 inline-flex items-center gap-1"><User className="w-3 h-3" /> {f.user.fullName}</p>
+                  )}
                   <p className="text-xs text-primary mt-1.5 inline-flex items-center gap-0.5">Open lead to edit / update <ChevronRight className="w-3 h-3" /></p>
                 </div>
               </Link>

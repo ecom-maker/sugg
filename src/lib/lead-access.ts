@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { AuthUser } from "@/types";
 
 /** The Sugg Branch a manager operates (a branch they manage, or their own employee record). */
-async function managerBranchId(userId: string): Promise<string | null> {
+export async function managerBranchId(userId: string): Promise<string | null> {
   const managed = await prisma.suggBranch.findFirst({ where: { managerId: userId }, select: { id: true } });
   if (managed) return managed.id;
   const emp = await prisma.employee.findFirst({
