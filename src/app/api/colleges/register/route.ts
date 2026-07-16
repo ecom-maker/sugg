@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -67,7 +68,9 @@ export async function POST(request: NextRequest) {
         data: {
           supabaseId,
           email: data.officialEmail,
-          phone: data.mobileNumber,
+          // Phone is stored on the college (contactPhone). We don't set it on the
+          // login user because User.phone is unique and the same number can be a
+          // contact for more than one registration.
           fullName: data.contactPersonName,
           role: "COLLEGE_ADMIN",
           isActive: false, // Activated after admin approval
@@ -134,6 +137,12 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.errors[0].message }, { status: 400 });
+    }
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json(
+        { error: "An account with this email or mobile number already exists." },
+        { status: 409 }
+      );
     }
     console.error("College registration error:", err);
     return NextResponse.json({ error: "Registration failed. Please try again." }, { status: 500 });
