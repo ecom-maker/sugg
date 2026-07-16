@@ -64,7 +64,9 @@ export default async function BranchLeadsPage() {
                   <Link href={`/counselor/leads/${l.id}`} className="font-medium hover:text-primary transition-colors">
                     {l.student.name}
                   </Link>
-                  <p className="text-xs text-muted-foreground">{l.student.mobile}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.code && <span className="font-mono">{l.code} · </span>}{l.student.mobile}
+                  </p>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{l.student.agency?.name ?? "—"}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{l.assignedTo?.fullName ?? "Unassigned"}</td>

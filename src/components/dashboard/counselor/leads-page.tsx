@@ -19,6 +19,7 @@ import { formatRelativeTime } from "@/lib/utils";
 
 interface Lead {
   id: string;
+  code: string | null;
   status: LeadStatus;
   score: number;
   updatedAt: Date;
@@ -157,6 +158,7 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-sm text-muted-foreground">
+                    {lead.code && <span className="font-mono text-xs">{lead.code}</span>}
                     <span>{lead.student.mobile}</span>
                     {lead.student.interestedCourse && (
                       <>

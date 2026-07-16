@@ -79,7 +79,10 @@ export default async function FollowupsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium">{f.lead.student.name}</p>
+                    <p className="font-medium">
+                      {f.lead.student.name}
+                      {f.lead.code && <span className="font-mono text-xs text-muted-foreground font-normal"> · {f.lead.code}</span>}
+                    </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${isDone ? "bg-green-100 text-green-700" : isOverdue ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
                       {isDone ? "Done" : isOverdue ? "Overdue" : "Pending"}
                     </span>

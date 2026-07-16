@@ -592,6 +592,7 @@ model Student {
 
 model Lead {
   id                String     @id @default(cuid())
+  code              String?    @unique
   studentId         String     @map("student_id")
   source            LeadSource @default(WHATSAPP)
   status            LeadStatus @default(NEW)

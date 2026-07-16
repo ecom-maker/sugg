@@ -82,7 +82,9 @@ export default async function AgencyLeadsPage() {
                     <Link href={`/agency/leads/${l.id}`} className="font-medium text-primary hover:underline">
                       {l.student.name}
                     </Link>
-                    <p className="text-xs text-muted-foreground">{l.student.mobile}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {l.code && <span className="font-mono">{l.code} · </span>}{l.student.mobile}
+                    </p>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {l.student.interestedCourse ?? "—"}

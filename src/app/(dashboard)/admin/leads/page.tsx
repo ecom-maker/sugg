@@ -59,7 +59,10 @@ export default async function AdminLeadsPage() {
             ) : (
               leads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{lead.student.name}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{lead.student.name}</div>
+                    {lead.code && <div className="font-mono text-xs text-muted-foreground">{lead.code}</div>}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <div>{lead.student.email ?? "—"}</div>
                     <div>{lead.student.mobile}</div>
