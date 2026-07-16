@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, Plus, X, Search } from "lucide-react";
+import { Loader2, Save, Plus, X, Search, GraduationCap, MapPin, ExternalLink, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { updateLeadDetails } from "@/actions/leads";
 
@@ -14,6 +14,15 @@ const MAX_FEE = 5000000;
 const FEE_STEP = 25000;
 
 interface CatalogCourse { id: string; name: string; degreeType: string; }
+interface Rec {
+  courseId: string;
+  collegeId: string;
+  collegeName: string;
+  location: string;
+  courseName: string;
+  degreeType: string;
+  fee: number | null;
+}
 
 function splitCsv(v: string | null): string[] {
   return (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -37,6 +46,11 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
   const [preferred, setPreferred] = useState<string[]>(splitCsv(preferredCollege));
   const [preferredInput, setPreferredInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [recs, setRecs] = useState<Rec[]>([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+
+  const togglePreferred = (name: string) =>
+    setPreferred((s) => (s.includes(name) ? s.filter((x) => x !== name) : [...s, name]));
 
   const addCourse = (name: string) => {
     const c = name.trim();
@@ -70,6 +84,33 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  // Recommended colleges for the current interested courses + max fees.
+  useEffect(() => {
+    if (courses.length === 0) {
+      setRecs([]);
+      return;
+    }
+    let cancelled = false;
+    setRecsLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ courses: courses.join(",") });
+        if (fees > 0) params.set("budget", String(fees));
+        const r = await fetch(`/api/sugg-branch/recommended-colleges?${params}`);
+        const d = await r.json();
+        if (!cancelled) setRecs(d.colleges ?? []);
+      } catch {
+        if (!cancelled) setRecs([]);
+      } finally {
+        if (!cancelled) setRecsLoading(false);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [courses, fees]);
 
   const save = async () => {
     setSaving(true);
@@ -167,6 +208,51 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
           </div>
         )}
       </div>
+
+      {/* Recommended colleges from the interested courses */}
+      {courses.length > 0 && (
+        <div className="space-y-2 rounded-md border p-3">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-muted-foreground" />
+            <Label className="mb-0">Recommended Colleges</Label>
+            {recsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Colleges offering the interested course{courses.length > 1 ? "s" : ""}
+            {fees > 0 ? ` within ±15% of ₹${fees.toLocaleString("en-IN")}` : ""}. Add one to Preferred Colleges.
+          </p>
+          {recs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-1">
+              {recsLoading ? "Searching…" : "No matching colleges found."}
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {recs.map((r) => {
+                const selected = preferred.includes(r.collegeName);
+                return (
+                  <div key={r.courseId} className={`rounded-md border p-3 ${selected ? "border-primary bg-primary/5" : ""}`}>
+                    <p className="font-medium text-sm">{r.collegeName}</p>
+                    <p className="text-xs text-muted-foreground">{r.courseName} · {r.degreeType.replace(/_/g, " ")}</p>
+                    <div className="flex items-center justify-between mt-1.5 text-xs">
+                      <span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin className="w-3 h-3" />{r.location || "—"}</span>
+                      <span className="font-medium">{r.fee != null ? `₹${r.fee.toLocaleString("en-IN")}` : "—"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2.5">
+                      <Button type="button" size="sm" variant={selected ? "default" : "outline"} onClick={() => togglePreferred(r.collegeName)} className="h-7 gap-1 text-xs">
+                        {selected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                        {selected ? "Preferred" : "Add to preferred"}
+                      </Button>
+                      <a href={`/colleges/${r.collegeId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> View
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <Button onClick={save} disabled={saving} className="gap-2">
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save details
