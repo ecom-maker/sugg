@@ -20,15 +20,21 @@ export function LeadActions({
   leadId,
   currentStatus,
   shortlistedCollege,
+  preferredColleges = [],
 }: {
   leadId: string;
   currentStatus: LeadStatus;
   shortlistedCollege?: string | null;
+  preferredColleges?: string[];
 }) {
   const router = useRouter();
+  // Shortlisted-college options come from this lead's preferred colleges.
+  const shortlistOptions = Array.from(
+    new Set([shortlistedCollege, ...preferredColleges].map((c) => c?.trim()).filter(Boolean) as string[])
+  );
   const [status, setStatus] = useState<LeadStatus>(currentStatus);
   const [followUpAt, setFollowUpAt] = useState("");
-  const [shortlisted, setShortlisted] = useState(shortlistedCollege ?? "");
+  const [shortlisted, setShortlisted] = useState(shortlistedCollege || preferredColleges[0] || "");
   const [note, setNote] = useState("");
   const [savingStatus, setSavingStatus] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
@@ -107,8 +113,24 @@ export function LeadActions({
       {wantsShortlist && (
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> Shortlisted college</Label>
-          <Input value={shortlisted} onChange={(e) => setShortlisted(e.target.value)} placeholder="College name" />
-          <p className="text-xs text-muted-foreground">Saved on the student profile as the shortlisted college.</p>
+          {shortlistOptions.length > 0 ? (
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={shortlisted}
+              onChange={(e) => setShortlisted(e.target.value)}
+            >
+              {shortlistOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <Input value={shortlisted} onChange={(e) => setShortlisted(e.target.value)} placeholder="College name" />
+          )}
+          <p className="text-xs text-muted-foreground">
+            {shortlistOptions.length > 0
+              ? "Pick from this lead's preferred colleges. Saved on the student profile."
+              : "Add preferred colleges above to pick from, or type a name. Saved on the student profile."}
+          </p>
         </div>
       )}
 

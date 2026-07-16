@@ -119,7 +119,12 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
       )}
 
       {access.canEdit && (
-        <LeadActions leadId={lead.id} currentStatus={lead.status as LeadStatus} shortlistedCollege={s.shortlistedCollege} />
+        <LeadActions
+          leadId={lead.id}
+          currentStatus={lead.status as LeadStatus}
+          shortlistedCollege={s.shortlistedCollege}
+          preferredColleges={(s.preferredCollege ?? "").split(",").map((x) => x.trim()).filter(Boolean)}
+        />
       )}
 
       {/* Change history */}
