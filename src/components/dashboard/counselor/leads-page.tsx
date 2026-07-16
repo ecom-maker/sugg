@@ -184,7 +184,7 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
 
                 {/* Score */}
                 <div className="text-center shrink-0 hidden sm:block">
-                  <div className="text-lg font-bold text-foreground">{lead.score}</div>
+                  <div className="text-lg font-bold text-foreground">{lead.score}%</div>
                   <div className="text-xs text-muted-foreground">Score</div>
                 </div>
 

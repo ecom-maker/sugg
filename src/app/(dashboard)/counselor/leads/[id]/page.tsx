@@ -74,7 +74,7 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
         <div>
           <h1 className="text-2xl font-bold">{s.name}</h1>
           <p className="text-sm text-muted-foreground">
-            <span className="font-mono font-medium text-foreground">{lead.code ?? "—"}</span> · {lead.source.replace(/_/g, " ")} · score {lead.score}
+            <span className="font-mono font-medium text-foreground">{lead.code ?? "—"}</span> · {lead.source.replace(/_/g, " ")} · score {lead.score}%
           </p>
         </div>
         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${leadStatusClass(lead.status as LeadStatus)}`}>
