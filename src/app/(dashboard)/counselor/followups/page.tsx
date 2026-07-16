@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { managerBranchId } from "@/lib/lead-access";
+import { LocalDateTime } from "@/components/ui/local-datetime";
 import { Calendar, ChevronRight, User, Clock } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 
@@ -87,7 +88,7 @@ export default async function FollowupsPage() {
                   {f.description && <p className="text-sm text-muted-foreground mt-0.5">{f.description}</p>}
                   <div className={`mt-2 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-semibold ${isDone ? "bg-green-100 text-green-700" : isOverdue ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
                     <Clock className="w-4 h-4" />
-                    {new Date(f.dueAt).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
+                    <LocalDateTime value={f.dueAt.toISOString()} />
                   </div>
                   {!isCounselor && f.user?.fullName && (
                     <p className="text-xs text-muted-foreground mt-1.5 inline-flex items-center gap-1"><User className="w-3 h-3" /> {f.user.fullName}</p>

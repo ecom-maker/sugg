@@ -44,7 +44,9 @@ export function LeadActions({
     setSavingStatus(true);
     try {
       const res = await updateLeadStatus(leadId, status, undefined, undefined, {
-        followUpAt: wantsFollowUp && followUpAt ? followUpAt : null,
+        // Convert the naive datetime-local value to a real UTC instant using the
+        // browser's timezone, so overdue/scheduling compares correctly.
+        followUpAt: wantsFollowUp && followUpAt ? new Date(followUpAt).toISOString() : null,
         shortlistedCollege: wantsShortlist ? shortlisted.trim() : null,
       });
       if (res?.error) {
