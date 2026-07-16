@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { updateApplicationStatus } from "@/actions/college-applications";
 
 const STATUS_COLORS: Record<string, string> = {
   SUBMITTED: "bg-blue-100 text-blue-700",
@@ -13,14 +10,6 @@ const STATUS_COLORS: Record<string, string> = {
   ACCEPTED: "bg-green-100 text-green-700",
   REJECTED: "bg-red-100 text-red-700",
   ENROLLED: "bg-purple-100 text-purple-700",
-};
-
-const NEXT_STATUS: Record<string, string[]> = {
-  SUBMITTED: ["UNDER_REVIEW", "ACCEPTED", "REJECTED"],
-  UNDER_REVIEW: ["ACCEPTED", "REJECTED"],
-  ACCEPTED: ["ENROLLED", "REJECTED"],
-  REJECTED: [],
-  ENROLLED: [],
 };
 
 interface Application {
@@ -54,7 +43,6 @@ export function ApplicationsTable({
   searchParams: Record<string, string | undefined>;
 }) {
   const router = useRouter();
-  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams as Record<string, string>);
@@ -62,23 +50,6 @@ export function ApplicationsTable({
     else params.delete(key);
     params.delete("page");
     router.push(`?${params.toString()}`);
-  };
-
-  const handleStatusChange = async (appId: string, newStatus: string) => {
-    setLoadingId(appId);
-    try {
-      const result = await updateApplicationStatus(appId, newStatus);
-      if (result.error) {
-        toast({ title: "Error", description: result.error, variant: "destructive" });
-      } else {
-        toast({ title: "Status updated" });
-        router.refresh();
-      }
-    } catch {
-      toast({ title: "Error", variant: "destructive" });
-    } finally {
-      setLoadingId(null);
-    }
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -144,20 +115,18 @@ export function ApplicationsTable({
               <th className="text-left px-4 py-3 font-medium">Course</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Applied</th>
-              <th className="text-right px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {applications.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-muted-foreground">
+                <td colSpan={4} className="text-center py-12 text-muted-foreground">
                   <FileText className="w-6 h-6 mx-auto mb-2 opacity-30" />
                   No applications found
                 </td>
               </tr>
             ) : (
               applications.map((app) => {
-                const nextStatuses = NEXT_STATUS[app.status] ?? [];
                 return (
                   <tr key={app.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3">
@@ -175,22 +144,6 @@ export function ApplicationsTable({
                     </td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                       {new Date(app.createdAt).toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1 flex-wrap">
-                        {nextStatuses.map((status) => (
-                          <Button
-                            key={status}
-                            size="sm"
-                            variant="outline"
-                            disabled={loadingId === app.id}
-                            onClick={() => handleStatusChange(app.id, status)}
-                            className="h-7 text-xs"
-                          >
-                            {status.replace(/_/g, " ")}
-                          </Button>
-                        ))}
-                      </div>
                     </td>
                   </tr>
                 );

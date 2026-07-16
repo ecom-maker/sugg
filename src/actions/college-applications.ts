@@ -6,7 +6,9 @@ import { revalidatePath } from "next/cache";
 
 export async function updateApplicationStatus(applicationId: string, newStatus: string) {
   const user = await getAuthUser();
-  if (!user || !["COLLEGE_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+  // Application status is driven by the counsellor's lead pipeline; the college
+  // is read-only. Only Super Admin may override it directly.
+  if (!user || user.role !== "SUPER_ADMIN") {
     return { error: "Unauthorized" };
   }
 
@@ -21,16 +23,6 @@ export async function updateApplicationStatus(applicationId: string, newStatus: 
   });
 
   if (!application) return { error: "Application not found" };
-
-  // RBAC: College admin can only update their own college's applications
-  if (user.role === "COLLEGE_ADMIN") {
-    const collegeUser = await prisma.user.findFirst({
-      where: { supabaseId: user.supabaseId },
-    });
-    if (application.college.adminId !== collegeUser?.id) {
-      return { error: "Access denied" };
-    }
-  }
 
   const previousStatus = application.status;
 
