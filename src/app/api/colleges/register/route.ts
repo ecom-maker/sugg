@@ -42,6 +42,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "A college with this email is already registered." }, { status: 409 });
     }
 
+    // Block a mobile number already in use (by a user account or another college).
+    const [phoneUser, phoneCollege] = await Promise.all([
+      prisma.user.findFirst({ where: { phone: data.mobileNumber }, select: { id: true } }),
+      prisma.college.findFirst({ where: { contactPhone: data.mobileNumber }, select: { id: true } }),
+    ]);
+    if (phoneUser || phoneCollege) {
+      return NextResponse.json({ error: "Mobile number already used by another user" }, { status: 409 });
+    }
+
     const otp = generateOTP();
     const expiry = new Date(Date.now() + 30 * 60 * 1000); // 30 min
 
