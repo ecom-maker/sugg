@@ -36,9 +36,9 @@ export default async function FollowupsPage() {
     }
   }
 
-  // Only follow-ups that actually have a scheduled date/time are shown here.
+  // Only open (not completed) follow-ups are shown here.
   const followups = await prisma.leadFollowup.findMany({
-    where: scopeWhere,
+    where: { ...scopeWhere, status: { not: "COMPLETED" } },
     orderBy: { dueAt: "asc" },
     include: {
       lead: { include: { student: { select: { name: true } } } },
