@@ -315,7 +315,17 @@ export async function updateLeadStatus(
       },
     });
 
-    // A date/time on an early-stage status schedules a follow-up (calendar).
+    // When the lead moves to a new status, resolve any still-pending follow-ups
+    // from the previous stage — they're superseded and shouldn't sit overdue.
+    if (fromStatus !== status) {
+      await tx.leadFollowup.updateMany({
+        where: { leadId, status: "PENDING" },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      });
+    }
+
+    // A date/time on an early-stage status schedules a new follow-up (calendar).
+    let nextFollowUp: Date | null | undefined = undefined;
     if (opts?.followUpAt && FOLLOWUP_STATUSES.includes(status)) {
       const dueAt = new Date(opts.followUpAt);
       if (!isNaN(dueAt.getTime())) {
@@ -328,8 +338,14 @@ export async function updateLeadStatus(
             status: "PENDING",
           },
         });
-        await tx.lead.update({ where: { id: leadId }, data: { nextFollowUpAt: dueAt } });
+        nextFollowUp = dueAt;
       }
+    } else if (fromStatus !== status) {
+      // Status changed with no new follow-up → clear the next-follow-up marker.
+      nextFollowUp = null;
+    }
+    if (nextFollowUp !== undefined) {
+      await tx.lead.update({ where: { id: leadId }, data: { nextFollowUpAt: nextFollowUp } });
     }
 
     // Shortlisting records the college on the student profile.
