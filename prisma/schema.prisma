@@ -552,6 +552,7 @@ model Student {
   preferredCountry       String?    @map("preferred_country")
   shortlistedCollege     String?    @map("shortlisted_college")
   budget                 Decimal?   @db.Decimal(12, 2)
+  budgetMin              Decimal?   @db.Decimal(12, 2) @map("budget_min")
   source                 LeadSource @default(WHATSAPP)
   whatsappId             String?    @unique @map("whatsapp_id")
   agencyId               String?    @map("agency_id")

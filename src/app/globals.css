@@ -83,6 +83,62 @@ textarea:required:focus-visible,
   cursor: pointer;
 }
 
+/* Dual-handle min/max fee range slider (two overlaid range inputs). */
+.range-dual {
+  position: relative;
+  height: 24px;
+}
+.range-dual-track {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+}
+.range-dual-fill {
+  position: absolute;
+  top: 9px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #4f46e5;
+}
+.range-dual input[type="range"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.range-dual input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #4f46e5;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.range-dual input[type="range"]::-moz-range-thumb {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #4f46e5;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;

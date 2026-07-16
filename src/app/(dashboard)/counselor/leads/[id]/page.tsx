@@ -97,7 +97,11 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
         <Row icon={GraduationCap} label="Qualification" value={s.qualification} />
         <Row icon={GraduationCap} label="Interested" value={s.interestedCourse} />
         <Row icon={Building2} label="Preferred" value={s.preferredCollege} />
-        <Row icon={Wallet} label="Max fees" value={money(s.budget)} />
+        <Row icon={Wallet} label="Fee range" value={
+          s.budgetMin != null || s.budget != null
+            ? `${money(s.budgetMin) ?? "₹0"} – ${money(s.budget) ?? "Max"}`
+            : null
+        } />
       </div>
 
       <div className="text-sm text-muted-foreground">
@@ -108,6 +112,7 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
         <LeadDetailsEditor
           leadId={lead.id}
           budget={s.budget != null ? Number(s.budget) : null}
+          budgetMin={s.budgetMin != null ? Number(s.budgetMin) : null}
           interestedCourse={s.interestedCourse}
           preferredCollege={s.preferredCollege}
         />

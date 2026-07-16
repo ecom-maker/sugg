@@ -20,7 +20,7 @@ import type { LeadStatus } from "@/types";
  */
 export async function updateLeadDetails(
   leadId: string,
-  input: { budget?: string | null; interestedCourse?: string | null; preferredCollege?: string | null }
+  input: { budget?: string | null; budgetMin?: string | null; interestedCourse?: string | null; preferredCollege?: string | null }
 ) {
   const user = await requireAuth();
 
@@ -28,7 +28,7 @@ export async function updateLeadDetails(
     where: { id: leadId },
     select: {
       id: true, studentId: true, assignedToId: true, suggBranchId: true,
-      student: { select: { budget: true, interestedCourse: true, preferredCollege: true } },
+      student: { select: { budget: true, budgetMin: true, interestedCourse: true, preferredCollege: true } },
     },
   });
   if (!lead) return { error: "Lead not found" };
@@ -47,6 +47,15 @@ export async function updateLeadDetails(
       data.budget = next;
       oldValue.maxFees = prev;
       newValue.maxFees = next;
+    }
+  }
+  if (input.budgetMin !== undefined) {
+    const next = input.budgetMin && input.budgetMin !== "" ? parseFloat(input.budgetMin) : null;
+    const prev = lead.student.budgetMin != null ? Number(lead.student.budgetMin) : null;
+    if (next !== prev) {
+      data.budgetMin = next;
+      oldValue.minFees = prev;
+      newValue.minFees = next;
     }
   }
   if (input.interestedCourse !== undefined) {
@@ -98,6 +107,7 @@ const createStudentSchema = z.object({
   preferredCollege: z.string().optional(),
   preferredCountry: z.string().optional(),
   budget: z.string().optional(),
+  budgetMin: z.string().optional(),
   source: z.enum(["WHATSAPP", "AGENCY_REFERRAL", "MANUAL_ENTRY"]).default("MANUAL_ENTRY"),
 });
 
@@ -151,6 +161,7 @@ export async function createStudentAndLead(formData: FormData) {
       preferredCollege: data.preferredCollege || null,
       preferredCountry: data.preferredCountry || null,
       budget: data.budget ? parseFloat(data.budget) : null,
+      budgetMin: data.budgetMin ? parseFloat(data.budgetMin) : null,
       source: data.source,
     },
   });
@@ -225,6 +236,7 @@ export async function createSuggBranchLead(formData: FormData) {
       preferredCollege: data.preferredCollege || null,
       preferredCountry: data.preferredCountry || null,
       budget: data.budget ? parseFloat(data.budget) : null,
+      budgetMin: data.budgetMin ? parseFloat(data.budgetMin) : null,
       source: "MANUAL_ENTRY",
     },
   });

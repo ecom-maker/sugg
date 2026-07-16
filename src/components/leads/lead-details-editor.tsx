@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Plus, X, Search, GraduationCap, MapPin, ExternalLink, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { updateLeadDetails } from "@/actions/leads";
+import { FeeRangeSlider } from "@/components/ui/fee-range-slider";
 
 const MAX_FEE = 5000000;
 const FEE_STEP = 25000;
@@ -31,13 +32,15 @@ function splitCsv(v: string | null): string[] {
 interface Props {
   leadId: string;
   budget: number | null;
+  budgetMin: number | null;
   interestedCourse: string | null;
   preferredCollege: string | null;
 }
 
-export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredCollege }: Props) {
+export function LeadDetailsEditor({ leadId, budget, budgetMin, interestedCourse, preferredCollege }: Props) {
   const router = useRouter();
-  const [fees, setFees] = useState<number>(budget ?? 0);
+  const [feeMin, setFeeMin] = useState<number>(budgetMin ?? 0);
+  const [feeMax, setFeeMax] = useState<number>(budget ?? MAX_FEE);
   const [courses, setCourses] = useState<string[]>(splitCsv(interestedCourse));
   const [courseInput, setCourseInput] = useState("");
   const [courseResults, setCourseResults] = useState<CatalogCourse[]>([]);
@@ -96,7 +99,8 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
     const t = setTimeout(async () => {
       try {
         const params = new URLSearchParams({ courses: courses.join(",") });
-        if (fees > 0) params.set("budget", String(fees));
+        if (feeMin > 0) params.set("min", String(feeMin));
+        if (feeMax < MAX_FEE) params.set("max", String(feeMax));
         const r = await fetch(`/api/sugg-branch/recommended-colleges?${params}`);
         const d = await r.json();
         if (!cancelled) setRecs(d.colleges ?? []);
@@ -110,13 +114,14 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
       cancelled = true;
       clearTimeout(t);
     };
-  }, [courses, fees]);
+  }, [courses, feeMin, feeMax]);
 
   const save = async () => {
     setSaving(true);
     try {
       const res = await updateLeadDetails(leadId, {
-        budget: fees > 0 ? String(fees) : "",
+        budget: feeMax > 0 && feeMax < MAX_FEE ? String(feeMax) : "",
+        budgetMin: feeMin > 0 ? String(feeMin) : "",
         interestedCourse: courses.join(", "),
         preferredCollege: preferred.join(", "),
       });
@@ -131,27 +136,19 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
     }
   };
 
-  const pct = (fees / MAX_FEE) * 100;
-
   return (
     <div className="rounded-lg border bg-card p-5 space-y-5">
       <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Edit details</h2>
 
-      {/* Max fees */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Max Fees</Label>
-          <span className="text-sm font-medium">
-            {fees > 0 ? `₹${fees.toLocaleString("en-IN")}${fees >= MAX_FEE ? " (Max.)" : ""}` : "Any"}
-          </span>
-        </div>
-        <input
-          type="range" min={0} max={MAX_FEE} step={FEE_STEP} value={fees}
-          onChange={(e) => setFees(Number(e.target.value))}
-          className="fee-slider w-full"
-          style={{ background: `linear-gradient(to right, #4f46e5 ${pct}%, #e5e7eb ${pct}%)` }}
-        />
-      </div>
+      {/* Fee range */}
+      <FeeRangeSlider
+        minValue={feeMin}
+        maxValue={feeMax}
+        onChange={(mn, mx) => { setFeeMin(mn); setFeeMax(mx); }}
+        cap={MAX_FEE}
+        step={FEE_STEP}
+        label="Fee Range"
+      />
 
       {/* Interested courses */}
       <div className="space-y-1.5" ref={courseBoxRef}>
@@ -219,7 +216,7 @@ export function LeadDetailsEditor({ leadId, budget, interestedCourse, preferredC
           </div>
           <p className="text-xs text-muted-foreground">
             Colleges offering the interested course{courses.length > 1 ? "s" : ""}
-            {fees > 0 ? ` within ±15% of ₹${fees.toLocaleString("en-IN")}` : ""}. Add one to Preferred Colleges.
+            {feeMin > 0 || feeMax < MAX_FEE ? ` with fees ₹${feeMin.toLocaleString("en-IN")}–${feeMax >= MAX_FEE ? "Max" : `₹${feeMax.toLocaleString("en-IN")}`}` : ""}. Add one to Preferred Colleges.
           </p>
           {recs.length === 0 ? (
             <p className="text-sm text-muted-foreground py-1">

@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  const budget = Number(sp.get("budget") ?? "0");
+  const budget = Number(sp.get("budget") ?? "0"); // legacy single value (±15%)
+  const min = Number(sp.get("min") ?? "0");
+  const max = Number(sp.get("max") ?? "0");
 
   if (terms.length === 0) return NextResponse.json({ colleges: [] });
 
@@ -54,18 +56,16 @@ export async function GET(request: NextRequest) {
   });
 
   let filtered = rows;
-  if (budget > 0) {
+  if (min > 0 || max > 0) {
+    // Fee within the selected [min, max] range.
+    filtered = rows.filter((r) => r.fee != null && r.fee >= min && (max <= 0 || r.fee <= max));
+  } else if (budget > 0) {
     const low = budget * 0.85;
     const high = budget * 1.15;
     filtered = rows.filter((r) => r.fee != null && r.fee >= low && r.fee <= high);
   }
 
-  filtered.sort((a, b) => {
-    if (budget > 0 && a.fee != null && b.fee != null) {
-      return Math.abs(a.fee - budget) - Math.abs(b.fee - budget);
-    }
-    return (a.fee ?? Infinity) - (b.fee ?? Infinity);
-  });
+  filtered.sort((a, b) => (a.fee ?? Infinity) - (b.fee ?? Infinity));
 
   return NextResponse.json({ colleges: filtered.slice(0, 12) });
 }

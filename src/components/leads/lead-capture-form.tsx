@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus, X, GraduationCap, MapPin, Search, ExternalLink, Plus, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { FeeRangeSlider } from "@/components/ui/fee-range-slider";
 
 interface CatalogCourse {
   id: string;
@@ -47,7 +48,8 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
   const [qualification, setQualification] = useState("");
-  const [budget, setBudget] = useState("");
+  const [feeMin, setFeeMin] = useState(0);
+  const [feeMax, setFeeMax] = useState(MAX_FEE);
   const [courses, setCourses] = useState<string[]>([]);
   const [courseInput, setCourseInput] = useState("");
   const [courseResults, setCourseResults] = useState<CatalogCourse[]>([]);
@@ -125,7 +127,8 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
     const t = setTimeout(async () => {
       try {
         const params = new URLSearchParams({ courses: courses.join(",") });
-        if (budget) params.set("budget", budget);
+        if (feeMin > 0) params.set("min", String(feeMin));
+        if (feeMax < MAX_FEE) params.set("max", String(feeMax));
         const r = await fetch(`/api/sugg-branch/recommended-colleges?${params}`);
         const d = await r.json();
         if (!cancelled) setRecs(d.colleges ?? []);
@@ -139,7 +142,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [courses, budget]);
+  }, [courses, feeMin, feeMax]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +158,8 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       fd.set("email", email.trim());
       fd.set("city", city.trim());
       fd.set("qualification", qualification.trim());
-      fd.set("budget", budget.trim());
+      fd.set("budget", feeMax > 0 && feeMax < MAX_FEE ? String(feeMax) : "");
+      fd.set("budgetMin", feeMin > 0 ? String(feeMin) : "");
       fd.set("interestedCourse", courses.join(", "));
       fd.set("preferredCollege", preferredColleges.join(", "));
       fd.set("source", "MANUAL_ENTRY");
@@ -204,31 +208,15 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Label>Qualification</Label>
           <Input value={qualification} onChange={(e) => setQualification(e.target.value)} placeholder="e.g. 12th, Diploma" />
         </div>
-        <div className="space-y-2 sm:col-span-2">
-          <div className="flex items-center justify-between">
-            <Label>Max Fees</Label>
-            <span className="text-sm font-medium">
-              {Number(budget) > 0
-                ? `₹${Number(budget).toLocaleString("en-IN")}${Number(budget) >= MAX_FEE ? " (Max.)" : ""}`
-                : "Any"}
-            </span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={MAX_FEE}
+        <div className="sm:col-span-2">
+          <FeeRangeSlider
+            minValue={feeMin}
+            maxValue={feeMax}
+            onChange={(mn, mx) => { setFeeMin(mn); setFeeMax(mx); }}
+            cap={MAX_FEE}
             step={FEE_STEP}
-            value={Number(budget) || 0}
-            onChange={(e) => setBudget(e.target.value)}
-            className="fee-slider w-full"
-            style={{
-              background: `linear-gradient(to right, #4f46e5 ${((Number(budget) || 0) / MAX_FEE) * 100}%, #e5e7eb ${((Number(budget) || 0) / MAX_FEE) * 100}%)`,
-            }}
+            label="Fee Range"
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>₹0</span>
-            <span>Max.</span>
-          </div>
         </div>
 
         <div className="space-y-1.5 sm:col-span-2" ref={courseBoxRef}>
@@ -328,7 +316,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           </div>
           <p className="text-xs text-muted-foreground">
             Colleges offering the interested course{courses.length > 1 ? "s" : ""}
-            {budget ? ` with fees within ±15% of ₹${Number(budget).toLocaleString("en-IN")}` : ""}. Select colleges to add them to preferred, or open one in a new tab.
+            {feeMin > 0 || feeMax < MAX_FEE ? ` with fees ₹${feeMin.toLocaleString("en-IN")}–${feeMax >= MAX_FEE ? "Max" : `₹${feeMax.toLocaleString("en-IN")}`}` : ""}. Select colleges to add them to preferred, or open one in a new tab.
           </p>
           {recs.length === 0 ? (
             <p className="text-sm text-muted-foreground py-3">
