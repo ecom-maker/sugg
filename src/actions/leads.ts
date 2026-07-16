@@ -377,8 +377,75 @@ export async function updateLeadStatus(
         },
       });
     }
+
+    // Mirror the lead into a college Application once it reaches an application
+    // stage, so the shortlisted college sees it with the counsellor's status.
+    const LEAD_TO_APP: Partial<Record<LeadStatus, "SUBMITTED" | "ACCEPTED" | "ENROLLED">> = {
+      APPLICATION_SUBMITTED: "SUBMITTED",
+      OFFER_RECEIVED: "ACCEPTED",
+      ADMISSION_CONFIRMED: "ENROLLED",
+    };
+    const appStatus = LEAD_TO_APP[status];
+    const collegeName = (opts?.shortlistedCollege?.trim() || lead.student.shortlistedCollege || "").trim();
+    if (appStatus && collegeName) {
+      const college = await tx.college.findFirst({
+        where: { name: { equals: collegeName, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (college) {
+        const terms = (lead.student.interestedCourse ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+        let course: { id: string } | null = null;
+        for (const term of terms) {
+          course = await tx.course.findFirst({
+            where: { collegeId: college.id, name: { contains: term, mode: "insensitive" } },
+            select: { id: true },
+          });
+          if (course) break;
+        }
+        if (!course) {
+          course = await tx.course.findFirst({
+            where: { collegeId: college.id, isActive: true },
+            orderBy: { name: "asc" },
+            select: { id: true },
+          });
+        }
+        if (course) {
+          const existingApp = await tx.application.findFirst({
+            where: { studentId: lead.studentId, collegeId: college.id },
+            select: { id: true, status: true },
+          });
+          if (existingApp) {
+            if (existingApp.status !== appStatus) {
+              await tx.application.update({
+                where: { id: existingApp.id },
+                data: { status: appStatus, ...(appStatus === "ENROLLED" ? { enrolledAt: new Date() } : {}) },
+              });
+              await tx.applicationStatusHistory.create({
+                data: { applicationId: existingApp.id, status: appStatus, changedById: user.id },
+              });
+            }
+          } else {
+            const created = await tx.application.create({
+              data: {
+                studentId: lead.studentId,
+                collegeId: college.id,
+                courseId: course.id,
+                status: appStatus,
+                submittedById: user.id,
+                managedBy: "SUGG",
+                ...(appStatus === "ENROLLED" ? { enrolledAt: new Date() } : {}),
+              },
+            });
+            await tx.applicationStatusHistory.create({
+              data: { applicationId: created.id, status: appStatus, changedById: user.id },
+            });
+          }
+        }
+      }
+    }
   });
 
+  revalidatePath("/college/applications");
   revalidatePath(`/counselor/leads/${leadId}`);
   revalidatePath("/counselor/leads");
   revalidatePath("/counselor/followups");
