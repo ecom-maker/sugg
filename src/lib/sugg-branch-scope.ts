@@ -43,13 +43,20 @@ export async function getScopedAgencyIds(suggBranchId: string): Promise<string[]
   return agencies.map((a) => a.id);
 }
 
-/** User ids of Sugg-internal counselors assigned to this Sugg Branch. */
+/**
+ * User ids of the branch's staff whose leads the manager should see — both
+ * Sugg-internal Counselor records assigned to the branch and Employee records
+ * (counsellors, etc.) whose branch is this Sugg Branch.
+ */
 export async function getScopedSuggCounselorUserIds(suggBranchId: string): Promise<string[]> {
-  const counselors = await prisma.counselor.findMany({
-    where: { suggBranchId },
-    select: { userId: true },
-  });
-  return counselors.map((c) => c.userId);
+  const [counselors, employees] = await Promise.all([
+    prisma.counselor.findMany({ where: { suggBranchId }, select: { userId: true } }),
+    prisma.employee.findMany({ where: { branchId: suggBranchId, userId: { not: null } }, select: { userId: true } }),
+  ]);
+  const ids = new Set<string>();
+  counselors.forEach((c) => c.userId && ids.add(c.userId));
+  employees.forEach((e) => e.userId && ids.add(e.userId));
+  return Array.from(ids);
 }
 
 /** True when the agency is covered by this Sugg Branch. */
