@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeMobileE164 } from "@/lib/mobile-normalize";
+import { sendOtpEmail } from "@/lib/email";
 
 const specialization = z.enum([
   "DOMESTIC_ADMISSIONS",
@@ -220,11 +221,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const emailResult = await sendOtpEmail(
+      data.ownerEmail,
+      otp,
+      "Agency registration verification"
+    );
+
     const isDev = process.env.NODE_ENV === "development";
     return NextResponse.json({
       agencyId: agency.id,
-      message: "Registration submitted. Please verify your email and mobile.",
+      message: emailResult.sent
+        ? "Registration submitted. Please check your email for the verification code."
+        : "Registration submitted. Please use Resend OTP if you did not receive the code.",
       ...(isDev && { devOtp: otp }),
+      ...(!emailResult.sent && isDev && { emailError: emailResult.error }),
     });
   } catch (err) {
     if (err instanceof z.ZodError) {

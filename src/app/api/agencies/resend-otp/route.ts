@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendOtpEmail } from "@/lib/email";
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -21,7 +22,17 @@ export async function POST(request: NextRequest) {
       data: { verificationToken: otp, verificationExpiry: new Date(Date.now() + 30 * 60 * 1000) },
     });
 
-    // In production the OTP would be sent to owner email/mobile here.
+    const recipient = agency.ownerEmail ?? agency.email;
+    const emailResult = await sendOtpEmail(recipient, otp, "Agency email verification");
+
+    if (!emailResult.sent) {
+      console.error("[resend-otp] Agency email failed:", emailResult.error);
+      return NextResponse.json(
+        { error: "Failed to send verification email. Check SMTP configuration." },
+        { status: 500 }
+      );
+    }
+
     const isDev = process.env.NODE_ENV === "development";
     return NextResponse.json({ success: true, ...(isDev && { devOtp: otp }) });
   } catch (err) {

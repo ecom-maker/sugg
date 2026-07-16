@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { sendOtpEmail } from "@/lib/email";
 
 const schema = z.object({
   collegeName: z.string().min(3),
@@ -134,14 +135,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // In production, send the OTP email here via your email provider
-    // For now, include it in dev response only
+    const emailResult = await sendOtpEmail(
+      data.officialEmail,
+      otp,
+      "College registration verification"
+    );
+
     const isDev = process.env.NODE_ENV === "development";
 
     return NextResponse.json({
       collegeId: college.id,
-      message: "Registration submitted. Please verify your email.",
+      message: emailResult.sent
+        ? "Registration submitted. Please check your email for the verification code."
+        : "Registration submitted. Please use Resend OTP if you did not receive the code.",
       ...(isDev && { devOtp: otp }),
+      ...(!emailResult.sent && isDev && { emailError: emailResult.error }),
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
