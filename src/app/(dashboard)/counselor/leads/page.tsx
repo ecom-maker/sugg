@@ -18,9 +18,8 @@ export default async function CounselorLeadsPage({
   const skip = (page - 1) * limit;
 
   const where = {
-    // Leads with a scheduled follow-up live under Follow-ups; My Leads holds the
-    // ones with no follow-up date set (they need a next action).
-    nextFollowUpAt: null,
+    // My Leads shows all of the counsellor's leads; leads with a scheduled
+    // follow-up also appear under Follow-ups.
     ...(user.role === "SUGG_COUNSELOR" ? { assignedToId: user.id } : {}),
     ...(params.status ? { status: params.status as never } : {}),
     ...(params.search
