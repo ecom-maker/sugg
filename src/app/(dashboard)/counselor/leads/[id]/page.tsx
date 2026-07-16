@@ -102,6 +102,7 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
             ? `${money(s.budgetMin) ?? "₹0"} – ${money(s.budget) ?? "Max"}`
             : null
         } />
+        <Row icon={Building2} label="Shortlisted" value={s.shortlistedCollege} />
       </div>
 
       <div className="text-sm text-muted-foreground">
