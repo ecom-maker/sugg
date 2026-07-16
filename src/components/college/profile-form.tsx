@@ -15,7 +15,7 @@ import { UniversitySelect } from "@/components/university/university-select";
 
 const schema = z.object({
   name: z.string().min(3),
-  website: z.string().url().optional().or(z.literal("")),
+  website: z.string().optional(),
   contactPhone: z.string().optional(),
   contactPersonName: z.string().optional(),
   contactPersonDesig: z.string().optional(),
@@ -26,7 +26,10 @@ const schema = z.object({
   country: z.string().optional(),
   pincode: z.string().optional(),
   description: z.string().optional(),
-  establishedYear: z.coerce.number().min(1800).max(new Date().getFullYear()).optional(),
+  establishedYear: z.preprocess(
+    (v) => (v === "" || v === null || (typeof v === "number" && Number.isNaN(v)) ? undefined : v),
+    z.coerce.number().min(1800).max(new Date().getFullYear()).optional()
+  ),
 });
 
 type FormData = z.infer<typeof schema>;

@@ -37,6 +37,7 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
     if (!college) return { error: "Access denied" };
   }
 
+  try {
   if (data.universityId) {
     const university = await prisma.university.findUnique({ where: { id: data.universityId } });
     if (!university) return { error: "University not found" };
@@ -80,4 +81,8 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
 
   revalidatePath("/college/profile");
   return { success: true };
+  } catch (e) {
+    console.error("updateCollegeProfile error:", e);
+    return { error: e instanceof Error ? e.message : "Could not save profile" };
+  }
 }
