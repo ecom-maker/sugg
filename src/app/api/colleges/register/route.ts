@@ -16,6 +16,10 @@ const schema = z.object({
   address: z.string().min(5),
   city: z.string().min(2),
   state: z.string().optional(),
+  // Geo reference ids resolved from the register form's cascading picker.
+  countryId: z.string().optional(),
+  stateId: z.string().optional(),
+  districtId: z.string().optional(),
 });
 
 function generateSlug(name: string): string {
@@ -101,6 +105,9 @@ export async function POST(request: NextRequest) {
           city: data.city,
           state: data.state || null,
           country: data.country,
+          countryId: data.countryId || null,
+          stateId: data.stateId || null,
+          districtId: data.districtId || null,
           status: "PENDING",
           isVerified: false,
           verificationToken: otp,

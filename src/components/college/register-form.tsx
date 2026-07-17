@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Building2, User, Mail, Phone, Globe, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { RegisterGeoPicker, type RegisterGeo } from "./register-geo-picker";
 
 const schema = z.object({
   collegeName: z.string().min(3, "College name must be at least 3 characters"),
@@ -18,30 +19,48 @@ const schema = z.object({
   contactPersonName: z.string().min(2, "Contact person name required"),
   contactPersonDesig: z.string().min(2, "Designation required"),
   mobileNumber: z.string().min(10, "Enter a valid mobile number").max(15),
-  country: z.string().min(2, "Country required"),
   address: z.string().min(5, "Address required"),
   city: z.string().min(2, "City required"),
-  state: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
 
+const EMPTY_GEO: RegisterGeo = {
+  country: "India",
+  state: "",
+  district: "",
+  countryId: null,
+  stateId: null,
+  districtId: null,
+};
+
 export function CollegeRegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [geo, setGeo] = useState<RegisterGeo>(EMPTY_GEO);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { country: "India" },
   });
 
   const handleSubmit = async (data: FormData) => {
+    if (geo.country.trim().length < 2) {
+      toast({ title: "Country required", description: "Please enter the country.", variant: "destructive" });
+      return;
+    }
     setIsLoading(true);
     try {
       const res = await fetch("/api/colleges/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          country: geo.country.trim(),
+          state: geo.state.trim() || undefined,
+          countryId: geo.countryId ?? undefined,
+          stateId: geo.stateId ?? undefined,
+          districtId: geo.districtId ?? undefined,
+        }),
       });
       const result = await res.json();
 
@@ -106,9 +125,8 @@ export function CollegeRegisterForm() {
           <div className="md:col-span-2">
             <Field name="address" label="Address *" icon={MapPin} placeholder="123 University Road, Sector 5" />
           </div>
+          <RegisterGeoPicker value={geo} onChange={setGeo} />
           <Field name="city" label="City *" icon={MapPin} placeholder="Mumbai" />
-          <Field name="state" label="State" icon={MapPin} placeholder="Maharashtra" />
-          <Field name="country" label="Country *" icon={MapPin} placeholder="India" />
         </div>
       </div>
 

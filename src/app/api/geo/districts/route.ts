@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/auth";
 
+// Public: place-name reference data (see /api/geo/countries).
 export async function GET(request: NextRequest) {
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const stateId = request.nextUrl.searchParams.get("stateId");
   if (!stateId) return NextResponse.json({ error: "stateId required" }, { status: 400 });
 

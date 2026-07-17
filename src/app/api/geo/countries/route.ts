@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/auth";
 
+// Public: place-name reference data used by the (pre-auth) college/agency
+// self-registration forms as well as authenticated dashboards.
 export async function GET() {
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const countries = await prisma.country.findMany({
     where: { status: "ACTIVE" },
     orderBy: { countryName: "asc" },
