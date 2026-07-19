@@ -604,6 +604,7 @@ model Lead {
   assignmentRule    AssignmentRule? @map("assignment_rule")
   lastContactedAt   DateTime?  @map("last_contacted_at")
   nextFollowUpAt    DateTime?  @map("next_follow_up_at")
+  expectedClosingDate DateTime? @map("expected_closing_date")
   lostReason        String?    @map("lost_reason")
   createdAt         DateTime   @default(now()) @map("created_at")
   updatedAt         DateTime   @updatedAt @map("updated_at")

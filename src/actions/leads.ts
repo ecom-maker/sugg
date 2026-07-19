@@ -108,6 +108,7 @@ const createStudentSchema = z.object({
   preferredCountry: z.string().optional(),
   budget: z.string().optional(),
   budgetMin: z.string().optional(),
+  expectedClosingDate: z.string().optional(),
   source: z.enum(["WHATSAPP", "AGENCY_REFERRAL", "MANUAL_ENTRY"]).default("MANUAL_ENTRY"),
 });
 
@@ -178,6 +179,7 @@ export async function createStudentAndLead(formData: FormData) {
       score,
       isCurrent: true,
       assignedToId: isCounselor ? user.id : undefined,
+      expectedClosingDate: data.expectedClosingDate ? new Date(data.expectedClosingDate) : null,
     },
   });
 
@@ -249,6 +251,7 @@ export async function createSuggBranchLead(formData: FormData) {
       score,
       isCurrent: true,
       suggBranchId: scope.suggBranchId,
+      expectedClosingDate: data.expectedClosingDate ? new Date(data.expectedClosingDate) : null,
     },
   });
 

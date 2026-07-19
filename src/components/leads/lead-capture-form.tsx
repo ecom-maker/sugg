@@ -48,6 +48,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
   const [qualification, setQualification] = useState("");
+  const [expectedClosingDate, setExpectedClosingDate] = useState("");
   const [feeMin, setFeeMin] = useState(0);
   const [feeMax, setFeeMax] = useState(MAX_FEE);
   const [courses, setCourses] = useState<string[]>([]);
@@ -158,6 +159,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       fd.set("email", email.trim());
       fd.set("city", city.trim());
       fd.set("qualification", qualification.trim());
+      fd.set("expectedClosingDate", expectedClosingDate);
       fd.set("budget", feeMax > 0 && feeMax < MAX_FEE ? String(feeMax) : "");
       fd.set("budgetMin", feeMin > 0 ? String(feeMin) : "");
       fd.set("interestedCourse", courses.join(", "));
@@ -204,9 +206,13 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Label>City</Label>
           <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
         </div>
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="space-y-1.5">
           <Label>Qualification</Label>
           <Input value={qualification} onChange={(e) => setQualification(e.target.value)} placeholder="e.g. 12th, Diploma" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Expected Closing Date</Label>
+          <Input type="date" value={expectedClosingDate} onChange={(e) => setExpectedClosingDate(e.target.value)} />
         </div>
         <div className="sm:col-span-2">
           <FeeRangeSlider
