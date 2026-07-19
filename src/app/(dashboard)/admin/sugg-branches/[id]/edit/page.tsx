@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SuggBranchForm } from "@/components/sugg-branches/sugg-branch-form";
+import { BranchEmployees } from "@/components/sugg-branches/branch-employees";
 
 export const metadata: Metadata = { title: "Edit Sugg Branch" };
 
@@ -36,6 +37,19 @@ export default async function EditSuggBranchPage({
 
   if (!branch) notFound();
 
+  const employees = await prisma.employee.findMany({
+    where: { branchId: branch.id },
+    orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    select: {
+      id: true,
+      employeeCode: true,
+      firstName: true,
+      lastName: true,
+      employeeType: true,
+      user: { select: { email: true } },
+    },
+  });
+
   return (
     <div className="p-6 space-y-4">
       <Button variant="ghost" size="sm" asChild className="gap-2 -ml-2">
@@ -44,6 +58,18 @@ export default async function EditSuggBranchPage({
         </Link>
       </Button>
       <SuggBranchForm branch={branch} />
+      <BranchEmployees
+        branchId={branch.id}
+        branchName={branch.branchName}
+        employees={employees.map((e) => ({
+          id: e.id,
+          employeeCode: e.employeeCode,
+          firstName: e.firstName,
+          lastName: e.lastName,
+          employeeType: e.employeeType,
+          loginEmail: e.user?.email ?? null,
+        }))}
+      />
     </div>
   );
 }
