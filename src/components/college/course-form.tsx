@@ -25,19 +25,23 @@ const schema = z.object({
   name: z.string().min(2, "Course name required"),
   degreeType: z.enum(["DIPLOMA", "BACHELOR", "MASTER", "DOCTORATE", "CERTIFICATE", "OTHER"]),
   duration: z.string().min(1, "Duration required"),
-  durationMonths: z.coerce.number().int().min(1).optional(),
-  eligibility: z.string().optional(),
-  totalSeats: z.coerce.number().int().min(1).optional(),
+  durationMonths: z.coerce.number({ invalid_type_error: "Duration in months required" }).int().min(1, "Duration in months required"),
+  eligibility: z.string().min(1, "Eligibility required"),
+  totalSeats: z.coerce.number({ invalid_type_error: "Total seats required" }).int().min(1, "Total seats required"),
   availableSeats: z.coerce.number().int().min(0).optional(),
-  annualFee: z.coerce.number().min(0).optional(),
-  totalFee: z.coerce.number().min(0).optional(),
-  description: z.string().optional(),
+  annualFee: z.coerce.number({ invalid_type_error: "Annual fee required" }).min(1, "Annual fee required"),
+  totalFee: z.coerce.number({ invalid_type_error: "Total fee required" }).min(1, "Total fee required"),
+  description: z.string().min(1, "Description required"),
   isActive: z.boolean().default(true),
-  // Commission
+  // Commission — "None" is a valid choice, so the type stays optional. When a
+  // paying commission type is picked, its value becomes required (refine below).
   commissionType: z.enum(["FIXED", "PERCENTAGE", "SLAB", ""]).optional(),
   commissionValue: z.coerce.number().min(0).optional(),
   commissionCurrency: z.string().min(1).default("INR"),
-});
+}).refine(
+  (d) => !(d.commissionType === "FIXED" || d.commissionType === "PERCENTAGE") || (d.commissionValue != null && d.commissionValue > 0),
+  { message: "Commission value required", path: ["commissionValue"] }
+);
 
 type FormData = z.infer<typeof schema>;
 
@@ -209,24 +213,29 @@ export function CourseForm({ course }: { course?: CourseData }) {
             <Input placeholder="e.g. 4 years" required {...form.register("duration")} />
           </div>
           <div className="space-y-1.5">
-            <Label>Duration (months)</Label>
-            <Input type="number" placeholder="48" {...form.register("durationMonths")} />
+            <Label>Duration (months) *</Label>
+            <Input type="number" placeholder="48" required {...form.register("durationMonths")} />
+            {form.formState.errors.durationMonths && <p className="text-xs text-destructive">{form.formState.errors.durationMonths.message}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label>Total Seats</Label>
-            <Input type="number" placeholder="60" {...form.register("totalSeats")} />
+            <Label>Total Seats *</Label>
+            <Input type="number" placeholder="60" required {...form.register("totalSeats")} />
+            {form.formState.errors.totalSeats && <p className="text-xs text-destructive">{form.formState.errors.totalSeats.message}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
-            <Label>Eligibility</Label>
-            <Input placeholder="e.g. 10+2 with PCM min. 60%" {...form.register("eligibility")} />
+            <Label>Eligibility *</Label>
+            <Input placeholder="e.g. 10+2 with PCM min. 60%" required {...form.register("eligibility")} />
+            {form.formState.errors.eligibility && <p className="text-xs text-destructive">{form.formState.errors.eligibility.message}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
-            <Label>Description</Label>
+            <Label>Description *</Label>
             <textarea
               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground"
               placeholder="Brief course description..."
+              required
               {...form.register("description")}
             />
+            {form.formState.errors.description && <p className="text-xs text-destructive">{form.formState.errors.description.message}</p>}
           </div>
         </div>
       </div>
@@ -236,12 +245,14 @@ export function CourseForm({ course }: { course?: CourseData }) {
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Fee Structure</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Annual Fee</Label>
-            <Input type="number" placeholder="200000" {...form.register("annualFee")} />
+            <Label>Annual Fee *</Label>
+            <Input type="number" placeholder="200000" required {...form.register("annualFee")} />
+            {form.formState.errors.annualFee && <p className="text-xs text-destructive">{form.formState.errors.annualFee.message}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label>Total Fee</Label>
-            <Input type="number" placeholder="800000" {...form.register("totalFee")} />
+            <Label>Total Fee *</Label>
+            <Input type="number" placeholder="800000" required {...form.register("totalFee")} />
+            {form.formState.errors.totalFee && <p className="text-xs text-destructive">{form.formState.errors.totalFee.message}</p>}
           </div>
         </div>
       </div>
@@ -277,7 +288,7 @@ export function CourseForm({ course }: { course?: CourseData }) {
         {/* Fixed or Percentage value */}
         {(watchedType === "FIXED" || watchedType === "PERCENTAGE") && (
           <div className="space-y-1.5">
-            <Label>{watchedType === "FIXED" ? "Commission Amount" : "Commission Percentage (%)"}</Label>
+            <Label>{watchedType === "FIXED" ? "Commission Amount *" : "Commission Percentage (%) *"}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 {watchedType === "FIXED" ? getCurrencySymbol(watchedCurrency) : "%"}
@@ -287,9 +298,11 @@ export function CourseForm({ course }: { course?: CourseData }) {
                 step="0.01"
                 placeholder={watchedType === "FIXED" ? "5000" : "10"}
                 className="pl-8"
+                required
                 {...form.register("commissionValue")}
               />
             </div>
+            {form.formState.errors.commissionValue && <p className="text-xs text-destructive">{form.formState.errors.commissionValue.message}</p>}
           </div>
         )}
 
