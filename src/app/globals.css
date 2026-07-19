@@ -38,18 +38,20 @@
   --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
-/* Highlight mandatory (required) form fields with a red border. Unlayered so it
-   overrides Tailwind's border-input utility on inputs/selects/textareas. */
-input:required,
-select:required,
-textarea:required,
-[aria-required="true"] {
+/* Highlight mandatory (required) form fields with a red border ONLY while they
+   are still empty/invalid — once filled with valid data the red clears.
+   Unlayered so it overrides Tailwind's border-input utility. Radix Select
+   triggers expose data-placeholder while no option is chosen. */
+input:required:invalid,
+select:required:invalid,
+textarea:required:invalid,
+[aria-required="true"][data-placeholder] {
   border-color: #ef4444; /* red-500 */
 }
-input:required:focus-visible,
-select:required:focus-visible,
-textarea:required:focus-visible,
-[aria-required="true"]:focus-visible {
+input:required:invalid:focus-visible,
+select:required:invalid:focus-visible,
+textarea:required:invalid:focus-visible,
+[aria-required="true"][data-placeholder]:focus-visible {
   border-color: #dc2626; /* red-600 */
 }
 
