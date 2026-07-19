@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { LEAD_STATUS_CONFIG, type LeadStatus, type LeadSource } from "@/types";
 import { formatRelativeTime } from "@/lib/utils";
+import { LeadsKanban, LeadsViewToggle, type KanbanLead, type LeadsView } from "@/components/leads/leads-kanban";
 
 interface Lead {
   id: string;
@@ -38,6 +39,8 @@ interface Lead {
 
 interface LeadsPageProps {
   leads: Lead[];
+  /** All leads (unpaginated, ignoring the status filter) for the board view. */
+  boardLeads: KanbanLead[];
   total: number;
   page: number;
   limit: number;
@@ -50,8 +53,9 @@ const sourceLabels: Record<LeadSource, string> = {
   MANUAL_ENTRY: "Manual",
 };
 
-export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPageProps) {
+export function LeadsPage({ leads, boardLeads, total, page, limit, searchParams }: LeadsPageProps) {
   const router = useRouter();
+  const [view, setView] = useState<LeadsView>("list");
   const totalPages = Math.ceil(total / limit);
 
   const updateFilter = (key: string, value: string) => {
@@ -75,12 +79,15 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
             {total.toLocaleString()} total leads
           </p>
         </div>
-        <Button asChild>
-          <Link href="/counselor/leads/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Lead
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <LeadsViewToggle view={view} onChange={setView} />
+          <Button asChild>
+            <Link href="/counselor/leads/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Lead
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -98,25 +105,31 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
             }}
           />
         </div>
-        <Select
-          value={searchParams.status ?? "all"}
-          onValueChange={(v) => updateFilter("status", v)}
-        >
-          <SelectTrigger className="w-full sm:w-48">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="All Statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {Object.entries(LEAD_STATUS_CONFIG).map(([key, config]) => (
-              <SelectItem key={key} value={key}>
-                {config.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {view === "list" && (
+          <Select
+            value={searchParams.status ?? "all"}
+            onValueChange={(v) => updateFilter("status", v)}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {Object.entries(LEAD_STATUS_CONFIG).map(([key, config]) => (
+                <SelectItem key={key} value={key}>
+                  {config.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
+      {view === "board" ? (
+        <LeadsKanban leads={boardLeads} />
+      ) : (
+        <>
       {/* Lead List */}
       <div className="space-y-2">
         {leads.length === 0 ? (
@@ -237,6 +250,8 @@ export function LeadsPage({ leads, total, page, limit, searchParams }: LeadsPage
             </Button>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
