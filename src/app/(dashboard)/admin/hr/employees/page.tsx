@@ -3,10 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getEmployeeScope } from "@/lib/employee-scope";
+import { getEmployeeScope, scopeCanManage } from "@/lib/employee-scope";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Mail, Phone } from "lucide-react";
+import { Plus, Users, Mail, Phone, Pencil } from "lucide-react";
 import { EMPLOYEE_TYPE_LABELS, EMPLOYEE_ID_TYPE_LABELS } from "@/lib/hr";
 
 export const metadata: Metadata = { title: "Employees" };
@@ -49,12 +49,13 @@ export default async function AdminEmployeesPage() {
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Official Contact</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Personal Contact</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">National ID</th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-16 text-center text-muted-foreground">
                   <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   No employees yet. Click &ldquo;Add Employee&rdquo; to create the first one.
                 </td>
@@ -115,6 +116,17 @@ export default async function AdminEmployeesPage() {
                       </span>
                     ) : (
                       "—"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {scopeCanManage(scope, e.branchId, e.employeeType) ? (
+                      <Button variant="outline" size="sm" asChild className="gap-1.5">
+                        <Link href={`/admin/hr/employees/${e.id}/edit`}>
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                        </Link>
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
                 </tr>
