@@ -95,6 +95,57 @@ export async function updateLeadDetails(
   return { success: true };
 }
 
+/**
+ * Set/clear a lead's expected closing date. The date is mandatory (non-empty)
+ * until the lead reaches ADMISSION_CONFIRMED; only then may it be cleared.
+ * Scoped like other lead edits (assigned counsellor, branch manager, admin).
+ */
+export async function updateExpectedClosingDate(leadId: string, date: string | null) {
+  const user = await requireAuth();
+
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    select: {
+      id: true, studentId: true, assignedToId: true, suggBranchId: true,
+      status: true, expectedClosingDate: true,
+    },
+  });
+  if (!lead) return { error: "Lead not found" };
+
+  const access = await resolveLeadAccess(user, lead);
+  if (!access.canEdit) return { error: "You cannot edit this lead" };
+
+  const trimmed = (date ?? "").trim();
+  if (!trimmed && lead.status !== "ADMISSION_CONFIRMED") {
+    return { error: "Expected closing date is required until admission is confirmed" };
+  }
+  const next = trimmed ? new Date(trimmed) : null;
+  if (next && Number.isNaN(next.getTime())) {
+    return { error: "Enter a valid date" };
+  }
+
+  const prevIso = lead.expectedClosingDate ? lead.expectedClosingDate.toISOString().slice(0, 10) : null;
+  const nextIso = next ? next.toISOString().slice(0, 10) : null;
+  if (prevIso === nextIso) return { success: true };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.lead.update({ where: { id: leadId }, data: { expectedClosingDate: next } });
+    await tx.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "UPDATE_LEAD_DETAILS",
+        resource: "lead",
+        resourceId: leadId,
+        oldValue: { expectedClosingDate: prevIso } as Prisma.InputJsonValue,
+        newValue: { expectedClosingDate: nextIso } as Prisma.InputJsonValue,
+      },
+    });
+  });
+
+  revalidatePath(`/counselor/leads/${leadId}`);
+  return { success: true };
+}
+
 const createStudentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   mobile: z.string().min(10, "Enter a valid mobile number"),

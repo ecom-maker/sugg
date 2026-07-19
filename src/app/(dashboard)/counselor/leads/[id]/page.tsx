@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Phone, Mail, MapPin, GraduationCap, Wallet, Building2, History } from "lucide-react";
 import { LeadActions } from "@/components/leads/lead-actions";
 import { LeadDetailsEditor } from "@/components/leads/lead-details-editor";
+import { ExpectedClosingDateRow } from "@/components/leads/expected-closing-date-row";
 import { leadStatusClass, leadStatusLabel, type LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Lead" };
@@ -30,6 +31,7 @@ function Row({ icon: Icon, label, value }: { icon: React.ElementType; label: str
 
 const FIELD_LABEL: Record<string, string> = {
   status: "Status", maxFees: "Max fees", interestedCourse: "Interested courses", preferredCollege: "Preferred colleges",
+  expectedClosingDate: "Expected closing date",
 };
 function fmtVal(k: string, v: unknown): string {
   if (v == null || v === "") return "—";
@@ -75,9 +77,6 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
           <h1 className="text-2xl font-bold">{s.name}</h1>
           <p className="text-sm text-muted-foreground">
             <span className="font-mono font-medium text-foreground">{lead.code ?? "—"}</span> · {lead.source.replace(/_/g, " ")} · score {lead.score}%
-            {lead.expectedClosingDate && (
-              <> · expected closing {new Date(lead.expectedClosingDate).toLocaleDateString("en-IN")}</>
-            )}
           </p>
         </div>
         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${leadStatusClass(lead.status as LeadStatus)}`}>
@@ -108,6 +107,12 @@ export default async function CounselorLeadDetailPage({ params }: { params: Prom
             : null
         } />
         <Row icon={Building2} label="Shortlisted" value={s.shortlistedCollege} />
+        <ExpectedClosingDateRow
+          leadId={lead.id}
+          value={lead.expectedClosingDate ? lead.expectedClosingDate.toISOString().slice(0, 10) : null}
+          required={lead.status !== "ADMISSION_CONFIRMED"}
+          canEdit={access.canEdit}
+        />
       </div>
 
       <div className="text-sm text-muted-foreground">

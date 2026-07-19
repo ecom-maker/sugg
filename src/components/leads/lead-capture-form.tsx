@@ -151,6 +151,10 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       toast({ title: "Name and a valid mobile number are required", variant: "destructive" });
       return;
     }
+    if (!expectedClosingDate) {
+      toast({ title: "Expected closing date is required", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
       const fd = new FormData();
@@ -211,8 +215,8 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Input value={qualification} onChange={(e) => setQualification(e.target.value)} placeholder="e.g. 12th, Diploma" />
         </div>
         <div className="space-y-1.5">
-          <Label>Expected Closing Date</Label>
-          <Input type="date" value={expectedClosingDate} onChange={(e) => setExpectedClosingDate(e.target.value)} />
+          <Label>Expected Closing Date *</Label>
+          <Input type="date" required value={expectedClosingDate} onChange={(e) => setExpectedClosingDate(e.target.value)} />
         </div>
         <div className="sm:col-span-2">
           <FeeRangeSlider
