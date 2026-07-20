@@ -52,6 +52,10 @@ export default async function AgencyDetailPage({
     [agency.city, agency.country].filter(Boolean).join(", ") ||
     "—";
 
+  const ownerName = agency.ownerName || agency.owner?.fullName || "—";
+  const ownerEmail = agency.owner?.email || agency.email || "—";
+  const ownerMobile = agency.ownerMobile || agency.phone || "—";
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -90,6 +94,32 @@ export default async function AgencyDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-lg border bg-card p-5 space-y-3">
+            <h2 className="font-semibold">Owner</h2>
+            <div className="grid gap-3 sm:grid-cols-3 text-sm">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner</p>
+                <p className="font-medium">{ownerName}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                <p className="font-medium truncate">{ownerEmail}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Mobile</p>
+                <p className="font-medium">{ownerMobile}</p>
+              </div>
+              {agency.nationalIdNumber && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {agency.nationalIdType ?? "National ID"}
+                  </p>
+                  <p className="font-medium">{agency.nationalIdNumber}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-card p-5 space-y-3">
             <h2 className="font-semibold">Agency details</h2>
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
               {agency.email && (
@@ -121,13 +151,6 @@ export default async function AgencyDetailPage({
                 </div>
               )}
             </div>
-            {agency.owner && (
-              <div className="border-t pt-3 text-sm">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Owner</p>
-                <p className="font-medium">{agency.owner.fullName}</p>
-                <p className="text-muted-foreground">{agency.owner.email}</p>
-              </div>
-            )}
             {agency.managerName && (
               <div className="border-t pt-3 text-sm">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Manager</p>
@@ -170,34 +193,6 @@ export default async function AgencyDetailPage({
               </div>
             )}
           </div>
-
-          {(agency.ownerName || agency.ownerMobile || agency.nationalIdNumber) && (
-            <div className="rounded-lg border bg-card p-5 space-y-3">
-              <h2 className="font-semibold">Owner &amp; identity</h2>
-              <div className="grid gap-3 sm:grid-cols-2 text-sm">
-                {agency.ownerName && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner name</p>
-                    <p className="font-medium">{agency.ownerName}</p>
-                  </div>
-                )}
-                {agency.ownerMobile && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner mobile</p>
-                    <p className="font-medium">{agency.ownerMobile}</p>
-                  </div>
-                )}
-                {agency.nationalIdNumber && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {agency.nationalIdType ?? "National ID"}
-                    </p>
-                    <p className="font-medium">{agency.nationalIdNumber}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="rounded-lg border bg-card p-5 space-y-3">
             <div className="flex items-center gap-2">
