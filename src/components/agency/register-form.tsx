@@ -29,6 +29,8 @@ export function AgencyRegisterForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  // One-time intro reminder shown when the form first loads.
+  const [showIntro, setShowIntro] = useState(true);
 
   // Agency
   const [name, setName] = useState("");
@@ -135,6 +137,22 @@ export function AgencyRegisterForm() {
 
   return (
     <div className="space-y-6">
+      {/* One-time reminder before starting the registration */}
+      {showIntro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ClipboardCheck className="h-6 w-6" />
+            </div>
+            <h2 className="text-lg font-semibold">Before you begin</h2>
+            <p className="text-sm text-muted-foreground">
+              Keep your registration details and owner ID details ready to complete the registration process.
+            </p>
+            <Button className="w-full" onClick={() => setShowIntro(false)}>OK</Button>
+          </div>
+        </div>
+      )}
+
       {/* Stepper */}
       <div className="flex items-center justify-between">
         {STEPS.map((s, i) => {
