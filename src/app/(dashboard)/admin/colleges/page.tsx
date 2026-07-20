@@ -17,7 +17,9 @@ export default async function AdminCollegesPage({
   const limit = 20;
 
   const where = {
-    ...(params.status ? { status: params.status as never } : {}),
+    // Hide archived colleges from the default list; still reachable via an
+    // explicit ?status=ARCHIVED filter.
+    ...(params.status ? { status: params.status as never } : { status: { not: "ARCHIVED" as never } }),
     ...(params.search
       ? {
           OR: [
