@@ -101,7 +101,7 @@ export function CollegeRegisterForm() {
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Institution Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <Field name="collegeName" label="College / University Name *" icon={Building2} placeholder="e.g. ABC University" />
+            <Field name="collegeName" label="College Name *" icon={Building2} placeholder="e.g. ABC College" />
           </div>
           <div className="md:col-span-2">
             <Field name="officialEmail" label="Official Email Address *" icon={Mail} placeholder="admissions@college.edu" type="email" />
