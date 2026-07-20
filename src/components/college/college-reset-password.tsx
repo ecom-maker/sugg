@@ -51,7 +51,10 @@ export function CollegeResetPassword({ collegeId, loginEmail }: { collegeId: str
       }
       setTempPassword(res.password ?? null);
       setPassword("");
-      toast({ title: password ? "Password updated" : "Temporary password generated" });
+      toast({
+        title: password ? "Password updated" : "Temporary password generated",
+        description: res.emailSent ? "A password reset email was sent to the college." : undefined,
+      });
       router.refresh();
     } finally {
       setBusy(false);

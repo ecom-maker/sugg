@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MailCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { requestPasswordReset } from "@/actions/auth";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -15,10 +15,8 @@ export function ForgotPasswordForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-    });
+    // Sends the reset link via the app's SMTP (not Supabase's built-in email).
+    await requestPasswordReset(email.trim());
     // Always show success (do not reveal whether the email exists).
     setSent(true);
     setLoading(false);

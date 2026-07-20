@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { sendResetLink } from "@/lib/password-reset";
 
 // ─── Agency login provisioning (admin-sets-temp-password) ────────────────────
 //
@@ -13,6 +14,8 @@ export interface ProvisionResult {
   email: string;
   role: string;
   password?: string;
+  /** Whether a password-reset email was delivered to the user. */
+  emailSent?: boolean;
   error?: string;
 }
 
@@ -55,7 +58,8 @@ export async function provisionLogin(target: {
 
     if (!error && data.user) {
       await prisma.user.update({ where: { id: target.userId }, data: { supabaseId: data.user.id } });
-      return { ...base, password: shown };
+      const notify = await sendResetLink(target.email).catch(() => ({ sent: false }));
+      return { ...base, password: shown, emailSent: notify.sent };
     }
 
     // Already exists → find it and reset the password.
@@ -66,7 +70,8 @@ export async function provisionLogin(target: {
     if (existing) {
       await supabase.auth.admin.updateUserById(existing.id, { password, email_confirm: true });
       await prisma.user.update({ where: { id: target.userId }, data: { supabaseId: existing.id } });
-      return { ...base, password: shown };
+      const notify = await sendResetLink(target.email).catch(() => ({ sent: false }));
+      return { ...base, password: shown, emailSent: notify.sent };
     }
 
     return { ...base, error: error?.message ?? "Could not create the login account" };

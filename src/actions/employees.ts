@@ -89,7 +89,7 @@ export async function provisionEmployeeLogin(
   });
 
   revalidatePath(`/admin/hr/employees/${employeeId}`);
-  return { success: true, email: result.email, role, password: result.password };
+  return { success: true, email: result.email, role, password: result.password, emailSent: result.emailSent };
 }
 
 /** Set an employee's capability grants (on their linked login). Super Admin only. */

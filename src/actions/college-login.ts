@@ -125,5 +125,5 @@ export async function resetCollegeLogin(collegeId: string, opts?: { password?: s
   });
 
   revalidatePath(`/admin/colleges/${collegeId}/edit`);
-  return { success: true, email: result.email, password: result.password };
+  return { success: true, email: result.email, password: result.password, emailSent: result.emailSent };
 }

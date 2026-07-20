@@ -34,7 +34,10 @@ export function EmployeeAccessCard({ employeeId, hasEmail, login }: Props) {
         return;
       }
       setTempPassword(res.password ?? null);
-      toast({ title: login ? "Password reset" : "Login provisioned" });
+      toast({
+        title: login ? "Password reset" : "Login provisioned",
+        description: res.emailSent ? "A password reset email was sent to the employee." : undefined,
+      });
       router.refresh();
     } finally {
       setBusy(false);
