@@ -85,20 +85,13 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
       </div>
 
       {/* University Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatsCard
           title="Total Universities"
           value={stats.totalUniversities.toLocaleString()}
           icon={GraduationCap}
           description={`${stats.activeUniversities} active`}
           iconClassName="text-indigo-600 bg-indigo-50"
-        />
-        <StatsCard
-          title="Active Universities"
-          value={stats.activeUniversities.toLocaleString()}
-          icon={CheckCircle}
-          description={`${stats.totalUniversities - stats.activeUniversities} inactive/archived`}
-          iconClassName="text-green-600 bg-green-50"
         />
         <StatsCard
           title="Added This Month"
