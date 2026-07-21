@@ -6,7 +6,13 @@ import { Briefcase, Globe, Mail, Phone, MapPin } from "lucide-react";
 export const metadata: Metadata = { title: "Agency Profile" };
 
 export default async function AgencyProfilePage() {
-  const user = await requireRole(["AGENCY_ADMIN"]);
+  const user = await requireRole([
+    "AGENCY_OWNER",
+    "AGENCY_ADMIN",
+    "BRANCH_MANAGER",
+    "AGENCY_COUNSELOR",
+    "SUPER_ADMIN",
+  ]);
 
   const agency = await prisma.agency.findFirst({
     where: { OR: [{ owner: { supabaseId: user.supabaseId } }, { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } }] },
