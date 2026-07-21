@@ -223,41 +223,6 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
             </div>
           </CardContent>
         </Card>
-        {/* Top Universities */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Top Universities by Colleges</CardTitle>
-            <Link href="/admin/universities" className="text-xs text-primary hover:underline">
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {stats.topUniversities.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No universities yet.{" "}
-                <Link href="/admin/universities/new" className="text-primary hover:underline">
-                  Add one
-                </Link>
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {stats.topUniversities.map((uni, i) => (
-                  <Link
-                    key={uni.id}
-                    href={`/admin/universities/${uni.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="text-sm flex-1 truncate">{uni.name}</span>
-                    <Badge variant="secondary">{uni.collegeCount} colleges</Badge>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Commission Summary */}
