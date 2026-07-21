@@ -5,15 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { provisionLogin } from "@/lib/agency-auth";
 import { revalidatePath } from "next/cache";
-
-// Roles an agency owner may assign to new staff. Kept as a list so it's easy
-// to widen later (e.g. add BRANCH_MANAGER / AGENCY_COUNSELOR).
-export const OWNER_ASSIGNABLE_ROLES = ["AGENCY_ADMIN"] as const;
-export type AgencyAssignableRole = (typeof OWNER_ASSIGNABLE_ROLES)[number];
-
-export const AGENCY_ROLE_LABELS: Record<AgencyAssignableRole, string> = {
-  AGENCY_ADMIN: "Agency Admin",
-};
+import { OWNER_ASSIGNABLE_ROLES, type AgencyAssignableRole } from "@/lib/agency-roles";
 
 interface CreateAgencyStaffInput {
   fullName: string;

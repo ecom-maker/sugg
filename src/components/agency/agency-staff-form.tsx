@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Loader2, UserPlus, Copy, Check, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { createAgencyStaff, OWNER_ASSIGNABLE_ROLES, AGENCY_ROLE_LABELS } from "@/actions/agency-staff";
+import { createAgencyStaff } from "@/actions/agency-staff";
+import { OWNER_ASSIGNABLE_ROLES, AGENCY_ROLE_LABELS } from "@/lib/agency-roles";
 
 const NONE_BRANCH = "__none__";
 
