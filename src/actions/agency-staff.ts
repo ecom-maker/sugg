@@ -124,3 +124,76 @@ export async function createAgencyStaff(input: CreateAgencyStaffInput) {
     emailSent: Boolean(prov.emailSent),
   };
 }
+
+interface UpdateAgencyStaffInput {
+  userId: string;
+  fullName: string;
+  phone?: string | null;
+  branchId?: string | null;
+  isActive: boolean;
+}
+
+/**
+ * Edit an existing staff member's profile. Scoped: an owner may only edit
+ * staff in their own agency. Login email and role are not editable here.
+ */
+export async function updateAgencyStaff(input: UpdateAgencyStaffInput) {
+  const user = await requireRole(["AGENCY_OWNER", "SUPER_ADMIN"]);
+
+  const target = await prisma.agencyUser.findFirst({
+    where: {
+      userId: input.userId,
+      ...(user.role === "SUPER_ADMIN" ? {} : { agency: { owner: { supabaseId: user.supabaseId } } }),
+    },
+    select: { id: true, agencyId: true, user: { select: { role: true } } },
+  });
+  if (!target) return { error: "Staff member not found in your agency" };
+
+  const fullName = input.fullName.trim();
+  if (fullName.length < 2) return { error: "Enter the staff member's name" };
+
+  // Never deactivate an agency owner — it would lock them out of their agency.
+  if (target.user.role === "AGENCY_OWNER" && !input.isActive) {
+    return { error: "You can't deactivate the agency owner" };
+  }
+
+  const branchId = input.branchId?.trim() || null;
+  if (branchId) {
+    const branch = await prisma.agencyBranch.findFirst({
+      where: { id: branchId, agencyId: target.agencyId },
+      select: { id: true },
+    });
+    if (!branch) return { error: "Select a valid branch" };
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: input.userId },
+        data: { fullName, phone: input.phone?.trim() || null, isActive: input.isActive },
+      });
+      await tx.agencyUser.update({
+        where: { id: target.id },
+        data: { branchId, status: input.isActive ? "ACTIVE" : "INACTIVE" },
+      });
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return { error: "That phone number is already in use" };
+    }
+    return { error: "Could not update the staff member" };
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      action: "UPDATE_AGENCY_STAFF",
+      resource: "agency_user",
+      resourceId: target.id,
+      newValue: { userId: input.userId, fullName, isActive: input.isActive, branchId },
+    },
+  });
+
+  revalidatePath("/agency/staff");
+  return { success: true };
+}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { Users, Mail, Phone, Plus } from "lucide-react";
+import { Users, Mail, Phone, Plus, Pencil } from "lucide-react";
 
 export const metadata: Metadata = { title: "All Staff" };
 
@@ -55,11 +55,12 @@ export default async function AgencyStaffPage() {
               <th className="text-left px-4 py-3 font-medium">Branch</th>
               <th className="text-left px-4 py-3 font-medium">Contact</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
+              {canAdd && <th className="text-right px-4 py-3 font-medium">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y">
             {staff.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">
+              <tr><td colSpan={canAdd ? 6 : 5} className="text-center py-12 text-muted-foreground">
                 <Users className="w-6 h-6 mx-auto mb-1 opacity-30" />No staff yet
               </td></tr>
             ) : (
@@ -84,6 +85,15 @@ export default async function AgencyStaffPage() {
                       {u.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
+                  {canAdd && (
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <Button variant="outline" size="sm" asChild className="gap-1.5">
+                        <Link href={`/agency/staff/${u.id}/edit`}>
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                        </Link>
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
