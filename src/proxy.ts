@@ -18,6 +18,9 @@ const publicRoutes = [
   "/agency/register",
   "/agency/verify",
   "/agency/pending",
+  // Auth callback (email OTP / recovery / OAuth). Must run for unauthenticated
+  // users — it's what establishes the session (e.g. password-reset links).
+  "/auth/callback",
   "/",
 ];
 const authRoutes = ["/login", "/register"];
