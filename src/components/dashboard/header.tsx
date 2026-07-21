@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, Search, LogOut, Settings, User, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,18 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     BRANCH_MANAGER: "Branch Manager",
     AGENCY_COUNSELOR: "Agency Counselor",
   };
+
+  // Role-appropriate profile / settings destinations (null = no page for the role).
+  const profileHref: string | null =
+    user.role === "COLLEGE_ADMIN"
+      ? "/college/profile"
+      : user.role === "AGENCY_OWNER" ||
+        user.role === "AGENCY_ADMIN" ||
+        user.role === "BRANCH_MANAGER" ||
+        user.role === "AGENCY_COUNSELOR"
+      ? "/agency/profile"
+      : null;
+  const settingsHref: string | null = user.role === "SUPER_ADMIN" ? "/admin/settings" : null;
 
   return (
     <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-4 gap-4 shrink-0">
@@ -108,15 +121,23 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
+            {(profileHref || settingsHref) && <DropdownMenuSeparator />}
+            {profileHref && (
+              <DropdownMenuItem asChild>
+                <Link href={profileHref}>
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {settingsHref && (
+              <DropdownMenuItem asChild>
+                <Link href={settingsHref}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleSignOut}
