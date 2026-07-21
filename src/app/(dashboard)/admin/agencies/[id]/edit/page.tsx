@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AgencyForm } from "@/components/agencies/agency-form";
+import { AgencyLoginCredentials } from "@/components/agencies/agency-login-credentials";
 
 export const metadata: Metadata = { title: "Edit Agency" };
 
@@ -53,6 +54,9 @@ export default async function EditAgencyPage({
         </Link>
       </Button>
       <AgencyForm agency={agency} />
+      <div className="max-w-xl">
+        <AgencyLoginCredentials agencyId={agency.id} />
+      </div>
     </div>
   );
 }
