@@ -31,7 +31,7 @@ interface AdminDashboardProps {
     totalUniversities: number;
     activeUniversities: number;
     universitiesThisMonth: number;
-    topUniversities: { id: string; name: string; collegeCount: number }[];
+    collegesThisMonth: number;
   };
 }
 
@@ -76,11 +76,11 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
           iconClassName="text-blue-600 bg-blue-50"
         />
         <StatsCard
-          title="Commission Paid"
-          value={formatCurrency(stats.totalCommissionAmount)}
-          icon={DollarSign}
-          description={`${stats.pendingCommissions} pending approval`}
-          iconClassName="text-emerald-600 bg-emerald-50"
+          title="Colleges Added This Month"
+          value={stats.collegesThisMonth.toLocaleString()}
+          icon={Building2}
+          description="New college registrations"
+          iconClassName="text-cyan-600 bg-cyan-50"
         />
       </div>
 
@@ -101,11 +101,11 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
           iconClassName="text-violet-600 bg-violet-50"
         />
         <StatsCard
-          title="Top University"
-          value={stats.topUniversities[0]?.collegeCount ?? 0}
-          icon={Building2}
-          description={stats.topUniversities[0]?.name ?? "No universities yet"}
-          iconClassName="text-blue-600 bg-blue-50"
+          title="Commission Paid"
+          value={formatCurrency(stats.totalCommissionAmount)}
+          icon={DollarSign}
+          description={`${stats.pendingCommissions} pending approval`}
+          iconClassName="text-emerald-600 bg-emerald-50"
         />
       </div>
 

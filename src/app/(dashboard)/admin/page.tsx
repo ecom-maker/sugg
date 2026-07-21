@@ -23,7 +23,7 @@ export default async function AdminPage() {
     totalUniversities,
     activeUniversities,
     universitiesThisMonth,
-    topUniversities,
+    collegesThisMonth,
   ] = await Promise.all([
     prisma.lead.count(),
     prisma.lead.count({ where: { status: "NEW" } }),
@@ -46,11 +46,12 @@ export default async function AdminPage() {
         },
       },
     }),
-    prisma.university.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { colleges: { _count: "desc" } },
-      take: 5,
-      include: { _count: { select: { colleges: true } } },
+    prisma.college.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      },
     }),
   ]);
 
@@ -67,11 +68,7 @@ export default async function AdminPage() {
     totalUniversities,
     activeUniversities,
     universitiesThisMonth,
-    topUniversities: topUniversities.map((u) => ({
-      id: u.id,
-      name: u.name,
-      collegeCount: u._count.colleges,
-    })),
+    collegesThisMonth,
   };
 
   return <AdminDashboard stats={stats} />;
