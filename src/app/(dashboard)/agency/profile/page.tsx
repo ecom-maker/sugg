@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Briefcase, Globe, Mail, Phone, MapPin } from "lucide-react";
+import { Briefcase } from "lucide-react";
+import { AgencyProfileForm } from "@/components/agency/agency-profile-form";
 
 export const metadata: Metadata = { title: "Agency Profile" };
 
@@ -16,6 +17,18 @@ export default async function AgencyProfilePage() {
 
   const agency = await prisma.agency.findFirst({
     where: { OR: [{ owner: { supabaseId: user.supabaseId } }, { agencyUsers: { some: { user: { supabaseId: user.supabaseId } } } }] },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      website: true,
+      address: true,
+      city: true,
+      state: true,
+      country: true,
+      isActive: true,
+    },
   });
 
   if (!agency) {
@@ -27,32 +40,14 @@ export default async function AgencyProfilePage() {
     );
   }
 
+  const canEdit = user.role === "AGENCY_OWNER" || user.role === "SUPER_ADMIN";
+
   return (
     <div className="p-6 space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold">Agency Profile</h1>
       </div>
-
-      <div className="rounded-lg border bg-card p-6 space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-purple-50 flex items-center justify-center">
-            <Briefcase className="w-8 h-8 text-purple-600" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">{agency.name}</h2>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${agency.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-              {agency.isActive ? "Active" : "Inactive"}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid gap-3 pt-4 border-t text-sm">
-          {agency.email && <div className="flex items-center gap-3"><Mail className="w-4 h-4 text-muted-foreground" />{agency.email}</div>}
-          {agency.phone && <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-muted-foreground" />{agency.phone}</div>}
-          {agency.website && <div className="flex items-center gap-3"><Globe className="w-4 h-4 text-muted-foreground" /><a href={agency.website} className="text-primary hover:underline" target="_blank">{agency.website}</a></div>}
-          {(agency.city ?? agency.country) && <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-muted-foreground" />{[agency.city, agency.country].filter(Boolean).join(", ")}</div>}
-        </div>
-      </div>
+      <AgencyProfileForm agency={agency} canEdit={canEdit} />
     </div>
   );
 }
