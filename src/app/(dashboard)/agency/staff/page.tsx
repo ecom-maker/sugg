@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Users, Mail, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Mail, Phone, Plus } from "lucide-react";
 
 export const metadata: Metadata = { title: "All Staff" };
 
@@ -28,11 +30,20 @@ export default async function AgencyStaffPage() {
 
   const staff = agency?.agencyUsers ?? [];
 
+  const canAdd = user.role === "AGENCY_OWNER" || user.role === "SUPER_ADMIN";
+
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">All Staff</h1>
-        <p className="text-muted-foreground text-sm mt-1">{staff.length} team members across all branches</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">All Staff</h1>
+          <p className="text-muted-foreground text-sm mt-1">{staff.length} team members across all branches</p>
+        </div>
+        {canAdd && (
+          <Button asChild className="gap-2">
+            <Link href="/agency/staff/new"><Plus className="w-4 h-4" /> Add Staff</Link>
+          </Button>
+        )}
       </div>
 
       <div className="rounded-lg border bg-card overflow-hidden">
