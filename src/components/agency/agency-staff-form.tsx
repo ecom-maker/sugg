@@ -15,7 +15,13 @@ import {
 import { Loader2, UserPlus, Copy, Check, KeyRound } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { createAgencyStaff } from "@/actions/agency-staff";
-import { OWNER_ASSIGNABLE_ROLES, AGENCY_ROLE_LABELS } from "@/lib/agency-roles";
+import {
+  OWNER_ASSIGNABLE_ROLES,
+  AGENCY_ROLE_LABELS,
+  AGENCY_ROLE_DESCRIPTIONS,
+  AGENCY_ROLES_REQUIRING_BRANCH,
+  type AgencyAssignableRole,
+} from "@/lib/agency-roles";
 
 const NONE_BRANCH = "__none__";
 
@@ -47,6 +53,10 @@ export function AgencyStaffForm({ branchOptions }: Props) {
     }
     if (password && password.length < 6) {
       toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    if (AGENCY_ROLES_REQUIRING_BRANCH.includes(role as AgencyAssignableRole) && branchId === NONE_BRANCH) {
+      toast({ title: "Select a branch", description: "A manager must be assigned to a branch.", variant: "destructive" });
       return;
     }
 
@@ -147,9 +157,10 @@ export function AgencyStaffForm({ branchOptions }: Props) {
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">{AGENCY_ROLE_DESCRIPTIONS[role as AgencyAssignableRole]}</p>
           </div>
           <div className="space-y-1.5">
-            <Label>Branch</Label>
+            <Label>Branch {AGENCY_ROLES_REQUIRING_BRANCH.includes(role as AgencyAssignableRole) && <span className="text-destructive">*</span>}</Label>
             <Select value={branchId} onValueChange={setBranchId}>
               <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
               <SelectContent>
@@ -159,6 +170,9 @@ export function AgencyStaffForm({ branchOptions }: Props) {
                 ))}
               </SelectContent>
             </Select>
+            {AGENCY_ROLES_REQUIRING_BRANCH.includes(role as AgencyAssignableRole) && branchOptions.length === 0 && (
+              <p className="text-xs text-destructive">Create a branch first to assign a manager.</p>
+            )}
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Login Password</Label>

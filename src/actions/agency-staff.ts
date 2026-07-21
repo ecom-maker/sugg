@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { provisionLogin } from "@/lib/agency-auth";
 import { revalidatePath } from "next/cache";
-import { OWNER_ASSIGNABLE_ROLES, type AgencyAssignableRole } from "@/lib/agency-roles";
+import { OWNER_ASSIGNABLE_ROLES, AGENCY_ROLES_REQUIRING_BRANCH, type AgencyAssignableRole } from "@/lib/agency-roles";
 
 interface CreateAgencyStaffInput {
   fullName: string;
@@ -45,7 +45,7 @@ export async function createAgencyStaff(input: CreateAgencyStaffInput) {
     return { error: "Password must be at least 6 characters" };
   }
 
-  // Branch (optional) must belong to this agency.
+  // Branch must belong to this agency. A Manager (branch manager) must have one.
   const branchId = input.branchId?.trim() || null;
   if (branchId) {
     const branch = await prisma.agencyBranch.findFirst({
@@ -53,6 +53,9 @@ export async function createAgencyStaff(input: CreateAgencyStaffInput) {
       select: { id: true },
     });
     if (!branch) return { error: "Select a valid branch" };
+  }
+  if (AGENCY_ROLES_REQUIRING_BRANCH.includes(role) && !branchId) {
+    return { error: "Select a branch — a manager must be assigned to a branch." };
   }
 
   const clash = await prisma.user.findUnique({ where: { email }, select: { id: true } });
@@ -74,6 +77,10 @@ export async function createAgencyStaff(input: CreateAgencyStaffInput) {
       await tx.agencyUser.create({
         data: { userId: u.id, agencyId: agency.id, branchId, status: "ACTIVE" },
       });
+      // A Manager becomes the branch's manager so branch scope resolves to them.
+      if (role === "BRANCH_MANAGER" && branchId) {
+        await tx.agencyBranch.update({ where: { id: branchId }, data: { managerId: u.id } });
+      }
       return u.id;
     });
   } catch (err) {
@@ -168,6 +175,10 @@ export async function updateAgencyStaff(input: UpdateAgencyStaffInput) {
         where: { id: target.id },
         data: { branchId, status: input.isActive ? "ACTIVE" : "INACTIVE" },
       });
+      // Keep a Manager recognised as the manager of their (new) branch.
+      if (target.user.role === "BRANCH_MANAGER" && branchId) {
+        await tx.agencyBranch.update({ where: { id: branchId }, data: { managerId: input.userId } });
+      }
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
