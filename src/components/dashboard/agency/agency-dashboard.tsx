@@ -41,7 +41,7 @@ export function AgencyDashboard({ stats, agency }: AgencyDashboardProps) {
           <p className="text-muted-foreground mt-1">Referral and commission overview</p>
         </div>
         <Button asChild>
-          <Link href="/agency/students/new">
+          <Link href="/agency/add-referral">
             <Plus className="w-4 h-4 mr-2" />
             Add Referral
           </Link>
@@ -113,7 +113,7 @@ export function AgencyDashboard({ stats, agency }: AgencyDashboardProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {[
-              { label: "Add Referral", href: "/agency/students/new", icon: Plus },
+              { label: "Add Referral", href: "/agency/add-referral", icon: Plus },
               { label: "View All Students", href: "/agency/students", icon: Users },
               { label: "Commission History", href: "/agency/commissions", icon: DollarSign },
               { label: "Payout History", href: "/agency/payouts", icon: CheckCircle },

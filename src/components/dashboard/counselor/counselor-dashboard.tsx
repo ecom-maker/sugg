@@ -207,10 +207,10 @@ export function CounselorDashboard({ stats, recentLeads, teamContext }: Counselo
             </CardHeader>
             <CardContent className="space-y-2">
               {[
-                { label: "Schedule Follow-up", href: "/counselor/followups/new", icon: Calendar },
+                { label: "Schedule Follow-up", href: "/counselor/followups", icon: Calendar },
                 { label: "Send WhatsApp", href: "/counselor/whatsapp", icon: MessageSquare },
                 { label: "View My Tasks", href: "/counselor/tasks", icon: Clock },
-                { label: "Submit Application", href: "/counselor/applications/new", icon: CheckCircle },
+                { label: "Submit Application", href: "/counselor/applications", icon: CheckCircle },
               ].map((action) => {
                 const Icon = action.icon;
                 return (
