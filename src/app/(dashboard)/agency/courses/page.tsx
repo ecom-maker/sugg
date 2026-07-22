@@ -12,13 +12,16 @@ import {
 export const metadata: Metadata = { title: "Available Courses & Commissions" };
 
 export default async function AgencyCoursesPage() {
-  await requireRole([
+  const user = await requireRole([
     "AGENCY_OWNER",
     "AGENCY_ADMIN",
     "BRANCH_MANAGER",
     "AGENCY_COUNSELOR",
     "SUPER_ADMIN",
   ]);
+  // Counsellors and branch managers see course + fee details only; commission
+  // is visible to agency owner/admin (and Super Admin) only.
+  const showCommission = user.role !== "AGENCY_COUNSELOR" && user.role !== "BRANCH_MANAGER";
 
   // Fetch all active courses that have a commission configured
   const courses = await prisma.course.findMany({
@@ -46,9 +49,9 @@ export default async function AgencyCoursesPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Available Course Commissions</h1>
+          <h1 className="text-2xl font-bold">{showCommission ? "Available Course Commissions" : "Available Courses"}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {courses.length} courses offering agency commission
+            {showCommission ? `${courses.length} courses offering agency commission` : `${courses.length} courses available`}
           </p>
         </div>
         <div className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg text-sm text-muted-foreground">
@@ -123,34 +126,38 @@ export default async function AgencyCoursesPage() {
                     </div>
                   </div>
 
-                  {/* Commission Highlight */}
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Agency Commission</span>
+                  {/* Commission Highlight — hidden for counsellors */}
+                  {showCommission && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Agency Commission</span>
+                      </div>
+                      {result && result.commissionAmount > 0 ? (
+                        <>
+                          <p className="text-2xl font-bold text-emerald-700">
+                            {sym}{result.commissionAmount.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-emerald-600 mt-0.5">{label}</p>
+                        </>
+                      ) : (
+                        <p className="text-sm text-emerald-700">{label}</p>
+                      )}
                     </div>
-                    {result && result.commissionAmount > 0 ? (
-                      <>
-                        <p className="text-2xl font-bold text-emerald-700">
-                          {sym}{result.commissionAmount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-emerald-600 mt-0.5">{label}</p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-emerald-700">{label}</p>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                <div className="px-4 pb-4">
-                  <a
-                    href={`/api/courses/${course.id}/commission-preview`}
-                    target="_blank"
-                    className="block w-full text-center text-xs bg-primary/10 hover:bg-primary/20 text-primary py-2 rounded-lg font-medium transition-colors"
-                  >
-                    View Commission Details
-                  </a>
-                </div>
+                {showCommission && (
+                  <div className="px-4 pb-4">
+                    <a
+                      href={`/api/courses/${course.id}/commission-preview`}
+                      target="_blank"
+                      className="block w-full text-center text-xs bg-primary/10 hover:bg-primary/20 text-primary py-2 rounded-lg font-medium transition-colors"
+                    >
+                      View Commission Details
+                    </a>
+                  </div>
+                )}
               </div>
             );
           })}
