@@ -6,7 +6,7 @@ import { ClipboardList } from "lucide-react";
 export const metadata: Metadata = { title: "Tasks" };
 
 export default async function TasksPage() {
-  const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
+  const user = await requireRole(["SUGG_COUNSELOR", "AGENCY_COUNSELOR", "SUPER_ADMIN"]);
 
   const tasks = await prisma.task.findMany({
     where: { assignee: { supabaseId: user.supabaseId } },

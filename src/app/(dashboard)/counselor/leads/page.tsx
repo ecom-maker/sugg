@@ -11,7 +11,7 @@ export default async function CounselorLeadsPage({
 }: {
   searchParams: Promise<{ status?: string; search?: string; page?: string }>;
 }) {
-  const user = await requireRole(["SUGG_COUNSELOR", "SUPER_ADMIN"]);
+  const user = await requireRole(["SUGG_COUNSELOR", "AGENCY_COUNSELOR", "SUPER_ADMIN"]);
   const params = await searchParams;
 
   const page = Number(params.page ?? 1);
@@ -21,7 +21,7 @@ export default async function CounselorLeadsPage({
   // My Leads shows all of the counsellor's leads; leads with a scheduled
   // follow-up also appear under Follow-ups.
   const baseWhere = {
-    ...(user.role === "SUGG_COUNSELOR" ? { assignedToId: user.id } : {}),
+    ...(user.role === "SUGG_COUNSELOR" || user.role === "AGENCY_COUNSELOR" ? { assignedToId: user.id } : {}),
     ...(params.search
       ? {
           student: {
