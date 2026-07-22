@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { getHierarchyScope } from "@/lib/hierarchy-scope";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { AgencyLeadForm } from "@/components/agency/agency-lead-form";
+import { createAgencyLead } from "@/actions/agency-leads";
+import { LeadCaptureForm } from "@/components/leads/lead-capture-form";
 
 export const metadata: Metadata = { title: "New Lead" };
 
@@ -37,7 +38,11 @@ export default async function CreateAgencyLeadPage() {
           <ArrowLeft className="w-4 h-4" /> Back to Leads
         </Link>
       </Button>
-      <AgencyLeadForm branches={branches} />
+      <LeadCaptureForm
+        action={createAgencyLead}
+        redirectTo="/agency/leads"
+        branchOptions={branches?.map((b) => ({ value: b.id, label: b.branchName }))}
+      />
     </div>
   );
 }

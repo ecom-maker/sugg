@@ -21,6 +21,8 @@ const createSchema = z.object({
   preferredCollege: z.string().optional(),
   preferredCountry: z.string().optional(),
   budget: z.string().optional(),
+  budgetMin: z.string().optional(),
+  expectedClosingDate: z.string().optional(),
   // Owner/Admin may target a branch; counselor/branch-manager use their own.
   branchId: z.string().optional(),
 });
@@ -88,6 +90,7 @@ export async function createAgencyLead(formData: FormData) {
         preferredCollege: data.preferredCollege || null,
         preferredCountry: data.preferredCountry || null,
         budget: data.budget ? parseFloat(data.budget) : null,
+        budgetMin: data.budgetMin ? parseFloat(data.budgetMin) : null,
         source: "AGENCY_REFERRAL",
         agencyId: scope.agencyId,
         branchId,
@@ -104,6 +107,7 @@ export async function createAgencyLead(formData: FormData) {
         assignedToId: user.id, // default: creating counselor
         branchId,
         assignmentRule: "MANUAL",
+        expectedClosingDate: data.expectedClosingDate ? new Date(data.expectedClosingDate) : null,
       },
     });
 

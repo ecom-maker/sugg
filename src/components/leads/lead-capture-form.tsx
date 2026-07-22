@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus, X, GraduationCap, MapPin, Search, ExternalLink, Plus, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { FeeRangeSlider } from "@/components/ui/fee-range-slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CatalogCourse {
   id: string;
@@ -31,6 +32,8 @@ interface Props {
   action: (formData: FormData) => Promise<{ error?: unknown; success?: boolean; leadId?: string } | void>;
   /** Where to go after a successful create. */
   redirectTo: string;
+  /** Optional branch targeting (e.g. an agency owner/admin picking a branch). */
+  branchOptions?: { value: string; label: string }[];
 }
 
 function money(n: number | null) {
@@ -41,7 +44,7 @@ function money(n: number | null) {
 const MAX_FEE = 5000000; // ₹50 lakh cap for the Max Fees slider
 const FEE_STEP = 25000;
 
-export function LeadCaptureForm({ action, redirectTo }: Props) {
+export function LeadCaptureForm({ action, redirectTo, branchOptions }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -49,6 +52,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
   const [city, setCity] = useState("");
   const [qualification, setQualification] = useState("");
   const [expectedClosingDate, setExpectedClosingDate] = useState("");
+  const [branchId, setBranchId] = useState("");
   const [feeMin, setFeeMin] = useState(0);
   const [feeMax, setFeeMax] = useState(MAX_FEE);
   const [courses, setCourses] = useState<string[]>([]);
@@ -168,6 +172,7 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
       fd.set("budgetMin", feeMin > 0 ? String(feeMin) : "");
       fd.set("interestedCourse", courses.join(", "));
       fd.set("preferredCollege", preferredColleges.join(", "));
+      if (branchId) fd.set("branchId", branchId);
       fd.set("source", "MANUAL_ENTRY");
       const res = await action(fd);
       if (res && "error" in res && res.error) {
@@ -218,6 +223,19 @@ export function LeadCaptureForm({ action, redirectTo }: Props) {
           <Label>Expected Closing Date *</Label>
           <Input type="date" required value={expectedClosingDate} onChange={(e) => setExpectedClosingDate(e.target.value)} />
         </div>
+        {branchOptions && branchOptions.length > 0 && (
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Branch</Label>
+            <Select value={branchId} onValueChange={setBranchId}>
+              <SelectTrigger><SelectValue placeholder="Select a branch (optional)" /></SelectTrigger>
+              <SelectContent>
+                {branchOptions.map((b) => (
+                  <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="sm:col-span-2">
           <FeeRangeSlider
             minValue={feeMin}
