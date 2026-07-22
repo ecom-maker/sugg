@@ -211,6 +211,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Opportunities",
         items: [
           { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+          { title: "Colleges", href: "/agency/colleges", icon: Building2 },
         ],
       },
       {
@@ -255,6 +256,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Opportunities",
         items: [
           { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+          { title: "Colleges", href: "/agency/colleges", icon: Building2 },
         ],
       },
       {
@@ -300,6 +302,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Opportunities",
         items: [
           { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+          { title: "Colleges", href: "/agency/colleges", icon: Building2 },
         ],
       },
       {
@@ -334,6 +337,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "Opportunities",
         items: [
           { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
+          { title: "Colleges", href: "/agency/colleges", icon: Building2 },
         ],
       },
       {
