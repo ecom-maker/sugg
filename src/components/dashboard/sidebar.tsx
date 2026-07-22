@@ -331,11 +331,9 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         ],
       },
       {
-        title: "Referrals",
+        title: "Opportunities",
         items: [
           { title: "Available Courses", href: "/agency/courses", icon: BookOpen },
-          { title: "My Referrals", href: "/agency/my-referrals", icon: Users },
-          { title: "Add Referral", href: "/agency/add-referral", icon: Users },
         ],
       },
       {
