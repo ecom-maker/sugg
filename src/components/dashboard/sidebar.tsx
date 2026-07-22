@@ -57,7 +57,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
       {
         title: "Operations",
         items: [
-          { title: "Students & Leads", href: "/admin/leads", icon: Users },
+          { title: "Leads", href: "/admin/leads", icon: Users },
           { title: "Duplicate Students", href: "/admin/students/duplicates", icon: Users },
           { title: "Counselors", href: "/admin/counselors", icon: UserCheck },
           { title: "Applications", href: "/admin/applications", icon: FileText },
@@ -109,7 +109,7 @@ function getNavSections(role: AuthUser["role"]): NavSection[] {
         title: "My Branch",
         items: [
           { title: "Employees", href: "/admin/hr/employees", icon: Contact },
-          { title: "Students & Leads", href: "/sugg-branch/leads", icon: Users },
+          { title: "Leads", href: "/sugg-branch/leads", icon: Users },
           { title: "Follow-ups", href: "/counselor/followups", icon: Calendar },
           { title: "Agencies", href: "/sugg-branch/agencies", icon: Briefcase },
         ],
