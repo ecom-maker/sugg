@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Users, CheckCircle, Clock, AlertCircle, TrendingUp, MessageSquare, Calendar, Plus, UsersRound, Crown } from "lucide-react";
+import { Users, CheckCircle, AlertCircle, TrendingUp, MessageSquare, Calendar, Plus, UsersRound, Crown } from "lucide-react";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,8 @@ interface CounselorDashboardProps {
     pendingFollowups: number;
     overdueFollowups: number;
     conversionRate: number;
+    weekly: { contacted: number; admissions: number };
+    monthly: { contacted: number; admissions: number };
   };
   recentLeads: RecentLead[];
   teamContext?: {
@@ -41,6 +44,8 @@ interface CounselorDashboardProps {
 }
 
 export function CounselorDashboard({ stats, recentLeads, teamContext }: CounselorDashboardProps) {
+  const [period, setPeriod] = useState<"week" | "month">("week");
+  const perf = period === "week" ? stats.weekly : stats.monthly;
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -199,44 +204,35 @@ export function CounselorDashboard({ stats, recentLeads, teamContext }: Counselo
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Performance — This Week / This Month */}
         <div className="space-y-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { label: "Schedule Follow-up", href: "/counselor/followups", icon: Calendar },
-                { label: "Send WhatsApp", href: "/counselor/whatsapp", icon: MessageSquare },
-                { label: "View My Tasks", href: "/counselor/tasks", icon: Clock },
-                { label: "Submit Application", href: "/counselor/applications", icon: CheckCircle },
-              ].map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Link
-                    key={action.href}
-                    href={action.href}
-                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">{action.label}</span>
-                  </Link>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          {/* Performance */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">This Week</CardTitle>
+            <CardHeader className="pb-3 flex flex-row items-center justify-between gap-2">
+              <CardTitle className="text-base">Performance</CardTitle>
+              <div className="inline-flex items-center rounded-lg border bg-muted/40 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setPeriod("week")}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${period === "week" ? "bg-background shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-pressed={period === "week"}
+                >
+                  This Week
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPeriod("month")}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${period === "month" ? "bg-background shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-pressed={period === "month"}
+                >
+                  This Month
+                </button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {[
-                  { label: "Leads Contacted", value: stats.contactedLeads, max: stats.totalLeads },
-                  { label: "Admissions", value: stats.confirmedAdmissions, max: stats.totalLeads },
+                  { label: "Leads Contacted", value: perf.contacted, max: stats.totalLeads },
+                  { label: "Admissions", value: perf.admissions, max: stats.totalLeads },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-sm mb-1">
@@ -247,7 +243,7 @@ export function CounselorDashboard({ stats, recentLeads, teamContext }: Counselo
                       <div
                         className="h-full bg-primary rounded-full transition-all"
                         style={{
-                          width: `${item.max > 0 ? (item.value / item.max) * 100 : 0}%`,
+                          width: `${item.max > 0 ? Math.min(100, (item.value / item.max) * 100) : 0}%`,
                         }}
                       />
                     </div>

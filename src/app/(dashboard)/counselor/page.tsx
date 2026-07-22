@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CounselorDashboard } from "@/components/dashboard/counselor/counselor-dashboard";
-import { startOfDay, subDays } from "date-fns";
+import { startOfDay, subDays, startOfMonth } from "date-fns";
 
 export const metadata: Metadata = {
   title: "Counselor Dashboard",
@@ -13,6 +13,7 @@ export default async function CounselorPage() {
 
   const today = startOfDay(new Date());
   const sevenDaysAgo = subDays(today, 7);
+  const monthStart = startOfMonth(new Date());
 
   const [
     totalLeads,
@@ -21,6 +22,10 @@ export default async function CounselorPage() {
     pendingFollowups,
     overdueFollowups,
     recentLeads,
+    weekContacted,
+    weekAdmissions,
+    monthContacted,
+    monthAdmissions,
   ] = await Promise.all([
     prisma.lead.count({
       where: { assignedToId: user.id },
@@ -69,6 +74,11 @@ export default async function CounselorPage() {
         },
       },
     }),
+    // Period performance — leads last contacted / admissions confirmed in the window.
+    prisma.lead.count({ where: { assignedToId: user.id, lastContactedAt: { gte: sevenDaysAgo } } }),
+    prisma.lead.count({ where: { assignedToId: user.id, status: "ADMISSION_CONFIRMED", updatedAt: { gte: sevenDaysAgo } } }),
+    prisma.lead.count({ where: { assignedToId: user.id, lastContactedAt: { gte: monthStart } } }),
+    prisma.lead.count({ where: { assignedToId: user.id, status: "ADMISSION_CONFIRMED", updatedAt: { gte: monthStart } } }),
   ]);
 
   const stats = {
@@ -81,6 +91,8 @@ export default async function CounselorPage() {
       totalLeads > 0
         ? Number(((confirmedAdmissions / totalLeads) * 100).toFixed(1))
         : 0,
+    weekly: { contacted: weekContacted, admissions: weekAdmissions },
+    monthly: { contacted: monthContacted, admissions: monthAdmissions },
   };
 
   // Team context for agency counselors
