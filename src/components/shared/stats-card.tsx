@@ -14,6 +14,8 @@ interface StatsCardProps {
   };
   iconClassName?: string;
   className?: string;
+  /** Overrides the default muted styling of the description line. */
+  descriptionClassName?: string;
 }
 
 export function StatsCard({
@@ -24,6 +26,7 @@ export function StatsCard({
   trend,
   iconClassName,
   className,
+  descriptionClassName,
 }: StatsCardProps) {
   return (
     <Card className={cn("", className)}>
@@ -50,7 +53,7 @@ export function StatsCard({
               )}
             </div>
             {description && (
-              <p className="text-xs text-muted-foreground mt-1">{description}</p>
+              <p className={cn("text-xs mt-1", descriptionClassName ?? "text-muted-foreground")}>{description}</p>
             )}
           </div>
           <div

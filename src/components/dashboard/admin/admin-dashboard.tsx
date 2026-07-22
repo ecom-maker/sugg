@@ -73,6 +73,7 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
           value={`${stats.approvedColleges} / ${stats.totalColleges}`}
           icon={Building2}
           description={`${stats.totalColleges - stats.approvedColleges} pending approval`}
+          descriptionClassName={stats.totalColleges - stats.approvedColleges > 0 ? "text-red-600 font-bold" : undefined}
           iconClassName="text-blue-600 bg-blue-50"
         />
         <StatsCard
@@ -105,6 +106,7 @@ export function AdminDashboard({ stats }: AdminDashboardProps) {
           value={formatCurrency(stats.totalCommissionAmount)}
           icon={DollarSign}
           description={`${stats.pendingCommissions} pending approval`}
+          descriptionClassName={stats.pendingCommissions > 0 ? "text-red-600 font-bold" : undefined}
           iconClassName="text-emerald-600 bg-emerald-50"
         />
       </div>
