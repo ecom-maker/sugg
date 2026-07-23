@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, Search, LogOut, Settings, User, Moon, Sun } from "lucide-react";
+import { Menu, LogOut, Settings, User, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+import { GlobalSearch } from "@/components/dashboard/global-search";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -76,16 +76,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         <Menu className="w-5 h-5" />
       </Button>
 
-      {/* Search */}
-      <div className="flex-1 max-w-md hidden sm:block">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search students, colleges, applications..."
-            className="pl-9 h-9 bg-muted/50 border-0 focus-visible:ring-1"
-          />
-        </div>
-      </div>
+      {/* Global search */}
+      <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-2">
         {/* Dark Mode Toggle */}
