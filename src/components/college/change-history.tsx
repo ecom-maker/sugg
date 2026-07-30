@@ -26,10 +26,23 @@ const FIELD_LABELS: Record<string, string> = {
   universityId: "University",
   status: "Status",
   reason: "Reason",
+  // Course fields
+  degreeType: "Degree",
+  durationMonths: "Duration (months)",
+  eligibility: "Eligibility",
+  totalSeats: "Total Seats",
+  availableSeats: "Available Seats",
+  annualFee: "Annual Fee",
+  totalFee: "Total Fee",
+  isActive: "Active",
+  commissionType: "Commission Type",
+  commissionValue: "Commission Value",
+  commissionCurrency: "Commission Currency",
 };
 
-function titleFor(action: string): string {
+function titleFor(action: string, courseName?: unknown): string {
   if (action === "COLLEGE_UPDATED") return "Details updated";
+  if (action === "COURSE_UPDATED") return courseName ? `Course updated — ${courseName}` : "Course updated";
   if (action === "UNIVERSITY_LINKED_TO_COLLEGE") return "University linked";
   const m = action.match(/^COLLEGE_(APPROVED|REJECTED|SUSPENDED|ARCHIVED|PENDING)$/);
   if (m) {
@@ -41,6 +54,7 @@ function titleFor(action: string): string {
 
 function fmt(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
   const s = String(v);
   return s.length > 120 ? `${s.slice(0, 120)}…` : s;
 }
@@ -66,9 +80,9 @@ export function CollegeChangeHistory({ entries }: { entries: ChangeLogEntry[] })
             {entries.map((e) => {
               const oldObj = asObject(e.oldValue);
               const newObj = asObject(e.newValue);
-              // Fields to show as before → after rows (status is conveyed in the title).
+              // Fields to show as before → after rows. "status"/"course" are conveyed in the title.
               const keys = Array.from(new Set([...Object.keys(oldObj), ...Object.keys(newObj)])).filter(
-                (k) => k !== "status"
+                (k) => k !== "status" && k !== "course"
               );
               const who = e.user?.fullName ?? e.user?.email ?? "System";
               return (
@@ -76,7 +90,7 @@ export function CollegeChangeHistory({ entries }: { entries: ChangeLogEntry[] })
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted text-xs">
-                        {titleFor(e.action)}
+                        {titleFor(e.action, newObj.course ?? oldObj.course)}
                       </span>
                       <span className="text-muted-foreground inline-flex items-center gap-1 font-normal">
                         <User2 className="w-3.5 h-3.5" />

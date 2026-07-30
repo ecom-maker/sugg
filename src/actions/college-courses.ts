@@ -66,9 +66,46 @@ export async function upsertCourse(courseId: string | undefined, data: CourseDat
     if (college && existing.collegeId !== college.id) return { error: "Access denied" };
 
     await prisma.course.update({ where: { id: courseId }, data: payload });
+
+    // Record a field-level diff into the college's change history.
+    const norm = (v: unknown) =>
+      v && typeof v === "object" && "toString" in v ? (v as { toString(): string }).toString() : v;
+    const FIELDS = [
+      "name", "degreeType", "duration", "durationMonths", "eligibility", "totalSeats",
+      "availableSeats", "annualFee", "totalFee", "description", "isActive",
+      "commissionType", "commissionValue", "commissionCurrency",
+    ];
+    const oldValue: Record<string, unknown> = {};
+    const newValue: Record<string, unknown> = {};
+    const ex = existing as unknown as Record<string, unknown>;
+    const pl = payload as unknown as Record<string, unknown>;
+    for (const key of FIELDS) {
+      const before = norm(ex[key] ?? null);
+      const after = norm(pl[key] ?? null);
+      if (String(before ?? "") !== String(after ?? "")) {
+        oldValue[key] = before;
+        newValue[key] = after;
+      }
+    }
+    if (Object.keys(newValue).length > 0) {
+      oldValue.course = existing.name;
+      newValue.course = payload.name;
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "COURSE_UPDATED",
+          resource: "College",
+          resourceId: existing.collegeId,
+          oldValue: oldValue as Prisma.InputJsonValue,
+          newValue: newValue as Prisma.InputJsonValue,
+        },
+      });
+    }
+    revalidatePath(`/admin/colleges/${existing.collegeId}`);
   } else {
     if (!college) return { error: "No college found for your account" };
     await prisma.course.create({ data: { ...payload, collegeId: college.id } });
+    revalidatePath(`/admin/colleges/${college.id}`);
   }
 
   revalidatePath("/college/courses");

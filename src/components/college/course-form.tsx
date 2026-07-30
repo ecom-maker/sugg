@@ -67,7 +67,7 @@ interface CourseData {
 const DEGREE_TYPES = ["DIPLOMA", "BACHELOR", "MASTER", "DOCTORATE", "CERTIFICATE", "OTHER"] as const;
 const CURRENCIES = ["INR", "AED", "USD", "GBP", "EUR", "SGD", "AUD", "CAD"];
 
-export function CourseForm({ course }: { course?: CourseData }) {
+export function CourseForm({ course, redirectTo = "/college/courses" }: { course?: CourseData; redirectTo?: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -154,7 +154,7 @@ export function CourseForm({ course }: { course?: CourseData }) {
         return;
       }
       toast({ title: course ? "Course updated" : "Course created" });
-      router.push("/college/courses");
+      router.push(redirectTo);
       router.refresh();
     } catch {
       toast({ title: "Error", description: "Something went wrong", variant: "destructive" });
@@ -173,7 +173,7 @@ export function CourseForm({ course }: { course?: CourseData }) {
         return;
       }
       toast({ title: "Course deleted" });
-      router.push("/college/courses");
+      router.push(redirectTo);
       router.refresh();
     } catch {
       toast({ title: "Error", variant: "destructive" });

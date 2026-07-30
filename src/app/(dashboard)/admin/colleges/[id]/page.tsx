@@ -33,8 +33,22 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
   const courses = await prisma.course.findMany({
     where: { collegeId: id },
     orderBy: [{ isActive: "desc" }, { name: "asc" }],
-    select: { id: true, name: true, degreeType: true, duration: true, totalFee: true, annualFee: true, isActive: true },
+    select: {
+      id: true, name: true, degreeType: true, duration: true, totalFee: true, annualFee: true, isActive: true,
+      commissionType: true, commissionValue: true, commissionCurrency: true,
+    },
   });
+
+  const CURRENCY_SYMBOLS: Record<string, string> = { INR: "₹", USD: "$", AED: "AED ", GBP: "£", EUR: "€", SGD: "S$", AUD: "A$", CAD: "C$" };
+  const commissionLabel = (c: (typeof courses)[number]) => {
+    if (!c.commissionType) return "—";
+    const sym = CURRENCY_SYMBOLS[c.commissionCurrency] ?? `${c.commissionCurrency} `;
+    const val = Number(c.commissionValue ?? 0);
+    if (c.commissionType === "PERCENTAGE") return `${val}%`;
+    if (c.commissionType === "FIXED") return `${sym}${val.toLocaleString("en-IN")}`;
+    if (c.commissionType === "SLAB") return "Slab-based";
+    return "—";
+  };
 
   // Change history for this college (details edits, status changes, university links).
   const history = await prisma.auditLog.findMany({
@@ -179,12 +193,14 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Degree</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Duration</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Total Fee</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Commission</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {courses.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
                   <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-30" />No courses added for this college yet.
                 </td></tr>
               ) : courses.map((c) => (
@@ -195,10 +211,19 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{c.duration}</td>
                   <td className="px-4 py-3 text-right">{money(c.totalFee ?? c.annualFee)}</td>
+                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{commissionLabel(c)}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                       {c.isActive ? "Active" : "Inactive"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/colleges/${id}/courses/${c.id}/edit`}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </Link>
                   </td>
                 </tr>
               ))}
