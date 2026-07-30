@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -38,18 +39,16 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
   }
 
   try {
-  if (data.universityId) {
-    const university = await prisma.university.findUnique({ where: { id: data.universityId } });
-    if (!university) return { error: "University not found" };
-    if (university.status !== "ACTIVE") {
-      return { error: "Selected university is not active" };
+    if (data.universityId) {
+      const university = await prisma.university.findUnique({ where: { id: data.universityId } });
+      if (!university) return { error: "University not found" };
+      if (university.status !== "ACTIVE") {
+        return { error: "Selected university is not active" };
+      }
     }
-  }
 
-  await prisma.college.update({
-    where: { id: collegeId },
-    data: {
-      ...(data.name && { name: data.name }),
+    // Build the exact update payload (mirrors the previous write behaviour).
+    const updateData: Record<string, unknown> = {
       website: data.website || null,
       contactPhone: data.contactPhone || null,
       contactPersonName: data.contactPersonName || null,
@@ -62,25 +61,64 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
       pincode: data.pincode || null,
       description: data.description || null,
       establishedYear: data.establishedYear ?? null,
-      ...(data.universityId !== undefined && { universityId: data.universityId || null }),
-    },
-  });
+    };
+    if (data.name) updateData.name = data.name;
+    if (data.universityId !== undefined) updateData.universityId = data.universityId || null;
 
-  if (data.universityId !== undefined && data.universityId !== existing.universityId) {
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: "UNIVERSITY_LINKED_TO_COLLEGE",
-        resource: "College",
-        resourceId: collegeId,
-        oldValue: { universityId: existing.universityId },
-        newValue: { universityId: data.universityId },
-      },
-    });
-  }
+    // Diff against the current record so we record exactly what changed, by whom.
+    const TRACKED: Record<string, string> = {
+      name: "Name", website: "Website", contactPhone: "Contact Phone",
+      contactPersonName: "Contact Person", contactPersonDesig: "Contact Person Designation",
+      contactPersonPhone: "Contact Person Phone", address: "Address", city: "City",
+      state: "State", country: "Country", pincode: "Pincode", description: "Description",
+      establishedYear: "Established Year", universityId: "University",
+    };
+    const oldValue: Record<string, unknown> = {};
+    const newValue: Record<string, unknown> = {};
+    const rec = existing as unknown as Record<string, unknown>;
+    for (const key of Object.keys(TRACKED)) {
+      if (!(key in updateData)) continue;
+      const before = rec[key] ?? null;
+      const after = updateData[key] ?? null;
+      if (String(before ?? "") !== String(after ?? "")) {
+        oldValue[key] = before;
+        newValue[key] = after;
+      }
+    }
 
-  revalidatePath("/college/profile");
-  return { success: true };
+    // Store readable university names in the log instead of opaque ids.
+    if ("universityId" in newValue) {
+      const [oldU, newU] = await Promise.all([
+        existing.universityId
+          ? prisma.university.findUnique({ where: { id: existing.universityId }, select: { name: true } })
+          : Promise.resolve(null),
+        updateData.universityId
+          ? prisma.university.findUnique({ where: { id: updateData.universityId as string }, select: { name: true } })
+          : Promise.resolve(null),
+      ]);
+      oldValue.universityId = oldU?.name ?? null;
+      newValue.universityId = newU?.name ?? null;
+    }
+
+    await prisma.college.update({ where: { id: collegeId }, data: updateData });
+
+    // Record a single audit entry summarising the change set.
+    if (Object.keys(newValue).length > 0) {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "COLLEGE_UPDATED",
+          resource: "College",
+          resourceId: collegeId,
+          oldValue: oldValue as Prisma.InputJsonValue,
+          newValue: newValue as Prisma.InputJsonValue,
+        },
+      });
+    }
+
+    revalidatePath("/college/profile");
+    revalidatePath(`/admin/colleges/${collegeId}`);
+    return { success: true };
   } catch (e) {
     console.error("updateCollegeProfile error:", e);
     return { error: e instanceof Error ? e.message : "Could not save profile" };

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Building2, CheckCircle, XCircle, Mail, Phone, Globe, MapPin, User, BookOpen, FileText } from "lucide-react";
+import { Building2, CheckCircle, XCircle, Mail, Phone, Globe, MapPin, User, BookOpen, FileText, Pencil } from "lucide-react";
 import Link from "next/link";
 import { CollegeApprovalActions } from "@/components/college/approval-actions";
+import { CollegeChangeHistory } from "@/components/college/change-history";
 
 export const metadata: Metadata = { title: "College Details" };
 
@@ -33,6 +34,17 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
     where: { collegeId: id },
     orderBy: [{ isActive: "desc" }, { name: "asc" }],
     select: { id: true, name: true, degreeType: true, duration: true, totalFee: true, annualFee: true, isActive: true },
+  });
+
+  // Change history for this college (details edits, status changes, university links).
+  const history = await prisma.auditLog.findMany({
+    where: { resource: { in: ["College", "college"] }, resourceId: id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true, action: true, oldValue: true, newValue: true, createdAt: true,
+      user: { select: { fullName: true, email: true } },
+    },
   });
 
   const money = (v: unknown) => {
@@ -66,7 +78,15 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
             <p className="text-muted-foreground text-sm mt-0.5">{college.officialEmail}</p>
           </div>
         </div>
-        <Link href="/admin/colleges" className="text-sm text-muted-foreground hover:underline">← Back</Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/colleges/${id}/edit`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-md border bg-card hover:bg-accent transition-colors"
+          >
+            <Pencil className="w-4 h-4" /> Edit details
+          </Link>
+          <Link href="/admin/colleges" className="text-sm text-muted-foreground hover:underline">← Back</Link>
+        </div>
       </div>
 
       {/* Verification & Actions */}
@@ -215,6 +235,9 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
           </div>
         </div>
       )}
+
+      {/* Change history */}
+      <CollegeChangeHistory entries={history} />
     </div>
   );
 }
