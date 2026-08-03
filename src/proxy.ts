@@ -21,6 +21,9 @@ const publicRoutes = [
   // Auth callback (email OTP / recovery / OAuth). Must run for unauthenticated
   // users — it's what establishes the session (e.g. password-reset links).
   "/auth/callback",
+  // Public, read-only college Terms & Conditions document (linked from the
+  // acceptance popup and the college profile).
+  "/college-terms",
   "/",
 ];
 const authRoutes = ["/login", "/register"];

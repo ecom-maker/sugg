@@ -38,11 +38,15 @@ const FIELD_LABELS: Record<string, string> = {
   commissionType: "Commission Type",
   commissionValue: "Commission Value",
   commissionCurrency: "Commission Currency",
+  // Terms acceptance
+  acceptedBy: "Accepted By",
+  termsVersion: "Version",
 };
 
 function titleFor(action: string, courseName?: unknown): string {
   if (action === "COLLEGE_UPDATED") return "Details updated";
   if (action === "COURSE_UPDATED") return courseName ? `Course updated — ${courseName}` : "Course updated";
+  if (action === "TERMS_ACCEPTED") return "Terms & Conditions accepted";
   if (action === "UNIVERSITY_LINKED_TO_COLLEGE") return "University linked";
   const m = action.match(/^COLLEGE_(APPROVED|REJECTED|SUSPENDED|ARCHIVED|PENDING)$/);
   if (m) {

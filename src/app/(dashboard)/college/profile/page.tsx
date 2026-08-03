@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FileText, ExternalLink, CheckCircle2 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CollegeProfileForm } from "@/components/college/profile-form";
@@ -28,6 +29,7 @@ export default async function CollegeProfilePage() {
       establishedYear: true,
       universityId: true,
       status: true,
+      termsAcceptedAt: true,
     },
   });
 
@@ -38,6 +40,33 @@ export default async function CollegeProfilePage() {
         <p className="text-muted-foreground text-sm mt-1">Manage your institution&apos;s public profile</p>
       </div>
       <CollegeProfileForm college={college} />
+
+      {/* Terms & Conditions */}
+      <div className="rounded-lg border bg-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm">Terms &amp; Conditions</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          The terms governing your college profile activation and use of the Sugg platform.
+        </p>
+        {college?.termsAcceptedAt ? (
+          <p className="inline-flex items-center gap-1.5 text-sm text-green-700">
+            <CheckCircle2 className="w-4 h-4" />
+            Accepted on {new Date(college.termsAcceptedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+          </p>
+        ) : (
+          <p className="text-sm text-amber-600">Not yet accepted.</p>
+        )}
+        <a
+          href="/college-terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+        >
+          <ExternalLink className="w-4 h-4" /> View Terms &amp; Conditions
+        </a>
+      </div>
     </div>
   );
 }

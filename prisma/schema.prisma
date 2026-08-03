@@ -946,6 +946,8 @@ model College {
   isVerified            Boolean       @default(false) @map("is_verified")
   emailVerified         Boolean       @default(false) @map("email_verified")
   mobileVerified        Boolean       @default(false) @map("mobile_verified")
+  termsAcceptedAt       DateTime?     @map("terms_accepted_at")
+  termsAcceptedById     String?       @map("terms_accepted_by_id")
   verificationToken     String?       @map("verification_token")
   verificationExpiry    DateTime?     @map("verification_expiry")
   establishedYear       Int?          @map("established_year")
