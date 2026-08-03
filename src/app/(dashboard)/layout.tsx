@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { getAgencyApprovalState, isAgencyBlocked } from "@/lib/agency-access";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { CollegeTermsGate } from "@/components/college/terms-gate";
+import { AgencyTermsGate } from "@/components/agency/terms-gate";
 import { prisma } from "@/lib/prisma";
 
 export default async function DashboardRootLayout({
@@ -19,8 +20,8 @@ export default async function DashboardRootLayout({
     redirect(`/agency-blocked?status=${agencyState!.status}`);
   }
 
-  // College accounts must accept the Terms & Conditions once. Until they do,
-  // a blocking acceptance popup is shown on every page.
+  // College accounts and agency owners must accept the Terms & Conditions once.
+  // Until they do, a blocking acceptance popup is shown on every page.
   let termsGate: React.ReactNode = null;
   if (user.role === "COLLEGE_ADMIN") {
     const college = await prisma.college.findFirst({
@@ -29,6 +30,14 @@ export default async function DashboardRootLayout({
     });
     if (college && !college.termsAcceptedAt) {
       termsGate = <CollegeTermsGate collegeName={college.name} />;
+    }
+  } else if (user.role === "AGENCY_OWNER") {
+    const agency = await prisma.agency.findFirst({
+      where: { owner: { supabaseId: user.supabaseId } },
+      select: { name: true, termsAcceptedAt: true },
+    });
+    if (agency && !agency.termsAcceptedAt) {
+      termsGate = <AgencyTermsGate agencyName={agency.name} />;
     }
   }
 

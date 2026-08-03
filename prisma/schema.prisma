@@ -1238,6 +1238,8 @@ model Agency {
   verificationExpiry DateTime? @map("verification_expiry")
   emailVerified      Boolean  @default(false) @map("email_verified")
   mobileVerified     Boolean  @default(false) @map("mobile_verified")
+  termsAcceptedAt    DateTime? @map("terms_accepted_at")
+  termsAcceptedById  String?  @map("terms_accepted_by_id")
   approvedById       String?  @map("approved_by_id")
   approvedAt         DateTime? @map("approved_at")
   rejectionReason    String?  @map("rejection_reason")
