@@ -65,7 +65,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   const settingsHref: string | null = user.role === "SUPER_ADMIN" ? "/admin/settings" : null;
 
   return (
-    <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-4 gap-4 shrink-0">
+    <header className="relative z-50 h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-4 gap-4 shrink-0">
       {/* Menu Toggle */}
       <Button
         variant="ghost"
