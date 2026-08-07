@@ -25,7 +25,7 @@ export default async function AdminCollegeEditPage({ params }: { params: Promise
       id: true, name: true, website: true, officialEmail: true, contactPhone: true,
       contactPersonName: true, contactPersonDesig: true, contactPersonPhone: true,
       address: true, city: true, state: true, country: true, pincode: true,
-      description: true, establishedYear: true, universityId: true, status: true,
+      description: true, establishedYear: true, hostelAvailable: true, universityId: true, status: true,
       admin: { select: { email: true } },
     },
   });

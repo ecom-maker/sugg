@@ -1,0 +1,1 @@
+ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "hostel_available" BOOLEAN NOT NULL DEFAULT false;

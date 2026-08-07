@@ -19,6 +19,7 @@ interface ProfileData {
   pincode?: string;
   description?: string;
   establishedYear?: number;
+  hostelAvailable?: boolean;
   universityId?: string | null;
 }
 
@@ -61,6 +62,7 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
       pincode: data.pincode || null,
       description: data.description || null,
       establishedYear: data.establishedYear ?? null,
+      hostelAvailable: data.hostelAvailable ?? false,
     };
     if (data.name) updateData.name = data.name;
     if (data.universityId !== undefined) updateData.universityId = data.universityId || null;
@@ -71,7 +73,7 @@ export async function updateCollegeProfile(collegeId: string, data: ProfileData)
       contactPersonName: "Contact Person", contactPersonDesig: "Contact Person Designation",
       contactPersonPhone: "Contact Person Phone", address: "Address", city: "City",
       state: "State", country: "Country", pincode: "Pincode", description: "Description",
-      establishedYear: "Established Year", universityId: "University",
+      establishedYear: "Established Year", hostelAvailable: "Hostel Available", universityId: "University",
     };
     const oldValue: Record<string, unknown> = {};
     const newValue: Record<string, unknown> = {};

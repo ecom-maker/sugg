@@ -942,6 +942,7 @@ model College {
   logoUrl               String?       @map("logo_url")
   bannerUrl             String?       @map("banner_url")
   description           String?
+  hostelAvailable       Boolean       @default(false) @map("hostel_available")
   status                CollegeStatus @default(PENDING)
   isVerified            Boolean       @default(false) @map("is_verified")
   emailVerified         Boolean       @default(false) @map("email_verified")

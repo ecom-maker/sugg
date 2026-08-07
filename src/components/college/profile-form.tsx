@@ -30,6 +30,7 @@ const schema = z.object({
     (v) => (v === "" || v === null || (typeof v === "number" && Number.isNaN(v)) ? undefined : v),
     z.coerce.number().min(1800).max(new Date().getFullYear()).optional()
   ),
+  hostelAvailable: z.boolean().default(false),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -52,6 +53,7 @@ interface CollegeData {
   establishedYear: number | null;
   universityId: string | null;
   status: string;
+  hostelAvailable: boolean;
 }
 
 export function CollegeProfileForm({ college }: { college: CollegeData | null }) {
@@ -75,6 +77,7 @@ export function CollegeProfileForm({ college }: { college: CollegeData | null })
       pincode: college.pincode ?? "",
       description: college.description ?? "",
       establishedYear: college.establishedYear ?? undefined,
+      hostelAvailable: college.hostelAvailable ?? false,
     } : {},
   });
 
@@ -174,6 +177,15 @@ export function CollegeProfileForm({ college }: { college: CollegeData | null })
             placeholder="Brief description of your institution..."
             {...form.register("description")}
           />
+        </div>
+        <div className="flex items-center gap-2.5 pt-1">
+          <input
+            id="hostelAvailable"
+            type="checkbox"
+            className="w-4 h-4 rounded border-input accent-primary cursor-pointer"
+            {...form.register("hostelAvailable")}
+          />
+          <Label htmlFor="hostelAvailable" className="cursor-pointer">Hostel available</Label>
         </div>
       </div>
 

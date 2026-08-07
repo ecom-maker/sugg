@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Building2, CheckCircle, XCircle, Mail, Phone, Globe, MapPin, User, BookOpen, FileText, Pencil } from "lucide-react";
+import { Building2, CheckCircle, XCircle, Mail, Phone, Globe, MapPin, User, BookOpen, FileText, Pencil, Home } from "lucide-react";
 import Link from "next/link";
 import { CollegeApprovalActions } from "@/components/college/approval-actions";
 import { CollegeChangeHistory } from "@/components/college/change-history";
@@ -145,6 +145,7 @@ export default async function AdminCollegeDetailPage({ params }: { params: Promi
             {(college.city ?? college.country) && (
               <div className="flex items-center gap-2"><MapPin className="w-4 h-4" />{[college.address, college.city, college.state, college.country].filter(Boolean).join(", ")}</div>
             )}
+            <div className="flex items-center gap-2"><Home className="w-4 h-4" />Hostel: {college.hostelAvailable ? "Available" : "Not available"}</div>
           </div>
         </div>
 

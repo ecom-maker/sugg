@@ -23,6 +23,7 @@ const FIELD_LABELS: Record<string, string> = {
   pincode: "Pincode",
   description: "Description",
   establishedYear: "Established Year",
+  hostelAvailable: "Hostel Available",
   universityId: "University",
   status: "Status",
   reason: "Reason",

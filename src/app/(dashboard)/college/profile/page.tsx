@@ -27,6 +27,7 @@ export default async function CollegeProfilePage() {
       pincode: true,
       description: true,
       establishedYear: true,
+      hostelAvailable: true,
       universityId: true,
       status: true,
       termsAcceptedAt: true,
