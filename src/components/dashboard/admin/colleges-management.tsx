@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Filter, Building2, CheckCircle, XCircle, Clock, Plus } from "lucide-react";
@@ -57,6 +57,8 @@ export function CollegesManagementPage({
 }) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [search, setSearch] = useState(searchParams.search ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams as Record<string, string>);
@@ -64,6 +66,14 @@ export function CollegesManagementPage({
     else params.delete(key);
     params.delete("page");
     router.push(`?${params.toString()}`);
+  };
+
+  // Predictive, as-you-type search: debounce the URL update so the table
+  // filters live without needing to press Enter.
+  const onSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => updateFilter("search", value), 300);
   };
 
   const handleApprove = async (collegeId: string, collegeName: string) => {
@@ -142,10 +152,12 @@ export function CollegesManagementPage({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search colleges..."
-            defaultValue={searchParams.search}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
+                if (debounceRef.current) clearTimeout(debounceRef.current);
                 updateFilter("search", (e.target as HTMLInputElement).value);
               }
             }}
