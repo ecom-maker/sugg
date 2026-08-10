@@ -981,6 +981,8 @@ model College {
   commissions      CommissionTransaction[]
   shortlists       StudentShortlist[]
 
+  @@index([status])
+  @@index([city])
   @@map("colleges")
 }
 
@@ -1028,6 +1030,7 @@ model Course {
   scholarships    Scholarship[]
   shortlists      StudentShortlist[]
 
+  @@index([collegeId])
   @@map("courses")
 }
 
