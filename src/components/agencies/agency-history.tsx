@@ -93,7 +93,7 @@ export function AgencyActivityHistory({
               </time>
             </div>
             <p className="text-xs text-muted-foreground inline-flex items-center gap-1">
-              <User2 className="w-3 h-3" /> {ev.actor}
+              <User2 className="w-3 h-3" /> by <span className="font-medium text-foreground">{ev.actor}</span>
             </p>
             {ev.reason && (
               <p className="text-sm mt-1">
