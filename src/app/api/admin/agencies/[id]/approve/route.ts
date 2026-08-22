@@ -8,7 +8,7 @@ import { ensureHeadOfficeBranch, activatePendingAgencyUsers } from "@/lib/agency
  * Approves an agency: activates its owner (+ pre-created manager), auto-creates
  * a default Head Office branch, and notifies the owner.
  */
-export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user || user.role !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,6 +16,8 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const { id } = await params;
 
   try {
+    const body = await request.json().catch(() => ({}));
+    const reason: string | undefined = body.reason;
     const agency = await prisma.agency.findUnique({ where: { id } });
     if (!agency) return NextResponse.json({ error: "Agency not found" }, { status: 404 });
     if (agency.approvalStatus === "APPROVED") {
@@ -55,7 +57,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
           action: "APPROVE_AGENCY",
           resource: "agency",
           resourceId: id,
-          newValue: { name: agency.name },
+          newValue: { name: agency.name, reason: reason ?? null },
         },
       });
     });

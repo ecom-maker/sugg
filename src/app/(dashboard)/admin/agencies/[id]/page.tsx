@@ -9,6 +9,7 @@ import { ArrowLeft, Pencil, Mail, Phone, Globe, MapPin, Building2, Hash } from "
 import { MapToBranch } from "@/components/agencies/map-to-branch";
 import { AgencyApprovalActions } from "@/components/agencies/agency-approval-actions";
 import { AgencyLoginCredentials } from "@/components/agencies/agency-login-credentials";
+import { AgencyActivityHistory } from "@/components/agencies/agency-history";
 
 export const metadata: Metadata = { title: "Agency" };
 
@@ -44,6 +45,20 @@ export default async function AgencyDetailPage({
   });
 
   if (!agency) notFound();
+
+  // Full activity trail: status changes (with reasons) + T&C acceptance.
+  const history = await prisma.auditLog.findMany({
+    where: { resource: { in: ["agency", "Agency"] }, resourceId: id },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+    select: {
+      id: true,
+      action: true,
+      newValue: true,
+      createdAt: true,
+      user: { select: { fullName: true, email: true } },
+    },
+  });
 
   const location =
     [agency.geoDistrict?.districtName, agency.geoState?.stateName, agency.geoCountry?.countryName]
@@ -219,6 +234,12 @@ export default async function AgencyDetailPage({
               </ul>
             )}
           </div>
+
+          <AgencyActivityHistory
+            registeredAt={agency.createdAt}
+            onboardingSource={agency.onboardingSource}
+            entries={history}
+          />
         </div>
 
         <div className="space-y-6">
