@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AgencyStaffEditForm } from "@/components/agency/agency-staff-edit-form";
+import { ChangeHistory } from "@/components/shared/change-history";
 
 export const metadata: Metadata = { title: "Edit Staff" };
 
@@ -39,6 +40,13 @@ export default async function EditAgencyStaffPage({
     label: `${b.branchName} (${b.branchCode})`,
   }));
 
+  const history = await prisma.auditLog.findMany({
+    where: { resource: "agency_user", resourceId: agencyUser.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: { id: true, action: true, oldValue: true, newValue: true, createdAt: true, user: { select: { fullName: true, email: true } } },
+  });
+
   return (
     <div className="p-6 space-y-4 max-w-2xl">
       <Button variant="ghost" size="sm" asChild className="gap-2 -ml-2">
@@ -59,6 +67,7 @@ export default async function EditAgencyStaffPage({
         }}
         branchOptions={branchOptions}
       />
+      <ChangeHistory entries={history} title="Change history" />
     </div>
   );
 }

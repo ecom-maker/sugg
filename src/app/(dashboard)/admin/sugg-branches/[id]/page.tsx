@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Mail, Phone, MapPin, Building2, Users, Briefcase } from "lucide-react";
 import { TerritoryManager, type TerritoryRow } from "@/components/sugg-branches/territory-manager";
 import { BranchSettings } from "@/components/sugg-branches/branch-settings";
+import { ChangeHistory } from "@/components/shared/change-history";
 
 export const metadata: Metadata = { title: "Sugg Branch" };
 
@@ -64,6 +65,13 @@ export default async function SuggBranchDetailPage({
   });
 
   if (!branch) notFound();
+
+  const history = await prisma.auditLog.findMany({
+    where: { resource: "sugg_branch", resourceId: id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: { id: true, action: true, oldValue: true, newValue: true, createdAt: true, user: { select: { fullName: true, email: true } } },
+  });
 
   const territories: TerritoryRow[] = branch.territories.map((t) => ({
     id: t.id,
@@ -193,6 +201,8 @@ export default async function SuggBranchDetailPage({
               </ul>
             )}
           </div>
+
+          <ChangeHistory entries={history} />
         </div>
 
         {/* Settings sidebar */}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { EMPLOYEE_TYPE_LABELS, EMPLOYEE_ID_TYPE_LABELS } from "@/lib/hr";
 import { EmployeeAccessCard } from "@/components/hr/employee-access-card";
+import { ChangeHistory } from "@/components/shared/change-history";
 
 export const metadata: Metadata = { title: "Employee" };
 
@@ -38,6 +39,13 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
   if (!scopeCanManage(scope, e.branchId, e.employeeType)) redirect("/unauthorized");
 
   const hasEmail = Boolean(e.officialEmail || e.personalEmail);
+
+  const history = await prisma.auditLog.findMany({
+    where: { resource: "employee", resourceId: e.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: { id: true, action: true, oldValue: true, newValue: true, createdAt: true, user: { select: { fullName: true, email: true } } },
+  });
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
@@ -105,6 +113,8 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           login={e.user ? { email: e.user.email, role: e.user.role, capabilities: e.user.capabilities } : null}
         />
       )}
+
+      <ChangeHistory entries={history} />
     </div>
   );
 }

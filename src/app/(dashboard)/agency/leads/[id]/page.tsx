@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Mail, Phone, GraduationCap, MapPin, History } from "lucide-react";
 import { AgencyLeadActions } from "@/components/agency/agency-lead-actions";
+import { ChangeHistory } from "@/components/shared/change-history";
 import type { LeadStatus } from "@/types";
 
 export const metadata: Metadata = { title: "Lead" };
@@ -39,6 +40,13 @@ export default async function AgencyLeadDetailPage({ params }: { params: Promise
     },
   });
   if (!lead) notFound();
+
+  const history = await prisma.auditLog.findMany({
+    where: { resource: "lead", resourceId: id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: { id: true, action: true, oldValue: true, newValue: true, createdAt: true, user: { select: { fullName: true, email: true } } },
+  });
 
   // Counselor options for reassignment (owner/admin: whole agency; branch
   // manager: own branch). Counselors cannot reassign.
@@ -121,6 +129,8 @@ export default async function AgencyLeadDetailPage({ params }: { params: Promise
               </ol>
             )}
           </div>
+
+          <ChangeHistory entries={history} title="Change history" />
         </div>
 
         <div className="space-y-6">
