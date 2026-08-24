@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { getEmployeeScope, scopeCanManage } from "@/lib/employee-scope";
 import { EMPLOYEE_TYPE_LABELS } from "@/lib/hr";
+import { diffFields, recordChange } from "@/lib/audit";
 import { employeeFields } from "../route";
 import { z } from "zod";
 
@@ -72,19 +73,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
-    await prisma.auditLog.create({
-      data: {
+    const { oldValue, newValue, changed } = diffFields(
+      existing as unknown as Record<string, unknown>,
+      employee as unknown as Record<string, unknown>,
+      [
+        "firstName", "lastName", "dob", "address", "personalPhone", "officialPhone",
+        "personalEmail", "officialEmail", "emergencyName", "emergencyRelation",
+        "emergencyPhone", "nationalIdType", "nationalIdNumber", "employeeType", "branchId",
+      ]
+    );
+    if (changed) {
+      await recordChange({
         userId: user.id,
         action: "UPDATE_EMPLOYEE",
         resource: "employee",
         resourceId: employee.id,
-        newValue: {
-          name: `${employee.firstName} ${employee.lastName}`,
-          employeeType: employee.employeeType,
-          branchId: employee.branchId,
-        },
-      },
-    });
+        oldValue,
+        newValue,
+      });
+    }
 
     return NextResponse.json({ employee });
   } catch (err) {

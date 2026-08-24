@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { provisionLogin } from "@/lib/agency-auth";
+import { diffFields, recordChange } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { OWNER_ASSIGNABLE_ROLES, AGENCY_ROLES_REQUIRING_BRANCH, type AgencyAssignableRole } from "@/lib/agency-roles";
 
@@ -144,7 +145,10 @@ export async function updateAgencyStaff(input: UpdateAgencyStaffInput) {
       userId: input.userId,
       ...(user.role === "SUPER_ADMIN" ? {} : { agency: { owner: { supabaseId: user.supabaseId } } }),
     },
-    select: { id: true, agencyId: true, user: { select: { role: true } } },
+    select: {
+      id: true, agencyId: true, branchId: true,
+      user: { select: { role: true, fullName: true, phone: true, isActive: true } },
+    },
   });
   if (!target) return { error: "Staff member not found in your agency" };
 
@@ -187,15 +191,21 @@ export async function updateAgencyStaff(input: UpdateAgencyStaffInput) {
     return { error: "Could not update the staff member" };
   }
 
-  await prisma.auditLog.create({
-    data: {
+  const { oldValue, newValue, changed } = diffFields(
+    { fullName: target.user.fullName, phone: target.user.phone, isActive: target.user.isActive, branchId: target.branchId },
+    { fullName, phone: input.phone?.trim() || null, isActive: input.isActive, branchId },
+    ["fullName", "phone", "isActive", "branchId"]
+  );
+  if (changed) {
+    await recordChange({
       userId: user.id,
       action: "UPDATE_AGENCY_STAFF",
       resource: "agency_user",
       resourceId: target.id,
-      newValue: { userId: input.userId, fullName, isActive: input.isActive, branchId },
-    },
-  });
+      oldValue,
+      newValue,
+    });
+  }
 
   revalidatePath("/agency/staff");
   return { success: true };

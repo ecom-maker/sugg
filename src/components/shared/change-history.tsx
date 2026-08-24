@@ -58,11 +58,16 @@ const ACTION_TITLES: Record<string, string> = {
   ASSIGN_SUGG_BRANCH_MANAGER: "Manager assigned",
   CREATE_SUGG_BRANCH: "Branch created",
   UPDATE_SUGG_BRANCH: "Branch updated",
+  ARCHIVE_SUGG_BRANCH: "Branch archived",
+  UPDATE_AGENCY: "Details updated",
+  UNIVERSITY_UPDATED: "Details updated",
+  UNIVERSITY_CREATED: "University created",
   TERMS_ACCEPTED: "Terms & Conditions accepted",
 };
 
-// Keys used only to give an entry a subject/heading, not shown as diff rows.
-const SUBJECT_KEYS = ["student", "studentName", "name", "fullName", "collegeName"];
+// Contextual reference keys used only to head an entry, not shown as diff rows.
+// (Entity name fields like `name`/`fullName` are shown as normal diff rows.)
+const SUBJECT_KEYS = ["student", "studentName", "collegeName"];
 
 function humanize(action: string): string {
   return action.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { diffFields, recordChange } from "@/lib/audit";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -66,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const data = updateSchema.parse(await request.json());
 
-    const existing = await prisma.agency.findUnique({ where: { id }, select: { id: true, email: true } });
+    const existing = await prisma.agency.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Agency not found" }, { status: 404 });
 
     if (data.email && data.email !== existing.email) {
@@ -100,19 +101,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         },
       });
 
-      await tx.auditLog.create({
-        data: {
-          userId: user.id,
-          action: "UPDATE_AGENCY",
-          resource: "agency",
-          resourceId: id,
-          newValue: {
-            name: updated.name,
-            approvalStatus: updated.approvalStatus,
-            isActive: updated.isActive,
-          },
-        },
-      });
+      const { oldValue, newValue, changed } = diffFields(
+        existing as unknown as Record<string, unknown>,
+        updated as unknown as Record<string, unknown>,
+        [
+          "name", "email", "phone", "website", "registrationNumber", "ownerName",
+          "ownerMobile", "ownerEmail", "specialization", "nationalIdType",
+          "nationalIdNumber", "headquarters", "address", "city", "countryId",
+          "stateId", "districtId", "isActive", "approvalStatus",
+        ]
+      );
+      if (changed) {
+        await recordChange(
+          { userId: user.id, action: "UPDATE_AGENCY", resource: "agency", resourceId: id, oldValue, newValue },
+          tx
+        );
+      }
 
       return updated;
     });

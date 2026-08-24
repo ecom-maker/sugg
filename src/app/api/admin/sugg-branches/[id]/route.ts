@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { diffFields, recordChange } from "@/lib/audit";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -148,15 +149,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         data.status === "ARCHIVED" && existing.status !== "ARCHIVED"
           ? "ARCHIVE_SUGG_BRANCH"
           : "UPDATE_SUGG_BRANCH";
-      await tx.auditLog.create({
-        data: {
-          userId: user.id,
-          action,
-          resource: "sugg_branch",
-          resourceId: id,
-          newValue: { branchName: updated.branchName, status: updated.status },
-        },
-      });
+      // managerId is captured separately (ASSIGN_SUGG_BRANCH_MANAGER above).
+      const { oldValue, newValue, changed } = diffFields(
+        existing as unknown as Record<string, unknown>,
+        updated as unknown as Record<string, unknown>,
+        ["branchName", "branchCode", "address", "countryId", "stateId", "districtId", "phone", "email", "status"]
+      );
+      if (changed || action === "ARCHIVE_SUGG_BRANCH") {
+        await recordChange({ userId: user.id, action, resource: "sugg_branch", resourceId: id, oldValue, newValue }, tx);
+      }
 
       return updated;
     });

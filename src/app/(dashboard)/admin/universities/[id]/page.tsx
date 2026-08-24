@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { UniversityDetailView } from "@/components/university/university-detail";
+import { ChangeHistory } from "@/components/shared/change-history";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -41,6 +42,15 @@ export default async function UniversityDetailPage({
 
   if (!university) notFound();
 
+  const history = canManage
+    ? await prisma.auditLog.findMany({
+        where: { resource: "University", resourceId: id },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: { id: true, action: true, oldValue: true, newValue: true, createdAt: true, user: { select: { fullName: true, email: true } } },
+      })
+    : [];
+
   return (
     <div className="p-6 space-y-4">
       <Button variant="ghost" size="sm" asChild className="gap-2 -ml-2">
@@ -50,6 +60,7 @@ export default async function UniversityDetailPage({
         </Link>
       </Button>
       <UniversityDetailView university={university} canManage={canManage} />
+      {canManage && <ChangeHistory entries={history} />}
     </div>
   );
 }

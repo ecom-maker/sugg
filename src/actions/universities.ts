@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getAuthUser } from "@/lib/auth";
+import { diffFields } from "@/lib/audit";
 import type { UniversityStatus, UniversityType } from "@/types";
 
 const universitySchema = z.object({
@@ -105,13 +106,21 @@ export async function updateUniversity(
     },
   });
 
-  await logUniversityAction(
-    user.id,
-    "UNIVERSITY_UPDATED",
-    universityId,
-    { name: existing.name, status: existing.status },
-    { name: updated.name, status: updated.status }
+  const keys = Array.from(new Set([...Object.keys(data), "status"]));
+  const { oldValue, newValue, changed } = diffFields(
+    existing as unknown as Record<string, unknown>,
+    updated as unknown as Record<string, unknown>,
+    keys
   );
+  if (changed) {
+    await logUniversityAction(
+      user.id,
+      "UNIVERSITY_UPDATED",
+      universityId,
+      oldValue as Prisma.InputJsonValue,
+      newValue as Prisma.InputJsonValue
+    );
+  }
 
   revalidatePath("/admin/universities");
   revalidatePath(`/admin/universities/${universityId}`);
