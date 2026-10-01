@@ -42,6 +42,20 @@ const statusConfig: Record<CollegeStatus, { label: string; variant: "default" | 
   ARCHIVED: { label: "Archived", variant: "outline" },
 };
 
+// Compact page list with ellipses: 1 … 4 5 6 … 10
+function pageWindow(current: number, totalPages: number): (number | "ellipsis")[] {
+  const set = new Set<number>([1, totalPages, current, current - 1, current + 1]);
+  const pages = [...set].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+  const out: (number | "ellipsis")[] = [];
+  let prev = 0;
+  for (const p of pages) {
+    if (p - prev > 1) out.push("ellipsis");
+    out.push(p);
+    prev = p;
+  }
+  return out;
+}
+
 export function CollegesManagementPage({
   colleges,
   total,
@@ -74,6 +88,16 @@ export function CollegesManagementPage({
     setSearch(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => updateFilter("search", value), 300);
+  };
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const rangeStart = total === 0 ? 0 : (page - 1) * limit + 1;
+  const rangeEnd = Math.min(page * limit, total);
+  const goToPage = (p: number) => {
+    const sp = new URLSearchParams(searchParams as Record<string, string>);
+    if (p <= 1) sp.delete("page");
+    else sp.set("page", String(p));
+    router.push(`?${sp.toString()}`);
   };
 
   const handleApprove = async (collegeId: string, collegeName: string) => {
@@ -315,6 +339,54 @@ export function CollegesManagementPage({
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {total > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Showing {rangeStart}&ndash;{rangeEnd} of {total}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                disabled={page <= 1}
+                onClick={() => goToPage(page - 1)}
+              >
+                Previous
+              </Button>
+              {pageWindow(page, totalPages).map((p, i) =>
+                p === "ellipsis" ? (
+                  <span key={`e${i}`} className="px-1.5 text-muted-foreground">
+                    &hellip;
+                  </span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={p === page ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => goToPage(p)}
+                  >
+                    {p}
+                  </Button>
+                )
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                disabled={page >= totalPages}
+                onClick={() => goToPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
